@@ -42,7 +42,7 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
   ]);
 
   const allKavlingRows = (kavlingRes.data ?? []) as Kavling[];
-  const kavlingRows = allKavlingRows.filter((row) => ['AVAILABLE', 'BOOKING', 'READY_STOCK'].includes(row.status_kavling));
+  const kavlingRows = allKavlingRows.filter((row) => ['AVAILABLE', 'BOOKING'].includes(row.status_kavling));
   const tipeRows = (tipeRes.data ?? []) as Tipe[];
   const kantorRows = (kantorRes.data ?? []) as Kantor[];
   const mandorRows = (mandorRes.data ?? []) as Mandor[];
@@ -83,7 +83,7 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
         <div style={{ marginBottom: 22 }}>
           <div style={eyebrow}>CONSTRUCTION CONTROL</div>
           <h1 style={{ margin: '5px 0 6px', fontSize: 28 }}>Kelola SPK</h1>
-          <p style={{ margin: 0, color: '#C9BC99' }}>SPK dapat dibuat tanpa Sales untuk pembangunan rumah ready stock, atau pada kavling yang sudah BOOKING.</p>
+          <p style={{ margin: 0, color: '#C9BC99' }}>SPK dapat dibuat tanpa Sales untuk rumah ready stock, atau untuk kavling yang sudah BOOKING. Satu kavling hanya memiliki satu SPK aktif.</p>
         </div>
 
         {pageError && <div style={alertError}>{pageError}</div>}
@@ -112,7 +112,7 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
             </label>
 
             <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ color: '#C9BC99', fontSize: 12 }}><strong>Aturan:</strong> Sales tidak wajib. Kavling AVAILABLE/BOOKING/READY STOCK dapat dibuatkan SPK selama belum ada SPK aktif; bobot final tetap wajib 100%.</div>
+              <div style={{ color: '#C9BC99', fontSize: 12 }}><strong>Aturan:</strong> Sales tidak wajib. SPK baru hanya dapat dibuat pada kavling AVAILABLE atau BOOKING; status menjadi BUILDING saat SPK diaktifkan.</div>
               <button type="submit" style={primaryButton} disabled={!kavlingRows.length || !kantorRows.length || !mandorRows.length || !kategoriRows.length}>+ Simpan SPK sebagai DRAFT</button>
             </div>
           </form>
