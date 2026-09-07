@@ -7,8 +7,7 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/login');
 
-  const { data: summary } = await supabase
-    .schema('kavio')
+  const { data: summary, error } = await supabase
     .from('v_progress_summary')
     .select('id_kavling, progress_total, tgl_target_selesai, status_spm')
     .order('progress_total', { ascending: false })
@@ -35,8 +34,19 @@ export default async function DashboardPage() {
       </header>
 
       <section style={{ padding: 28 }}>
-        <h1 style={{ margin: '0 0 6px', fontSize: 28 }}>Dashboard Monitoring</h1>
-        <p style={{ margin: '0 0 24px', color: '#64748b' }}>Ringkasan progress proyek berdasarkan data Supabase.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: 24 }}>
+          <div>
+            <h1 style={{ margin: '0 0 6px', fontSize: 28 }}>Dashboard Monitoring</h1>
+            <p style={{ margin: 0, color: '#64748b' }}>Ringkasan progress proyek dari database KAVIO.</p>
+          </div>
+          <a href="/master/kavling" style={{ background: '#2563eb', color: '#fff', padding: '11px 16px', borderRadius: 10, textDecoration: 'none', fontWeight: 700, fontSize: 14 }}>Master Kavling</a>
+        </div>
+
+        {error && (
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: 14, borderRadius: 12, marginBottom: 20 }}>
+            Gagal membaca data dashboard: {error.message}
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16, marginBottom: 24 }}>
           <Kpi label="Kavling Terpantau" value={String(rows.length)} />
