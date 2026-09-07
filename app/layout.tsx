@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import './kavio-theme.css';
 
 export const metadata: Metadata = {
   title: 'KAVIO Monitor V1.0',
