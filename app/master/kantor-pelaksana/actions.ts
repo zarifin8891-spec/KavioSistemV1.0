@@ -13,18 +13,23 @@ export async function createKantorPelaksana(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const kodeKantor = text(formData.get('kode_kantor'));
-  const namaKantor = text(formData.get('nama_kantor'));
-  const statusAktif = text(formData.get('status_aktif')) !== 'false';
+  const idKantor = text(formData.get('id_kantor'));
+  const namaKantorPelaksana = text(formData.get('nama_kantor_pelaksana'));
+  const penanggungJawab = text(formData.get('penanggung_jawab'));
+  const noHp = text(formData.get('no_hp'));
+  const keterangan = text(formData.get('keterangan'));
 
-  if (!kodeKantor || !namaKantor) {
-    redirect('/master/kantor-pelaksana?error=Kode%20dan%20nama%20kantor%20wajib%20diisi');
+  if (!idKantor || !namaKantorPelaksana) {
+    redirect('/master/kantor-pelaksana?error=ID%20dan%20nama%20kantor%20wajib%20diisi');
   }
 
   const { error } = await supabase.from('master_kantor_pelaksana').insert({
-    kode_kantor: kodeKantor,
-    nama_kantor: namaKantor,
-    status_aktif: statusAktif,
+    id_kantor: idKantor,
+    nama_kantor_pelaksana: namaKantorPelaksana,
+    penanggung_jawab: penanggungJawab || null,
+    no_hp: noHp || null,
+    keterangan: keterangan || null,
+    status_aktif: true,
   });
 
   if (error) redirect(`/master/kantor-pelaksana?error=${encodeURIComponent(error.message)}`);
@@ -38,18 +43,19 @@ export async function toggleKantorPelaksana(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const kodeKantor = text(formData.get('kode_kantor'));
+  const idKantor = text(formData.get('id_kantor'));
   const statusAktif = text(formData.get('status_aktif')) === 'true';
 
-  if (!kodeKantor) redirect('/master/kantor-pelaksana?error=Kode%20kantor%20tidak%20valid');
+  if (!idKantor) redirect('/master/kantor-pelaksana?error=ID%20kantor%20tidak%20valid');
 
   const { error } = await supabase
     .from('master_kantor_pelaksana')
     .update({ status_aktif: !statusAktif })
-    .eq('kode_kantor', kodeKantor);
+    .eq('id_kantor', idKantor);
 
   if (error) redirect(`/master/kantor-pelaksana?error=${encodeURIComponent(error.message)}`);
 
   revalidatePath('/master/kantor-pelaksana');
+  revalidatePath('/master/mandor');
   redirect('/master/kantor-pelaksana');
 }
