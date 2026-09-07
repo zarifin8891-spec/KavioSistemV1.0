@@ -58,7 +58,7 @@ export async function createSales(formData: FormData) {
   if (insertSales.error || !insertSales.data) redirectError(insertSales.error?.message ?? 'Sales gagal disimpan');
 
   const nextKavlingStatus = statusSales === 'BATAL'
-    ? kavling.status_kavling === 'BUILDING' ? 'BUILDING' : 'READY_STOCK'
+    ? kavling.status_kavling === 'BUILDING' ? 'BUILDING' : kavling.status_kavling === 'READY_STOCK' ? 'READY_STOCK' : 'AVAILABLE'
     : statusSales === 'AKAD'
       ? 'SOLD'
       : 'BOOKING';
@@ -89,14 +89,15 @@ export async function deactivateSales(formData: FormData) {
   const { error: updateError } = await supabase.from('sales').update({ status_aktif: false, status_sales: sales.status_sales === 'AKAD' ? 'AKAD' : 'BATAL' }).eq('id_sales', idSales).eq('status_aktif', true);
   if (updateError) redirectError(updateError.message);
 
-  const [{ data: activeSpk, error: spkError }, { data: kavling, error: kavlingReadError }] = await Promise.all([
+  const [{ data: activeSpk, error: spkError }, { data: kavling, error: kavlingReadError }, { data: completedSpk, error: completedSpkError }] = await Promise.all([
     supabase.from('spk').select('id_spk').eq('id_kavling', sales.id_kavling).eq('is_active', true).maybeSingle(),
     supabase.from('master_kavling').select('status_kavling').eq('id_kavling', sales.id_kavling).maybeSingle(),
+    supabase.from('spk').select('id_spk').eq('id_kavling', sales.id_kavling).eq('status_spk', 'SELESAI').limit(1).maybeSingle(),
   ]);
-  if (spkError || kavlingReadError) redirectError((spkError ?? kavlingReadError)?.message ?? 'Gagal membaca status kavling');
+  if (spkError || kavlingReadError || completedSpkError) redirectError((spkError ?? kavlingReadError ?? completedSpkError)?.message ?? 'Gagal membaca status kavling');
 
   if (!activeSpk) {
-    const nextStatus = sales.status_sales === 'AKAD' ? 'SOLD' : kavling?.status_kavling === 'READY_STOCK' ? 'READY_STOCK' : 'AVAILABLE';
+    const nextStatus = sales.status_sales === 'AKAD' ? 'SOLD' : completedSpk ? 'READY_STOCK' : 'AVAILABLE';
     const { error: kavlingError } = await supabase.from('master_kavling').update({ status_kavling: nextStatus }).eq('id_kavling', sales.id_kavling);
     if (kavlingError) redirectError(kavlingError.message);
   }
