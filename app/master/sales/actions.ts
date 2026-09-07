@@ -33,7 +33,7 @@ export async function createSales(formData: FormData) {
 
   const [{ data: kavling, error: kavlingError }, { data: activeSales, error: salesError }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling, status_kavling, status_aktif').eq('id_kavling', idKavling).maybeSingle(),
-    supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('is_active', true).maybeSingle(),
+    supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('status_aktif', true).maybeSingle(),
   ]);
 
   if (kavlingError || salesError) redirectError((kavlingError ?? salesError)?.message ?? 'Gagal membaca relasi kavling');
