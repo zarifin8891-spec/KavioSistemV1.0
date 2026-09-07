@@ -17,6 +17,8 @@ function errorRedirect(message: string) {
   redirect(`/master/spk?error=${encodeURIComponent(message)}`);
 }
 
+const SPK_READY_STATUSES = ['AVAILABLE', 'BOOKING', 'READY_STOCK'] as const;
+
 export async function createSpk(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -51,9 +53,7 @@ export async function createSpk(formData: FormData) {
   if (!mandor || !mandor.status_aktif) errorRedirect('Mandor tidak ditemukan atau nonaktif');
   if (activeSpk) errorRedirect('Kavling tersebut sudah memiliki SPK aktif');
   if (mandor.id_kantor !== idKantor) errorRedirect('Mandor harus berasal dari kantor pelaksana yang dipilih');
-
-  const blockedStatuses = ['AVAILABLE'];
-  if (!blockedStatuses.includes(kavling.status_kavling)) {
+  if (!(SPK_READY_STATUSES as readonly string[]).includes(kavling.status_kavling)) {
     errorRedirect(`Kavling berstatus ${kavling.status_kavling} tidak dapat dibuatkan SPK baru`);
   }
 
@@ -137,7 +137,7 @@ export async function activateSpk(formData: FormData) {
 
   if (configError || kavlingError || activeOtherSpkError) errorRedirect((configError ?? kavlingError ?? activeOtherSpkError)?.message ?? 'Gagal memvalidasi SPK');
   if (!kavling || !kavling.status_aktif) errorRedirect('Kavling pada SPK tidak aktif atau tidak ditemukan');
-  if (kavling.status_kavling !== 'AVAILABLE') errorRedirect(`Kavling berstatus ${kavling.status_kavling} tidak siap untuk SPK`);
+  if (!(SPK_READY_STATUSES as readonly string[]).includes(kavling.status_kavling)) errorRedirect(`Kavling berstatus ${kavling.status_kavling} tidak siap untuk SPK`);
   if (activeOtherSpk) errorRedirect('Kavling tersebut sudah memiliki SPK aktif lain');
 
   const totalBobot = (config ?? []).reduce((sum, row) => sum + Number(row.bobot_final ?? 0), 0);
@@ -151,6 +151,7 @@ export async function activateSpk(formData: FormData) {
 
   revalidatePath('/master/spk');
   revalidatePath('/master/kavling');
+  revalidatePath('/master/sales');
   revalidatePath('/dashboard');
   redirect('/master/spk?success=SPK%20berhasil%20diaktifkan%20dan%20status%20kavling%20menjadi%20BUILDING');
 }
@@ -168,14 +169,25 @@ export async function deactivateSpk(formData: FormData) {
   if (!spk || !spk.is_active) errorRedirect('SPK aktif tidak ditemukan');
   if (spk.status_spk !== 'AKTIF') errorRedirect('Hanya SPK AKTIF yang dapat ditandai selesai');
 
+  const [{ data: activeSales, error: salesError }, { data: kavling, error: kavlingError }] = await Promise.all([
+    supabase.from('sales').select('id_sales, status_sales').eq('id_kavling', spk.id_kavling).eq('is_active', true).maybeSingle(),
+    supabase.from('master_kavling').select('status_kavling').eq('id_kavling', spk.id_kavling).maybeSingle(),
+  ]);
+  if (salesError || kavlingError) errorRedirect((salesError ?? kavlingError)?.message ?? 'Gagal membaca relasi SPK');
+
   const { error } = await supabase.from('spk').update({ status_spk: 'SELESAI', is_active: false }).eq('id_spk', idSpk).eq('is_active', true).eq('status_spk', 'AKTIF');
   if (error) errorRedirect(error.message);
 
-  const { error: kavlingError } = await supabase.from('master_kavling').update({ status_kavling: 'COMPLETED' }).eq('id_kavling', spk.id_kavling).eq('status_aktif', true);
-  if (kavlingError) errorRedirect(kavlingError.message);
+  let nextKavlingStatus = 'READY_STOCK';
+  if (activeSales?.status_sales === 'AKAD') nextKavlingStatus = 'SOLD';
+  else if (activeSales) nextKavlingStatus = 'BOOKING';
+
+  const { error: kavlingErrorUpdate } = await supabase.from('master_kavling').update({ status_kavling: nextKavlingStatus }).eq('id_kavling', spk.id_kavling).eq('status_aktif', true);
+  if (kavlingErrorUpdate) errorRedirect(kavlingErrorUpdate.message);
 
   revalidatePath('/master/spk');
   revalidatePath('/master/kavling');
+  revalidatePath('/master/sales');
   revalidatePath('/dashboard');
-  redirect('/master/spk?success=SPK%20ditandai%20selesai%20dan%20kavling%20menjadi%20COMPLETED');
+  redirect(`/master/spk?success=${encodeURIComponent(`SPK selesai. Status kavling menjadi ${nextKavlingStatus}`)}`);
 }
