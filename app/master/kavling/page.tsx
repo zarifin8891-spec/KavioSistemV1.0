@@ -65,7 +65,8 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
                 <option value="BOOKING">BOOKING</option>
                 <option value="SOLD">SOLD</option>
                 <option value="BUILDING">BUILDING</option>
-                <option value="COMPLETED">COMPLETED</option>
+                <option value="READY_STOCK">READY STOCK</option>
+                <option value="COMPLETED">COMPLETED (legacy)</option>
               </select>
             </label>
             <div style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
@@ -125,7 +126,7 @@ const inputStyle = { width: '100%', boxSizing: 'border-box' as const, border: '1
 const primaryButton = { background: '#2563eb', color: '#fff', border: 0, borderRadius: 9, padding: '11px 16px', fontWeight: 800, cursor: 'pointer' };
 const primaryMini = { background: '#2563eb', color: '#fff', border: 0, borderRadius: 8, padding: '7px 10px', fontWeight: 700, cursor: 'pointer' };
 const outlineButton = { background: '#fff', color: '#475569', border: '1px solid #cbd5e1', borderRadius: 8, padding: '7px 10px', fontWeight: 700, cursor: 'pointer' };
-const th = { padding: '12px 14px', borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' };
+const th = { padding: '12px 14px', borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' as const };
 const td = { padding: '13px 14px', borderBottom: '1px solid #f1f5f9' };
 const tdStrong = { ...td, fontWeight: 800 };
 const activeBadge = { display: 'inline-block', background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800 };
