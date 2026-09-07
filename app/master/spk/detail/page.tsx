@@ -71,7 +71,38 @@ export default async function SpkDetailPage({ params }: { params: Params }) {
   );
 }
 
-function buildCurvePoints(start: string, target: string, history: History[], currentRows: Current[], today: string) { const startMs = dateMs(start); const targetMs = dateMs(target); const totalMs = Math.max(1, targetMs - startMs); const sortedHistory = [...history].sort((a, b) => a.tanggal_update.localeCompare(b.tanggal_update)); const byDate = new Map<string, number>(); const cumulativeByCategory = new Map<string, number>(); const weightByCategory = new Map(currentRows.map((row) => [row.id_kategori, Number(row.bobot_final)])); for (const row of sortedHistory) { const previous = cumulativeByCategory.get(row.id_kategori) ?? 0; const next = Math.min(1, previous + Number(row.progress_periode ?? 0)); cumulativeByCategory.set(row.id_kategori, next); const weighted = [...cumulativeByCategory.entries()].reduce((sum, [category, progress]) => sum + progress * (weightByCategory.get(category) ?? 0), 0); byDate.set(row.tanggal_update, weighted); } const dates = Array.from(new Set([start, ...sortedHistory.map((row) => row.tanggal_update), target])).sort(); let latestActual = 0; return dates.map((date) => { if (byDate.has(date)) latestActual = Number(byDate.get(date)); const elapsed = Math.min(1, Math.max(0, (dateMs(date) - startMs) / totalMs)); const planned = elapsed <= 0 ? 0 : elapsed >= 1 ? 1 : elapsed * elapsed * (3 - 2 * elapsed); return { date, planned, actual: dateMs(date) <= dateMs(today) ? latestActual : null }; }); }
+function buildCurvePoints(start: string, target: string, history: History[], currentRows: Current[], today: string) {
+  const startMs = dateMs(start);
+  const targetMs = dateMs(target);
+  const todayMs = dateMs(today);
+  const totalMs = Math.max(1, targetMs - startMs);
+  const sortedHistory = [...history].sort((a, b) => a.tanggal_update.localeCompare(b.tanggal_update));
+  const byDate = new Map<string, number>();
+  const cumulativeByCategory = new Map<string, number>();
+  const weightByCategory = new Map(currentRows.map((row) => [row.id_kategori, Number(row.bobot_final)]));
+
+  for (const row of sortedHistory) {
+    const previous = cumulativeByCategory.get(row.id_kategori) ?? 0;
+    const next = Math.min(1, previous + Number(row.progress_periode ?? 0));
+    cumulativeByCategory.set(row.id_kategori, next);
+    const weighted = [...cumulativeByCategory.entries()].reduce((sum, [category, progress]) => sum + progress * (weightByCategory.get(category) ?? 0), 0);
+    byDate.set(row.tanggal_update, weighted);
+  }
+
+  const lastActualDate = sortedHistory.at(-1)?.tanggal_update ?? start;
+  const lastActual = byDate.get(lastActualDate) ?? 0;
+  const effectiveToday = todayMs < startMs ? start : today;
+  const dates = Array.from(new Set([start, ...sortedHistory.map((row) => row.tanggal_update).filter((date) => date <= effectiveToday), effectiveToday, target])).sort();
+  let latestActual = 0;
+
+  return dates.map((date) => {
+    if (byDate.has(date)) latestActual = Number(byDate.get(date));
+    if (date === effectiveToday && dateMs(date) >= dateMs(lastActualDate)) latestActual = lastActual;
+    const elapsed = Math.min(1, Math.max(0, (dateMs(date) - startMs) / totalMs));
+    const planned = elapsed <= 0 ? 0 : elapsed >= 1 ? 1 : elapsed * elapsed * (3 - 2 * elapsed);
+    return { date, planned, actual: dateMs(date) <= todayMs ? latestActual : null };
+  });
+}
 function CurvaSChart({ points, today }: { points: { date: string; planned: number; actual: number | null }[]; today: string }) { const width = 1100; const height = 390; const left = 58; const right = 30; const top = 24; const bottom = 54; const plotW = width - left - right; const plotH = height - top - bottom; const xs = points.map((p) => dateMs(p.date)); const minX = Math.min(...xs, dateMs(points[0]?.date ?? today)); const maxX = Math.max(...xs, dateMs(points.at(-1)?.date ?? today)); const span = Math.max(1, maxX - minX); const x = (date: string) => left + ((dateMs(date) - minX) / span) * plotW; const y = (value: number) => top + (1 - clamp(value)) * plotH; const planPath = interpolatePath(points.map((p) => ({ x: x(p.date), y: y(p.planned) }))); const actualPoints = points.filter((p) => p.actual !== null).map((p) => ({ x: x(p.date), y: y(Number(p.actual)), date: p.date })); const actualPath = interpolatePath(actualPoints.map((p) => ({ x: p.x, y: p.y }))); const todayX = x(clampDate(today, points[0]?.date ?? today, points.at(-1)?.date ?? today)); const gridValues = [0, 0.25, 0.5, 0.75, 1]; const labels = makeDateLabels(points, 5); return <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Curva-S progress pembangunan" style={{ width: '100%', minWidth: 760, display: 'block', background: '#102A56', borderRadius: 12, border: '1px solid #B8943F' }}>{gridValues.map((v) => <g key={v}><line x1={left} x2={width - right} y1={y(v)} y2={y(v)} stroke="rgba(220,203,156,.20)" strokeWidth="1" /><text x={left - 10} y={y(v) + 4} textAnchor="end" fill="#DCCB9C" fontSize="12">{Math.round(v * 100)}%</text></g>)}<line x1={left} x2={left} y1={top} y2={height - bottom} stroke="#D8B45A" strokeWidth="1" /><line x1={left} x2={width - right} y1={height - bottom} y2={height - bottom} stroke="#D8B45A" strokeWidth="1" />{labels.map((label) => <g key={label.date}><line x1={x(label.date)} x2={x(label.date)} y1={height - bottom} y2={height - bottom + 7} stroke="#D8B45A" /><text x={x(label.date)} y={height - 18} textAnchor="middle" fill="#DCCB9C" fontSize="11">{formatMonth(label.date)}</text></g>)}<line x1={todayX} x2={todayX} y1={top} y2={height - bottom} stroke="#E8CC7A" strokeDasharray="6 5" strokeWidth="2" /><path d={planPath} fill="none" stroke="#DCCB9C" strokeWidth="4" strokeLinecap="round" />{actualPath && <path d={actualPath} fill="none" stroke="#E8CC7A" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />}{actualPoints.map((p) => <circle key={p.date} cx={p.x} cy={p.y} r="4" fill="#F7F3E8" stroke="#D8B45A" strokeWidth="2" />)}<text x={width - right} y={top + 12} textAnchor="end" fill="#E8CC7A" fontSize="12" fontWeight="700">Rencana</text>{actualPoints.length > 0 && <text x={actualPoints.at(-1)!.x} y={Math.max(top + 18, actualPoints.at(-1)!.y - 12)} textAnchor="middle" fill="#F7F3E8" fontSize="12" fontWeight="700">Aktual</text>}<text x={todayX + 7} y={top + 18} fill="#E8CC7A" fontSize="11" fontWeight="700">HARI INI</text></svg>; }
 function interpolatePath(points: { x: number; y: number }[]) { if (!points.length) return ''; if (points.length === 1) return `M ${points[0].x} ${points[0].y}`; let d = `M ${points[0].x} ${points[0].y}`; for (let i = 1; i < points.length; i += 1) { const prev = points[i - 1]; const curr = points[i]; const dx = (curr.x - prev.x) / 3; d += ` C ${prev.x + dx} ${prev.y}, ${curr.x - dx} ${curr.y}, ${curr.x} ${curr.y}`; } return d; }
 function makeDateLabels(points: { date: string }[], count: number) { if (!points.length) return []; const picked: { date: string }[] = []; for (let i = 0; i < count; i += 1) picked.push(points[Math.round((i * (points.length - 1)) / Math.max(1, count - 1))]); return Array.from(new Map(picked.map((p) => [p.date, p])).values()); }
