@@ -34,8 +34,8 @@ export async function createTipeRumah(formData: FormData) {
   const { error } = await supabase.from('master_tipe_rumah').insert({
     id_tipe: idTipe,
     nama_tipe: namaTipe,
-    luas_tanah: luasTanah,
-    luas_bangunan: luasBangunan,
+    luas_tanah_m2: luasTanah,
+    luas_bangunan_m2: luasBangunan,
     status_aktif: true,
   });
 
