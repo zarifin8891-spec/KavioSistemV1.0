@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 
-const VALID_STATUS = ['AVAILABLE', 'BOOKING', 'SOLD', 'BUILDING', 'COMPLETED'] as const;
+const VALID_STATUS = ['AVAILABLE', 'BOOKING', 'SOLD', 'BUILDING', 'READY_STOCK', 'COMPLETED'] as const;
 type KavlingStatus = (typeof VALID_STATUS)[number];
 
 function text(value: FormDataEntryValue | null) {
@@ -51,6 +51,7 @@ export async function createKavling(formData: FormData) {
 
   revalidatePath('/master/kavling');
   revalidatePath('/master/spk');
+  revalidatePath('/master/sales');
   revalidatePath('/dashboard');
   redirect('/master/kavling?success=Kavling%20berhasil%20ditambahkan');
 }
@@ -85,6 +86,7 @@ export async function toggleKavling(formData: FormData) {
 
   revalidatePath('/master/kavling');
   revalidatePath('/master/spk');
+  revalidatePath('/master/sales');
   revalidatePath('/dashboard');
   redirect('/master/kavling?success=Status%20kavling%20berhasil%20diperbarui');
 }
