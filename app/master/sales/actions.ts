@@ -6,6 +6,7 @@ import { createClient } from '../../../lib/supabase/server';
 
 const VALID_STATUS = ['BOOKING', 'PROSES_KPR', 'AKAD', 'BATAL'] as const;
 const VALID_PAYMENT = ['KPR', 'CASH', 'CASH_BERTAHAP'] as const;
+const SALEABLE_KAVLING_STATUS = ['AVAILABLE', 'BUILDING', 'READY_STOCK'] as const;
 
 function text(value: FormDataEntryValue | null) { return String(value ?? '').trim(); }
 function money(value: FormDataEntryValue | null) { const n = Number(text(value)); return text(value) === '' ? null : Number.isFinite(n) && n >= 0 ? n : NaN; }
@@ -30,17 +31,17 @@ export async function createSales(formData: FormData) {
   if (typeof hargaJual === 'number' && !Number.isFinite(hargaJual)) redirectError('Harga jual tidak valid');
   if (tglBooking && targetAkad && targetAkad < tglBooking) redirectError('Target akad tidak boleh sebelum tanggal booking');
 
-  const [{ data: kavling, error: kavlingError }, { data: activeSales, error: salesError }, { data: activeSpk, error: spkError }] = await Promise.all([
+  const [{ data: kavling, error: kavlingError }, { data: activeSales, error: salesError }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling, status_kavling, status_aktif').eq('id_kavling', idKavling).maybeSingle(),
     supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('is_active', true).maybeSingle(),
-    supabase.from('spk').select('id_spk').eq('id_kavling', idKavling).eq('is_active', true).maybeSingle(),
   ]);
 
-  if (kavlingError || salesError || spkError) redirectError((kavlingError ?? salesError ?? spkError)?.message ?? 'Gagal membaca relasi kavling');
+  if (kavlingError || salesError) redirectError((kavlingError ?? salesError)?.message ?? 'Gagal membaca relasi kavling');
   if (!kavling || !kavling.status_aktif) redirectError('Kavling tidak ditemukan atau nonaktif');
   if (activeSales) redirectError('Kavling tersebut sudah memiliki sales aktif');
-  if (activeSpk) redirectError('Kavling tidak dapat dipasarkan karena sudah memiliki SPK aktif');
-  if (!['AVAILABLE', 'BOOKING', 'SOLD'].includes(kavling.status_kavling)) redirectError('Status kavling tidak memungkinkan dibuatkan sales baru');
+  if (!(SALEABLE_KAVLING_STATUS as readonly string[]).includes(kavling.status_kavling)) {
+    redirectError(`Kavling berstatus ${kavling.status_kavling} tidak dapat dibuatkan sales baru`);
+  }
   if (statusSales === 'AKAD' && !targetAkad) redirectError('Target akad wajib diisi untuk status AKAD');
 
   const insertSales = await supabase.from('sales').insert({
@@ -56,7 +57,12 @@ export async function createSales(formData: FormData) {
 
   if (insertSales.error || !insertSales.data) redirectError(insertSales.error?.message ?? 'Sales gagal disimpan');
 
-  const nextKavlingStatus = statusSales === 'BATAL' ? 'AVAILABLE' : statusSales === 'AKAD' ? 'SOLD' : 'BOOKING';
+  const nextKavlingStatus = statusSales === 'BATAL'
+    ? kavling.status_kavling === 'BUILDING' ? 'BUILDING' : 'READY_STOCK'
+    : statusSales === 'AKAD'
+      ? 'SOLD'
+      : 'BOOKING';
+
   const { error: kavlingUpdateError } = await supabase.from('master_kavling').update({ status_kavling: nextKavlingStatus }).eq('id_kavling', idKavling);
   if (kavlingUpdateError) {
     await supabase.from('sales').delete().eq('id_sales', insertSales.data.id_sales);
@@ -83,11 +89,14 @@ export async function deactivateSales(formData: FormData) {
   const { error: updateError } = await supabase.from('sales').update({ status_aktif: false, status_sales: sales.status_sales === 'AKAD' ? 'AKAD' : 'BATAL' }).eq('id_sales', idSales).eq('status_aktif', true);
   if (updateError) redirectError(updateError.message);
 
-  const { data: activeSpk, error: spkError } = await supabase.from('spk').select('id_spk').eq('id_kavling', sales.id_kavling).eq('is_active', true).maybeSingle();
-  if (spkError) redirectError(spkError.message);
+  const [{ data: activeSpk, error: spkError }, { data: kavling, error: kavlingReadError }] = await Promise.all([
+    supabase.from('spk').select('id_spk').eq('id_kavling', sales.id_kavling).eq('is_active', true).maybeSingle(),
+    supabase.from('master_kavling').select('status_kavling').eq('id_kavling', sales.id_kavling).maybeSingle(),
+  ]);
+  if (spkError || kavlingReadError) redirectError((spkError ?? kavlingReadError)?.message ?? 'Gagal membaca status kavling');
 
   if (!activeSpk) {
-    const nextStatus = sales.status_sales === 'AKAD' ? 'SOLD' : 'AVAILABLE';
+    const nextStatus = sales.status_sales === 'AKAD' ? 'SOLD' : kavling?.status_kavling === 'READY_STOCK' ? 'READY_STOCK' : 'AVAILABLE';
     const { error: kavlingError } = await supabase.from('master_kavling').update({ status_kavling: nextStatus }).eq('id_kavling', sales.id_kavling);
     if (kavlingError) redirectError(kavlingError.message);
   }
