@@ -5,6 +5,8 @@ import { createTipeRumah, toggleTipeRumah } from './actions';
 
 type SearchParams = Promise<{ error?: string; success?: string }>;
 
+type TipeRumah = { id_tipe: string; nama_tipe: string; luas_tanah_m2: number | string | null; luas_bangunan_m2: number | string | null; status_aktif: boolean };
+
 export default async function MasterTipeRumahPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -13,10 +15,10 @@ export default async function MasterTipeRumahPage({ searchParams }: { searchPara
 
   const { data, error } = await supabase
     .from('master_tipe_rumah')
-    .select('id_tipe, nama_tipe, luas_tanah, luas_bangunan, status_aktif')
+    .select('id_tipe, nama_tipe, luas_tanah_m2, luas_bangunan_m2, status_aktif')
     .order('nama_tipe');
 
-  const rows = data ?? [];
+  const rows = (data ?? []) as TipeRumah[];
   const pageError = params.error ?? error?.message;
 
   return (
@@ -69,8 +71,8 @@ export default async function MasterTipeRumahPage({ searchParams }: { searchPara
                   <tr key={row.id_tipe}>
                     <td style={tdStrong}>{row.id_tipe}</td>
                     <td style={td}>{row.nama_tipe}</td>
-                    <td style={td}>{formatNumber(row.luas_tanah)} m²</td>
-                    <td style={td}>{formatNumber(row.luas_bangunan)} m²</td>
+                    <td style={td}>{formatNumber(row.luas_tanah_m2)} m²</td>
+                    <td style={td}>{formatNumber(row.luas_bangunan_m2)} m²</td>
                     <td style={td}><span style={row.status_aktif ? activeBadge : inactiveBadge}>{row.status_aktif ? 'AKTIF' : 'NONAKTIF'}</span></td>
                     <td style={td}>
                       <form action={toggleTipeRumah}>
