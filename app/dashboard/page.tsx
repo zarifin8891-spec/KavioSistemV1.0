@@ -48,7 +48,7 @@ export default async function DashboardPage() {
   return <main style={page}>
     <header style={header}><div><div style={brand}>KAVIO</div><div style={title}>Monitor V1.0</div></div><div style={userBox}><div>{user.email}</div><form action="/auth/signout" method="post"><button type="submit" style={logout}>Keluar</button></form></div></header>
     <section style={content}>
-      <div style={hero}><div><div style={eyebrow}>EXECUTIVE CONTROL ROOM</div><h1 style={h1}>Dashboard Monitoring</h1><p style={subtitle}>Kesehatan proyek, risiko, dan tindakan prioritas dalam satu layar.</p></div><div style={links}><Link href="/master/spk" style={primaryLink}>Kelola SPK</Link><Link href="/progress" style={secondaryLink}>Input Progress</Link><Link href="/master/kavling" style={ghostLink}>Master Kavling</Link></div></div>
+      <div style={hero}><div><div style={eyebrow}>EXECUTIVE CONTROL ROOM</div><h1 style={h1}>Dashboard Monitoring</h1><p style={subtitle}>Kesehatan proyek, risiko, dan tindakan prioritas dalam satu layar.</p></div><div style={links}><Link href="/master/spk" style={primaryLink}>Kelola SPK</Link><Link href="/progress" style={secondaryLink}>Input Progress</Link><Link href="/master" style={ghostLink}>Master Data</Link></div></div>
       {error && <div style={alertError}>{error.message}</div>}
 
       <section style={healthBand}>
