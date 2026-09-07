@@ -17,7 +17,7 @@ function errorRedirect(message: string) {
   redirect(`/master/spk?error=${encodeURIComponent(message)}`);
 }
 
-const SPK_READY_STATUSES = ['AVAILABLE', 'BOOKING', 'READY_STOCK'] as const;
+const SPK_READY_STATUSES = ['AVAILABLE', 'BOOKING'] as const;
 
 export async function createSpk(formData: FormData) {
   const supabase = await createClient();
