@@ -171,9 +171,10 @@ export async function deactivateSpk(formData: FormData) {
 
   const [{ data: activeSales, error: salesError }, { data: kavling, error: kavlingError }] = await Promise.all([
     supabase.from('sales').select('id_sales, status_sales').eq('id_kavling', spk.id_kavling).eq('is_active', true).maybeSingle(),
-    supabase.from('master_kavling').select('status_kavling').eq('id_kavling', spk.id_kavling).maybeSingle(),
+    supabase.from('master_kavling').select('status_kavling, status_aktif').eq('id_kavling', spk.id_kavling).maybeSingle(),
   ]);
   if (salesError || kavlingError) errorRedirect((salesError ?? kavlingError)?.message ?? 'Gagal membaca relasi SPK');
+  if (!kavling || !kavling.status_aktif) errorRedirect('Kavling pada SPK tidak aktif atau tidak ditemukan');
 
   const { error } = await supabase.from('spk').update({ status_spk: 'SELESAI', is_active: false }).eq('id_spk', idSpk).eq('is_active', true).eq('status_spk', 'AKTIF');
   if (error) errorRedirect(error.message);
