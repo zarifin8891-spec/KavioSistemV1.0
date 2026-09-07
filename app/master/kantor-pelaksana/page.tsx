@@ -5,6 +5,15 @@ import { createKantorPelaksana, toggleKantorPelaksana } from './actions';
 
 type SearchParams = Promise<{ error?: string; success?: string }>;
 
+type Kantor = {
+  id_kantor: string;
+  nama_kantor_pelaksana: string;
+  penanggung_jawab: string | null;
+  no_hp: string | null;
+  status_aktif: boolean;
+  keterangan: string | null;
+};
+
 export default async function MasterKantorPelaksanaPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -13,10 +22,10 @@ export default async function MasterKantorPelaksanaPage({ searchParams }: { sear
 
   const { data, error } = await supabase
     .from('master_kantor_pelaksana')
-    .select('kode_kantor, nama_kantor, status_aktif')
-    .order('nama_kantor');
+    .select('id_kantor, nama_kantor_pelaksana, penanggung_jawab, no_hp, status_aktif, keterangan')
+    .order('nama_kantor_pelaksana');
 
-  const rows = data ?? [];
+  const rows = (data ?? []) as Kantor[];
   const pageError = params.error ?? error?.message;
 
   return (
@@ -46,9 +55,15 @@ export default async function MasterKantorPelaksanaPage({ searchParams }: { sear
 
         <section style={card}>
           <div style={sectionTitle}>Tambah Kantor Pelaksana</div>
-          <form action={createKantorPelaksana} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12, padding: 18 }}>
-            <Field name="kode_kantor" label="Kode Kantor" placeholder="KTR03" />
-            <Field name="nama_kantor" label="Nama Kantor / Pelaksana" placeholder="CV Maju Bersama" />
+          <form action={createKantorPelaksana} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1.5fr 1.5fr', gap: 12, padding: 18 }}>
+            <Field name="id_kantor" label="ID Kantor" placeholder="KTR03" />
+            <Field name="nama_kantor_pelaksana" label="Nama Kantor / Pelaksana" placeholder="CV Maju Bersama" />
+            <Field name="penanggung_jawab" label="Penanggung Jawab" placeholder="Nama PIC" required={false} />
+            <Field name="no_hp" label="No. HP" placeholder="08xxxxxxxxxx" required={false} />
+            <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
+              <span>Keterangan</span>
+              <textarea name="keterangan" rows={3} placeholder="Catatan tambahan (opsional)" style={{ ...inputStyle, resize: 'vertical' as const }} />
+            </label>
             <div style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
               <button type="submit" style={primaryButton}>+ Simpan Kantor</button>
             </div>
@@ -61,17 +76,21 @@ export default async function MasterKantorPelaksanaPage({ searchParams }: { sear
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
                 <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
-                  <th style={th}>Kode</th>
+                  <th style={th}>ID</th>
                   <th style={th}>Nama Kantor / Pelaksana</th>
+                  <th style={th}>Penanggung Jawab</th>
+                  <th style={th}>No. HP</th>
                   <th style={th}>Status</th>
                   <th style={th}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.kode_kantor}>
-                    <td style={tdStrong}>{row.kode_kantor}</td>
-                    <td style={td}>{row.nama_kantor}</td>
+                  <tr key={row.id_kantor}>
+                    <td style={tdStrong}>{row.id_kantor}</td>
+                    <td style={td}>{row.nama_kantor_pelaksana}</td>
+                    <td style={td}>{row.penanggung_jawab || '—'}</td>
+                    <td style={td}>{row.no_hp || '—'}</td>
                     <td style={td}>
                       <span style={row.status_aktif ? activeBadge : inactiveBadge}>
                         {row.status_aktif ? 'AKTIF' : 'NONAKTIF'}
@@ -79,7 +98,7 @@ export default async function MasterKantorPelaksanaPage({ searchParams }: { sear
                     </td>
                     <td style={td}>
                       <form action={toggleKantorPelaksana}>
-                        <input type="hidden" name="kode_kantor" value={row.kode_kantor} />
+                        <input type="hidden" name="id_kantor" value={row.id_kantor} />
                         <input type="hidden" name="status_aktif" value={String(row.status_aktif)} />
                         <button type="submit" style={row.status_aktif ? outlineButton : primaryMini}>
                           {row.status_aktif ? 'Nonaktifkan' : 'Aktifkan'}
@@ -90,7 +109,7 @@ export default async function MasterKantorPelaksanaPage({ searchParams }: { sear
                 ))}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={4} style={{ ...td, textAlign: 'center', padding: 34, color: '#64748b' }}>
+                    <td colSpan={6} style={{ ...td, textAlign: 'center', padding: 34, color: '#64748b' }}>
                       Belum ada data kantor pelaksana.
                     </td>
                   </tr>
@@ -104,11 +123,11 @@ export default async function MasterKantorPelaksanaPage({ searchParams }: { sear
   );
 }
 
-function Field({ name, label, placeholder }: { name: string; label: string; placeholder: string }) {
+function Field({ name, label, placeholder, required = true }: { name: string; label: string; placeholder: string; required?: boolean }) {
   return (
     <label style={labelStyle}>
       <span>{label}</span>
-      <input name={name} placeholder={placeholder} required style={inputStyle} />
+      <input name={name} placeholder={placeholder} required={required} style={inputStyle} />
     </label>
   );
 }
