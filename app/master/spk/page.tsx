@@ -6,7 +6,7 @@ import { createClient } from '../../../lib/supabase/server';
 
 type SearchParams = Promise<{ error?: string; success?: string }>;
 
-type Kavling = { id_kavling: string; blok: string; no_kavling: string; id_tipe: string };
+type Kavling = { id_kavling: string; blok: string; no_kavling: string; id_tipe: string; status_kavling: string };
 type Tipe = { id_tipe: string; nama_tipe: string };
 type Kantor = { id_kantor: string; nama_kantor_pelaksana: string };
 type Mandor = { id_mandor: string; nama_mandor: string; id_kantor: string };
@@ -32,7 +32,7 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
   if (!user) redirect('/login');
 
   const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkRes] = await Promise.all([
-    supabase.from('master_kavling').select('id_kavling, blok, no_kavling, id_tipe').eq('status_aktif', true).order('blok').order('no_kavling'),
+    supabase.from('master_kavling').select('id_kavling, blok, no_kavling, id_tipe, status_kavling').eq('status_aktif', true).order('blok').order('no_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe, nama_tipe').eq('status_aktif', true).order('nama_tipe'),
     supabase.from('master_kantor_pelaksana').select('id_kantor, nama_kantor_pelaksana').eq('status_aktif', true).order('nama_kantor_pelaksana'),
     supabase.from('master_mandor').select('id_mandor, nama_mandor, id_kantor').eq('status_aktif', true).order('nama_mandor'),
@@ -41,7 +41,8 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
     supabase.from('spk').select('id_spk, id_kavling, tgl_spk, id_tipe, jenis_bobot, id_kantor, id_mandor, status_spk, tgl_target_selesai, is_active').order('created_at', { ascending: false }),
   ]);
 
-  const kavlingRows = (kavlingRes.data ?? []) as Kavling[];
+  const allKavlingRows = (kavlingRes.data ?? []) as Kavling[];
+  const kavlingRows = allKavlingRows.filter((row) => ['AVAILABLE', 'BOOKING', 'READY_STOCK'].includes(row.status_kavling));
   const tipeRows = (tipeRes.data ?? []) as Tipe[];
   const kantorRows = (kantorRes.data ?? []) as Kantor[];
   const mandorRows = (mandorRes.data ?? []) as Mandor[];
@@ -63,14 +64,14 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
   const mandorMap = new Map(mandorRows.map((item) => [item.id_mandor, item.nama_mandor]));
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f6f8fc', color: '#0f172a' }}>
+    <main style={{ minHeight: '100vh', background: '#0B1D3A', color: '#F7F3E8' }}>
       <header style={header}>
         <div>
           <Link href="/dashboard" style={back}>← Dashboard</Link>
           <div style={brand}>KAVIO</div>
           <div style={title}>SPK Pembangunan</div>
         </div>
-        <div style={{ textAlign: 'right', fontSize: 13, color: '#64748b' }}>
+        <div style={{ textAlign: 'right', fontSize: 13, color: '#DCCB9C' }}>
           <div>{user.email}</div>
           <form action="/auth/signout" method="post" style={{ marginTop: 6 }}>
             <button type="submit" style={logout}>Keluar</button>
@@ -80,8 +81,9 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
 
       <section style={{ padding: 28, maxWidth: 1280, margin: '0 auto' }}>
         <div style={{ marginBottom: 22 }}>
-          <h1 style={{ margin: '0 0 6px', fontSize: 28 }}>Kelola SPK</h1>
-          <p style={{ margin: 0, color: '#64748b' }}>Buat SPK pembangunan, pilih bobot standar/custom, lalu aktifkan setelah konfigurasi bobot 100%.</p>
+          <div style={eyebrow}>CONSTRUCTION CONTROL</div>
+          <h1 style={{ margin: '5px 0 6px', fontSize: 28 }}>Kelola SPK</h1>
+          <p style={{ margin: 0, color: '#C9BC99' }}>SPK dapat dibuat tanpa Sales untuk pembangunan rumah ready stock, atau pada kavling yang sudah BOOKING.</p>
         </div>
 
         {pageError && <div style={alertError}>{pageError}</div>}
@@ -110,7 +112,7 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
             </label>
 
             <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ color: '#64748b', fontSize: 12 }}><strong>Catatan:</strong> sistem tetap memvalidasi bahwa Mandor harus berasal dari Kantor/Pelaksana yang dipilih dan bobot final harus tepat 100%.</div>
+              <div style={{ color: '#C9BC99', fontSize: 12 }}><strong>Aturan:</strong> Sales tidak wajib. Kavling AVAILABLE/BOOKING/READY STOCK dapat dibuatkan SPK selama belum ada SPK aktif; bobot final tetap wajib 100%.</div>
               <button type="submit" style={primaryButton} disabled={!kavlingRows.length || !kantorRows.length || !mandorRows.length || !kategoriRows.length}>+ Simpan SPK sebagai DRAFT</button>
             </div>
           </form>
@@ -120,7 +122,7 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
           <div style={sectionTitle}>Daftar SPK ({spkRows.length})</div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-              <thead><tr style={{ background: '#f8fafc', textAlign: 'left' }}>
+              <thead><tr style={{ background: '#102A56', textAlign: 'left' }}>
                 <th style={th}>Kavling</th><th style={th}>Tanggal</th><th style={th}>Tipe</th><th style={th}>Kantor</th><th style={th}>Mandor</th><th style={th}>Bobot</th><th style={th}>Target</th><th style={th}>Status</th><th style={th}>Aksi</th>
               </tr></thead>
               <tbody>
@@ -145,11 +147,11 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
                           <input type="hidden" name="id_spk" value={row.id_spk} />
                           <button type="submit" style={outlineButton}>Tandai Selesai</button>
                         </form>
-                      ) : <span style={{ color: '#94a3b8' }}>—</span>}
+                      ) : <span style={{ color: '#BFAF83' }}>—</span>}
                     </td>
                   </tr>
                 ))}
-                {!spkRows.length && <tr><td colSpan={9} style={{ ...td, textAlign: 'center', padding: 34, color: '#64748b' }}>Belum ada data SPK.</td></tr>}
+                {!spkRows.length && <tr><td colSpan={9} style={{ ...td, textAlign: 'center', padding: 34, color: '#DCCB9C' }}>Belum ada data SPK.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -163,23 +165,24 @@ function Field({ name, label, type = 'text' }: { name: string; label: string; ty
   return <label style={labelStyle}><span>{label}</span><input name={name} type={type} required style={inputStyle} /></label>;
 }
 
-const header = { background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '16px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-const back = { textDecoration: 'none', color: '#64748b', fontSize: 13 };
-const brand = { marginTop: 8, fontSize: 12, fontWeight: 800, letterSpacing: 1.5, color: '#2563eb' };
-const title = { fontSize: 21, fontWeight: 800 };
-const logout = { border: 0, background: 'transparent', color: '#2563eb', fontWeight: 700, cursor: 'pointer' };
-const card = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, boxShadow: '0 6px 18px rgba(15,23,42,0.04)' };
-const sectionTitle = { padding: '16px 18px', borderBottom: '1px solid #e2e8f0', fontWeight: 800 };
-const labelStyle = { display: 'flex', flexDirection: 'column' as const, gap: 7, fontSize: 12, fontWeight: 700, color: '#475569' };
-const inputStyle = { width: '100%', boxSizing: 'border-box' as const, border: '1px solid #cbd5e1', borderRadius: 9, padding: '10px 11px', fontSize: 14, background: '#fff', color: '#0f172a' };
-const primaryButton = { background: '#2563eb', color: '#fff', border: 0, borderRadius: 9, padding: '11px 16px', fontWeight: 800, cursor: 'pointer' };
-const primaryMini = { background: '#2563eb', color: '#fff', border: 0, borderRadius: 8, padding: '7px 10px', fontWeight: 700, cursor: 'pointer' };
-const outlineButton = { background: '#fff', color: '#475569', border: '1px solid #cbd5e1', borderRadius: 8, padding: '7px 10px', fontWeight: 700, cursor: 'pointer' };
-const th = { padding: '12px 14px', borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' as const };
-const td = { padding: '13px 14px', borderBottom: '1px solid #f1f5f9' };
-const tdStrong = { ...td, fontWeight: 800 };
-const activeBadge = { display: 'inline-block', background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800 };
-const draftBadge = { display: 'inline-block', background: '#fef3c7', color: '#92400e', padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800 };
-const inactiveBadge = { display: 'inline-block', background: '#f1f5f9', color: '#64748b', padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800 };
-const alertError = { background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: 12, borderRadius: 10, marginBottom: 14 };
-const alertSuccess = { background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', padding: 12, borderRadius: 10, marginBottom: 14 };
+const header = { background: '#102A56', borderBottom: '1px solid #B8943F', padding: '18px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+const back = { textDecoration: 'none', color: '#DCCB9C', fontSize: 13 };
+const brand = { marginTop: 8, fontSize: 12, fontWeight: 900, letterSpacing: 1.5, color: '#E8CC7A' };
+const title = { fontSize: 21, fontWeight: 800, color: '#F7F3E8' };
+const logout = { border: 0, background: 'transparent', color: '#E8CC7A', fontWeight: 800, cursor: 'pointer' };
+const card = { background: '#162F5B', border: '1px solid rgba(216,180,90,.35)', borderRadius: 16, boxShadow: '0 10px 28px rgba(0,0,0,.16)', overflow: 'hidden' };
+const sectionTitle = { padding: '16px 18px', borderBottom: '1px solid rgba(216,180,90,.18)', fontWeight: 900, color: '#F7F3E8' };
+const labelStyle = { display: 'flex', flexDirection: 'column' as const, gap: 7, fontSize: 12, fontWeight: 800, color: '#DCCB9C' };
+const inputStyle = { width: '100%', boxSizing: 'border-box' as const, border: '1px solid #B8943F', borderRadius: 9, padding: '10px 11px', fontSize: 14, background: '#102A56', color: '#F7F3E8' };
+const primaryButton = { background: 'linear-gradient(180deg,#E8CC7A,#D8B45A)', color: '#0B1D3A', border: 0, borderRadius: 9, padding: '11px 16px', fontWeight: 900, cursor: 'pointer' };
+const primaryMini = { background: '#E8CC7A', color: '#0B1D3A', border: 0, borderRadius: 8, padding: '7px 10px', fontWeight: 900, cursor: 'pointer' };
+const outlineButton = { background: '#102A56', color: '#E8CC7A', border: '1px solid #B8943F', borderRadius: 8, padding: '7px 10px', fontWeight: 800, cursor: 'pointer' };
+const th = { padding: '12px 14px', borderBottom: '1px solid rgba(216,180,90,.22)', color: '#E8CC7A', whiteSpace: 'nowrap' as const };
+const td = { padding: '13px 14px', borderBottom: '1px solid rgba(216,180,90,.10)', color: '#F7F3E8' };
+const tdStrong = { ...td, fontWeight: 900 };
+const activeBadge = { display: 'inline-block', background: 'rgba(134,239,172,.10)', color: '#BBF7D0', padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800, border: '1px solid #15803D' };
+const draftBadge = { display: 'inline-block', background: 'rgba(216,180,90,.10)', color: '#E8CC7A', padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800, border: '1px solid #B8943F' };
+const inactiveBadge = { display: 'inline-block', background: 'rgba(220,203,156,.08)', color: '#DCCB9C', padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800, border: '1px solid #B8943F' };
+const eyebrow = { fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: '#E8CC7A' };
+const alertError = { background: 'rgba(248,113,113,.10)', border: '1px solid #B91C1C', color: '#FCA5A5', padding: 13, borderRadius: 12, marginBottom: 16 };
+const alertSuccess = { background: 'rgba(134,239,172,.10)', border: '1px solid #15803D', color: '#BBF7D0', padding: 13, borderRadius: 12, marginBottom: 16 };
