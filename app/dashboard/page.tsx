@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 
@@ -9,7 +10,7 @@ export default async function DashboardPage() {
 
   const { data: summary, error } = await supabase
     .from('v_progress_summary')
-    .select('id_kavling, progress_total, tgl_target_selesai, status_spm')
+    .select('id_kavling, progress_total, tgl_target_selesai, status_spk')
     .order('progress_total', { ascending: false })
     .limit(20);
 
@@ -39,7 +40,10 @@ export default async function DashboardPage() {
             <h1 style={{ margin: '0 0 6px', fontSize: 28 }}>Dashboard Monitoring</h1>
             <p style={{ margin: 0, color: '#64748b' }}>Ringkasan progress proyek dari database KAVIO.</p>
           </div>
-          <a href="/master/kavling" style={{ background: '#2563eb', color: '#fff', padding: '11px 16px', borderRadius: 10, textDecoration: 'none', fontWeight: 700, fontSize: 14 }}>Master Kavling</a>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <Link href="/master/spk" style={primaryLink}>Kelola SPK</Link>
+            <Link href="/master/kavling" style={secondaryLink}>Master Kavling</Link>
+          </div>
         </div>
 
         {error && (
@@ -51,7 +55,7 @@ export default async function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16, marginBottom: 24 }}>
           <Kpi label="Kavling Terpantau" value={String(rows.length)} />
           <Kpi label="Rata-rata Progress" value={`${(avgProgress * 100).toFixed(1)}%`} />
-          <Kpi label="SPK Aktif" value={String(rows.filter((row) => row.status_spm === 'AKTIF').length)} />
+          <Kpi label="SPK Aktif" value={String(rows.filter((row) => row.status_spk === 'AKTIF').length)} />
         </div>
 
         <section style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, overflow: 'hidden' }}>
@@ -72,7 +76,7 @@ export default async function DashboardPage() {
                     <td style={td}>{row.id_kavling}</td>
                     <td style={td}>{(Number(row.progress_total ?? 0) * 100).toFixed(1)}%</td>
                     <td style={td}>{row.tgl_target_selesai ?? '-'}</td>
-                    <td style={td}>{row.status_spm ?? '-'}</td>
+                    <td style={td}>{row.status_spk ?? '-'}</td>
                   </tr>
                 ))}
                 {!rows.length && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', padding: 32 }}>Belum ada data progress.</td></tr>}
@@ -94,5 +98,7 @@ function Kpi({ label, value }: { label: string; value: string }) {
   );
 }
 
+const primaryLink = { background: '#2563eb', color: '#fff', padding: '11px 16px', borderRadius: 10, textDecoration: 'none', fontWeight: 700, fontSize: 14 };
+const secondaryLink = { background: '#fff', color: '#2563eb', border: '1px solid #cbd5e1', padding: '11px 16px', borderRadius: 10, textDecoration: 'none', fontWeight: 700, fontSize: 14 };
 const th = { padding: '13px 16px', borderBottom: '1px solid #e2e8f0', fontWeight: 700 };
 const td = { padding: '14px 16px', borderBottom: '1px solid #f1f5f9' };
