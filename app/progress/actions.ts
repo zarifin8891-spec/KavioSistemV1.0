@@ -13,6 +13,10 @@ function percent(value: FormDataEntryValue | null) {
   return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : NaN;
 }
 
+function progressError(idSpk: string, message: string): never {
+  redirect(`/progress?spk=${encodeURIComponent(idSpk)}&error=${encodeURIComponent(message)}`);
+}
+
 export async function createProgressUpdate(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -25,34 +29,41 @@ export async function createProgressUpdate(formData: FormData) {
   const keterangan = text(formData.get('keterangan'));
 
   if (!idSpk || !idKategori || !tanggalUpdate || !Number.isFinite(progressPercent)) {
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&error=SPK%2C%20kategori%2C%20tanggal%2C%20dan%20progress%20periode%200-100%25%20wajib%20diisi`);
+    progressError(idSpk, 'SPK, kategori, tanggal, dan progress periode 0-100% wajib diisi');
   }
 
-  const [{ data: spk, error: spkError }, { data: config, error: configError }, { data: duplicate, error: duplicateError }] = await Promise.all([
-    supabase.from('spk').select('id_spk, id_kavling, tgl_spk, status_spk, is_active').eq('id_spk', idSpk).maybeSingle(),
+  const [{ data: spk, error: spkError }, { data: config, error: configError }, { data: allConfig, error: allConfigError }, { data: duplicate, error: duplicateError }] = await Promise.all([
+    supabase.from('spk').select('id_spk, id_kavling, id_tipe, tgl_spk, status_spk, is_active').eq('id_spk', idSpk).maybeSingle(),
     supabase.from('spk_progress_config').select('id_kategori, bobot_final').eq('id_spk', idSpk).eq('id_kategori', idKategori).maybeSingle(),
+    supabase.from('spk_progress_config').select('id_kategori, bobot_final').eq('id_spk', idSpk),
     supabase.from('progress_update').select('id_progress').eq('id_spk', idSpk).eq('tanggal_update', tanggalUpdate).eq('id_kategori', idKategori).maybeSingle(),
   ]);
 
-  if (spkError || configError || duplicateError) {
-    const message = (spkError ?? configError ?? duplicateError)?.message ?? 'Gagal membaca data SPK';
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&error=${encodeURIComponent(message)}`);
+  if (spkError || configError || allConfigError || duplicateError) {
+    const message = (spkError ?? configError ?? allConfigError ?? duplicateError)?.message ?? 'Gagal membaca data SPK';
+    progressError(idSpk, message);
   }
 
   if (!spk || !spk.is_active || spk.status_spk !== 'AKTIF') {
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&error=SPK%20tidak%20aktif%20atau%20tidak%20ditemukan`);
+    progressError(idSpk, 'SPK tidak aktif atau tidak ditemukan');
   }
 
   if (tanggalUpdate < spk.tgl_spk) {
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&error=Tanggal%20update%20tidak%20boleh%20sebelum%20tanggal%20SPK`);
+    progressError(idSpk, 'Tanggal update tidak boleh sebelum tanggal SPK');
   }
 
   if (!config) {
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&error=Kategori%20tersebut%20tidak%20terdaftar%20pada%20konfigurasi%20SPK`);
+    progressError(idSpk, 'Kategori tersebut tidak terdaftar pada konfigurasi SPK');
+  }
+
+  const configRows = allConfig ?? [];
+  const totalBobot = configRows.reduce((sum, row) => sum + Number(row.bobot_final ?? 0), 0);
+  if (!configRows.length || configRows.some((row) => !Number.isFinite(Number(row.bobot_final)) || Number(row.bobot_final) < 0 || Number(row.bobot_final) > 1) || Math.abs(totalBobot - 1) > 0.00001) {
+    progressError(idSpk, `Konfigurasi bobot SPK tidak valid. Total saat ini ${(totalBobot * 100).toFixed(2)}%`);
   }
 
   if (duplicate) {
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&error=Progress%20untuk%20kategori%20dan%20tanggal%20tersebut%20sudah%20ada`);
+    progressError(idSpk, 'Progress untuk kategori dan tanggal tersebut sudah ada');
   }
 
   const { error } = await supabase.from('progress_update').insert({
@@ -65,7 +76,7 @@ export async function createProgressUpdate(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&error=${encodeURIComponent(error.message)}`);
+    progressError(idSpk, error.code === '23505' ? 'Progress untuk kategori dan tanggal tersebut sudah ada' : error.message);
   }
 
   revalidatePath('/progress');
