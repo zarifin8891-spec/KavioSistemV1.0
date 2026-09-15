@@ -28,6 +28,7 @@ export async function createKavling(formData: FormData) {
 
   if (!idKavling || !blok || !noKavling || !idTipe) errorRedirect('Data wajib belum lengkap');
   if (!VALID_STATUS.includes(statusKavling)) errorRedirect('Status kavling tidak valid');
+  if (statusKavling === 'READY_STOCK') errorRedirect('READY_STOCK ditetapkan otomatis setelah SPK selesai');
 
   const [{ data: tipe, error: tipeError }, { data: existing, error: existingError }] = await Promise.all([
     supabase.from('master_tipe_rumah').select('id_tipe, status_aktif').eq('id_tipe', idTipe).maybeSingle(),
