@@ -31,12 +31,13 @@ export async function createSales(formData: FormData) {
   if (typeof hargaJual === 'number' && !Number.isFinite(hargaJual)) redirectError('Harga jual tidak valid');
   if (tglBooking && targetAkad && targetAkad < tglBooking) redirectError('Target akad tidak boleh sebelum tanggal booking');
 
-  const [{ data: kavling, error: kavlingError }, { data: activeSales, error: salesError }] = await Promise.all([
+  const [{ data: kavling, error: kavlingError }, { data: activeSales, error: salesError }, { data: activeSpk, error: spkError }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling, status_kavling, status_aktif').eq('id_kavling', idKavling).maybeSingle(),
     supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('status_aktif', true).maybeSingle(),
+    supabase.from('spk').select('id_spk').eq('id_kavling', idKavling).eq('is_active', true).maybeSingle(),
   ]);
 
-  if (kavlingError || salesError) redirectError((kavlingError ?? salesError)?.message ?? 'Gagal membaca relasi kavling');
+  if (kavlingError || salesError || spkError) redirectError((kavlingError ?? salesError ?? spkError)?.message ?? 'Gagal membaca relasi kavling');
   if (!kavling || !kavling.status_aktif) redirectError('Kavling tidak ditemukan atau nonaktif');
   if (activeSales) redirectError('Kavling tersebut sudah memiliki sales aktif');
   if (!(SALEABLE_KAVLING_STATUS as readonly string[]).includes(kavling.status_kavling)) {
@@ -57,11 +58,15 @@ export async function createSales(formData: FormData) {
 
   if (insertSales.error || !insertSales.data) redirectError(insertSales.error?.message ?? 'Sales gagal disimpan');
 
-  const nextKavlingStatus = statusSales === 'BATAL'
-    ? kavling.status_kavling === 'BUILDING' ? 'BUILDING' : kavling.status_kavling === 'READY_STOCK' ? 'READY_STOCK' : 'AVAILABLE'
-    : statusSales === 'AKAD'
-      ? 'SOLD'
-      : 'BOOKING';
+  // SPK aktif menguasai status pembangunan. Sales hanya memengaruhi status
+  // penjualan; selama rumah masih dibangun, status kavling harus tetap BUILDING.
+  const nextKavlingStatus = activeSpk
+    ? 'BUILDING'
+    : statusSales === 'BATAL'
+      ? kavling.status_kavling === 'READY_STOCK' ? 'READY_STOCK' : 'AVAILABLE'
+      : statusSales === 'AKAD'
+        ? 'SOLD'
+        : 'BOOKING';
 
   const { error: kavlingUpdateError } = await supabase.from('master_kavling').update({ status_kavling: nextKavlingStatus }).eq('id_kavling', idKavling);
   if (kavlingUpdateError) {
@@ -99,6 +104,9 @@ export async function deactivateSales(formData: FormData) {
   if (!activeSpk) {
     const nextStatus = sales.status_sales === 'AKAD' ? 'SOLD' : completedSpk ? 'READY_STOCK' : 'AVAILABLE';
     const { error: kavlingError } = await supabase.from('master_kavling').update({ status_kavling: nextStatus }).eq('id_kavling', sales.id_kavling);
+    if (kavlingError) redirectError(kavlingError.message);
+  } else {
+    const { error: kavlingError } = await supabase.from('master_kavling').update({ status_kavling: 'BUILDING' }).eq('id_kavling', sales.id_kavling);
     if (kavlingError) redirectError(kavlingError.message);
   }
 
