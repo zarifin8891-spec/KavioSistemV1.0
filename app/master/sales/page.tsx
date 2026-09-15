@@ -8,7 +8,7 @@ type Kavling = { id_kavling: string; blok: string; no_kavling: string; id_tipe: 
 type Tipe = { id_tipe: string; nama_tipe: string };
 type Sales = { id_sales: string; id_kavling: string; nama_konsumen: string; status_sales: string; jenis_pembayaran: string; harga_jual: number | string | null; tgl_booking: string | null; target_akad: string | null; status_aktif: boolean; created_at: string };
 
-export default async function MasterSalesPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function SalesPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -27,66 +27,111 @@ export default async function MasterSalesPage({ searchParams }: { searchParams: 
   const tipeMap = new Map(tipeRows.map((row) => [row.id_tipe, row.nama_tipe]));
   const kavlingMap = new Map(kavlingRows.map((row) => [row.id_kavling, row]));
   const saleableKavlings = kavlingRows.filter((row) => ['AVAILABLE', 'BUILDING', 'READY_STOCK'].includes(row.status_kavling));
+  const activeSales = salesRows.filter((row) => row.status_aktif);
+  const count = (status: string) => activeSales.filter((row) => row.status_sales === status).length;
 
   return (
-    <main style={page}>
-      <header style={header}><div><Link href="/dashboard" style={back}>← Dashboard</Link><div style={brand}>KAVIO</div><div style={title}>Sales / Konsumen</div></div><div style={userBox}><div>{user.email}</div><form action="/auth/signout" method="post"><button type="submit" style={logout}>Keluar</button></form></div></header>
+    <main className="sales-page" style={page}>
       <section style={content}>
-        <div style={hero}><div><div style={eyebrow}>SALES MONITORING</div><h1 style={h1}>Penjualan Kavling</h1><p style={subtitle}>Kavling dapat dijual sebelum, selama, atau sesudah pembangunan. Histori SPK dan sales tetap terpisah.</p></div><Link href="/master/kavling" style={secondaryLink}>Lihat Kavling</Link></div>
+        <div style={topTitle}>
+          <div>
+            <div style={eyebrow}>4. SALES MANAGEMENT</div>
+            <h1 style={h1}>Data Sales</h1>
+            <p style={subtitle}>Kelola data konsumen, status penjualan, dan status pembayaran.</p>
+          </div>
+          <div style={topActions}>
+            <span style={userLabel}>{user.email}</span>
+            <Link href="#input-sales" style={primaryButton}>＋ Tambah Sales</Link>
+          </div>
+        </div>
+
+        <div style={summaryGrid}>
+          <Summary label="TOTAL AKTIF" value={activeSales.length} />
+          <Summary label="BOOKING" value={count('BOOKING')} />
+          <Summary label="DP" value={count('DP')} />
+          <Summary label="PROSES KPR" value={count('PROSES_KPR')} />
+          <Summary label="AKAD" value={count('AKAD')} />
+        </div>
+
         {error && <div style={alertError}>{error}</div>}
         {params.success && <div style={alertSuccess}>{params.success}</div>}
 
-        <section style={card}><div style={sectionTitle}>Input Sales Baru</div><form action={createSales} style={formGrid}>
-          <label style={label}><span>Kavling</span><select name="id_kavling" required style={input} defaultValue=""><option value="" disabled>Pilih kavling</option>{saleableKavlings.map((row) => <option key={row.id_kavling} value={row.id_kavling}>{row.id_kavling} — {tipeMap.get(row.id_tipe) ?? row.id_tipe} — {row.status_kavling}</option>)}</select></label>
-          <label style={label}><span>Nama Konsumen</span><input name="nama_konsumen" required style={input} placeholder="Nama lengkap konsumen" /></label>
-          <label style={label}><span>Status Sales</span><select name="status_sales" required style={input} defaultValue="BOOKING"><option value="BOOKING">BOOKING</option><option value="DP">DP</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select></label>
-          <label style={label}><span>Jenis Pembayaran</span><select name="jenis_pembayaran" required style={input} defaultValue="KPR"><option value="KPR">KPR</option><option value="CASH">CASH</option><option value="CASH_BERTAHAP">CASH BERTAHAP</option></select></label>
-          <label style={label}><span>Harga Jual</span><input name="harga_jual" type="number" min="0" step="1000" style={input} placeholder="0" /></label>
-          <label style={label}><span>Tanggal Booking</span><input name="tgl_booking" type="date" style={input} /></label>
-          <label style={label}><span>Target Akad</span><input name="target_akad" type="date" style={input} /></label>
-          <div style={buttonRow}><button type="submit" style={primaryButton} disabled={!saleableKavlings.length}>+ Simpan Sales</button></div>
-        </form></section>
+        <section id="input-sales" style={card}>
+          <div style={sectionHead}><div><div style={sectionTitle}>Input Sales Baru</div><div style={sectionNote}>Sales adalah transaksi penjualan dan tetap terpisah dari histori SPK.</div></div></div>
+          <form action={createSales} style={formGrid}>
+            <Field label="Kavling"><select name="id_kavling" required style={input} defaultValue=""><option value="" disabled>Pilih kavling</option>{saleableKavlings.map((row) => <option key={row.id_kavling} value={row.id_kavling}>{row.id_kavling} — {tipeMap.get(row.id_tipe) ?? row.id_tipe} — {row.status_kavling}</option>)}</select></Field>
+            <Field label="Nama Konsumen"><input name="nama_konsumen" required style={input} placeholder="Nama lengkap konsumen" /></Field>
+            <Field label="Status Sales"><select name="status_sales" required style={input} defaultValue="BOOKING"><option value="BOOKING">BOOKING</option><option value="DP">DP</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select></Field>
+            <Field label="Jenis Pembayaran"><select name="jenis_pembayaran" required style={input} defaultValue="KPR"><option value="KPR">KPR</option><option value="CASH">CASH</option><option value="CASH_BERTAHAP">CASH BERTAHAP</option></select></Field>
+            <Field label="Harga Jual"><input name="harga_jual" type="number" min="0" step="1000" style={input} placeholder="Rp 0" /></Field>
+            <Field label="Tanggal Booking"><input name="tgl_booking" type="date" style={input} /></Field>
+            <Field label="Target Akad"><input name="target_akad" type="date" style={input} /></Field>
+            <div style={buttonRow}><button type="submit" style={saveButton} disabled={!saleableKavlings.length}>Simpan Sales</button></div>
+          </form>
+        </section>
 
-        <section style={{ ...card, marginTop: 18, overflow: 'hidden' }}><div style={sectionHead}><div><div style={sectionTitleNoPad}>Daftar Sales</div><div style={sectionNote}>Satu kavling hanya boleh mempunyai satu sales aktif. Sales boleh masuk saat rumah masih BUILDING.</div></div><div style={pill}>{salesRows.filter((row) => row.status_aktif).length} aktif</div></div><div style={{ overflowX: 'auto' }}><table style={table}><thead><tr><th style={th}>Kavling</th><th style={th}>Konsumen</th><th style={th}>Status</th><th style={th}>Pembayaran</th><th style={th}>Harga</th><th style={th}>Booking</th><th style={th}>Target Akad</th><th style={th}>Status Data</th><th style={th}>Aksi</th></tr></thead><tbody>{salesRows.map((row) => <tr key={row.id_sales}><td style={tdStrong}>{row.id_kavling}<div style={micro}>{kavlingMap.get(row.id_kavling)?.blok ?? ''} · {tipeMap.get(kavlingMap.get(row.id_kavling)?.id_tipe ?? '') ?? kavlingMap.get(row.id_kavling)?.id_tipe ?? '—'}</div></td><td style={td}>{row.nama_konsumen}</td><td style={td}><span style={salesBadge(row.status_sales)}>{row.status_sales}</span></td><td style={td}>{row.jenis_pembayaran}</td><td style={td}>{formatCurrency(row.harga_jual)}</td><td style={td}>{row.tgl_booking ?? '—'}</td><td style={td}>{row.target_akad ?? '—'}</td><td style={td}><span style={row.status_aktif ? activeBadge : inactiveBadge}>{row.status_aktif ? 'AKTIF' : 'NONAKTIF'}</span></td><td style={td}>{row.status_aktif ? <form action={deactivateSales}><input type="hidden" name="id_sales" value={row.id_sales} /><button type="submit" style={outlineButton}>Tutup Sales</button></form> : <span style={{ color: '#8D815F' }}>—</span>}</td></tr>)}{!salesRows.length && <tr><td colSpan={9} style={empty}>Belum ada data sales.</td></tr>}</tbody></table></div></section>
+        <section style={{ ...card, marginTop: 18, overflow: 'hidden' }}>
+          <div style={tableHead}>
+            <div><div style={sectionTitle}>Daftar Sales</div><div style={sectionNote}>Histori transaksi penjualan berdasarkan data Sales KAVIO.</div></div>
+            <div style={activePill}>{activeSales.length} aktif</div>
+          </div>
+          <div style={filterRow}>
+            <select style={filterInput} defaultValue=""><option value="">Semua Status</option><option value="BOOKING">Booking</option><option value="DP">DP</option><option value="PROSES_KPR">Proses KPR</option><option value="AKAD">Akad</option><option value="BATAL">Batal</option></select>
+            <select style={filterInput} defaultValue=""><option value="">Semua Tipe</option>{tipeRows.map((tipe) => <option key={tipe.id_tipe} value={tipe.id_tipe}>{tipe.nama_tipe}</option>)}</select>
+            <input style={{ ...filterInput, minWidth: 240 }} placeholder="⌕  Cari nama konsumen..." />
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={table}><thead><tr><th style={th}>No</th><th style={th}>Tanggal</th><th style={th}>Kavling</th><th style={th}>Nama Konsumen</th><th style={th}>Tipe</th><th style={th}>Harga</th><th style={th}>Status</th><th style={th}>Aksi</th></tr></thead>
+              <tbody>{salesRows.map((row, index) => { const kavling = kavlingMap.get(row.id_kavling); return <tr key={row.id_sales}><td style={tdCenter}>{index + 1}</td><td style={td}>{row.tgl_booking ?? '—'}</td><td style={tdStrong}>{row.id_kavling}</td><td style={tdStrong}>{row.nama_konsumen}</td><td style={td}>{tipeMap.get(kavling?.id_tipe ?? '') ?? kavling?.id_tipe ?? '—'}</td><td style={td}>{formatCurrency(row.harga_jual)}</td><td style={td}><span style={salesBadge(row.status_sales)}>{statusLabel(row.status_sales)}</span></td><td style={td}>{row.status_aktif ? <form action={deactivateSales}><input type="hidden" name="id_sales" value={row.id_sales} /><button type="submit" style={actionButton}>•••</button></form> : <span style={{ color: '#8D815F' }}>—</span>}</td></tr>; })}{!salesRows.length && <tr><td colSpan={8} style={empty}>Belum ada data sales.</td></tr>}</tbody>
+            </table>
+          </div>
+          <div style={tableFoot}><span>Menampilkan {salesRows.length} data</span><span style={footNote}>Sales aktif: {activeSales.length}</span></div>
+        </section>
       </section>
     </main>
   );
 }
 
+function Summary({ label, value }: { label: string; value: number }) { return <div style={summaryCard}><div style={summaryLabel}>{label}</div><div style={summaryValue}>{value}</div></div>; }
+function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label style={labelStyle}><span>{label}</span>{children}</label>; }
 function formatCurrency(value: number | string | null) { const n = Number(value); return Number.isFinite(n) && n > 0 ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n) : '—'; }
-function salesBadge(status: string) { const tone = status === 'BATAL' ? { bg: 'rgba(248,113,113,.10)', color: '#FCA5A5', border: '#B91C1C' } : status === 'AKAD' ? { bg: 'rgba(134,239,172,.10)', color: '#BBF7D0', border: '#15803D' } : { bg: 'rgba(216,180,90,.10)', color: '#E8CC7A', border: '#B8943F' }; return { display: 'inline-flex', padding: '5px 8px', borderRadius: 999, fontSize: 10, fontWeight: 800, background: tone.bg, color: tone.color, border: `1px solid ${tone.border}` }; }
-const page = { minHeight: '100vh', background: '#0B1D3A', color: '#F7F3E8' };
-const header = { background: '#102A56', borderBottom: '1px solid #B8943F', padding: '18px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-const back = { textDecoration: 'none', color: '#DCCB9C', fontSize: 13 };
-const brand = { marginTop: 8, fontSize: 12, fontWeight: 900, letterSpacing: 1.5, color: '#E8CC7A' };
-const title = { fontSize: 21, fontWeight: 800, color: '#F7F3E8' };
-const userBox = { textAlign: 'right' as const, fontSize: 12, color: '#DCCB9C' };
-const logout = { marginTop: 5, border: 0, background: 'transparent', color: '#E8CC7A', fontWeight: 800, cursor: 'pointer' };
-const content = { maxWidth: 1400, margin: '0 auto', padding: 28 };
-const hero = { display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 18, flexWrap: 'wrap' as const, marginBottom: 18 };
-const eyebrow = { fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: '#E8CC7A' };
-const h1 = { margin: '5px 0 5px', fontSize: 30, color: '#F7F3E8' };
-const subtitle = { margin: 0, color: '#C9BC99', fontSize: 14 };
-const card = { background: '#162F5B', border: '1px solid rgba(216,180,90,.35)', borderRadius: 16, boxShadow: '0 10px 28px rgba(0,0,0,.16)', overflow: 'hidden' };
-const sectionTitle = { padding: '16px 18px', borderBottom: '1px solid rgba(216,180,90,.18)', fontWeight: 900, color: '#F7F3E8' };
-const sectionTitleNoPad = { fontWeight: 900, color: '#F7F3E8' };
-const sectionHead = { padding: '16px 18px', borderBottom: '1px solid rgba(216,180,90,.18)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 };
-const sectionNote = { marginTop: 3, fontSize: 11, color: '#BFAF83' };
-const formGrid = { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, padding: 18 };
-const label = { display: 'flex', flexDirection: 'column' as const, gap: 7, fontSize: 12, fontWeight: 800, color: '#DCCB9C' };
-const input = { width: '100%', boxSizing: 'border-box' as const, border: '1px solid #B8943F', borderRadius: 9, padding: '10px 11px', fontSize: 14, background: '#102A56', color: '#F7F3E8' };
+function statusLabel(status: string) { return status === 'PROSES_KPR' ? 'PROSES KPR' : status; }
+function salesBadge(status: string) { const tone = status === 'BATAL' ? ['rgba(248,113,113,.14)', '#FCA5A5', '#B91C1C'] : status === 'AKAD' ? ['rgba(134,239,172,.14)', '#BBF7D0', '#15803D'] : status === 'DP' ? ['rgba(232,204,122,.20)', '#172B43', '#D8B45A'] : ['rgba(92,171,239,.18)', '#DCEEFF', '#4D91C8']; return { display: 'inline-flex', padding: '6px 11px', borderRadius: 7, fontSize: 11, fontWeight: 900, background: tone[0], color: tone[1], border: `1px solid ${tone[2]}`, whiteSpace: 'nowrap' as const }; }
+
+const page = { minHeight: '100%', background: 'transparent', color: '#F7F3E8' };
+const content = { maxWidth: 1400, margin: '0 auto', padding: '0 0 30px' };
+const topTitle = { display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 20, marginBottom: 20, flexWrap: 'wrap' as const };
+const topActions = { display: 'flex', alignItems: 'center', gap: 18 };
+const userLabel = { color: '#C9BC99', fontSize: 11 };
+const eyebrow = { color: '#F0D48A', fontSize: 13, fontWeight: 900, letterSpacing: 1.1, textTransform: 'uppercase' as const };
+const h1 = { margin: '5px 0 4px', color: '#F7F3E8', fontSize: 30, fontWeight: 900 };
+const subtitle = { margin: 0, color: '#C9BC99', fontSize: 13 };
+const primaryButton = { background: 'linear-gradient(180deg,#F0D48A,#D8B45A)', color: '#10213A', border: '1px solid #F0D48A', borderRadius: 9, padding: '12px 18px', textDecoration: 'none', fontWeight: 900, fontSize: 13, boxShadow: '0 6px 18px rgba(216,180,90,.16)' };
+const summaryGrid = { display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 12, marginBottom: 18 };
+const summaryCard = { padding: '14px 16px', border: '1px solid rgba(216,180,90,.30)', borderRadius: 11, background: 'linear-gradient(180deg,#173452,#0D2948)' };
+const summaryLabel = { color: '#C9BC99', fontSize: 9, fontWeight: 900, letterSpacing: .8 };
+const summaryValue = { marginTop: 4, color: '#F0D48A', fontSize: 23, fontWeight: 900 };
+const card = { background: 'linear-gradient(180deg,#123150,#081F39)', border: '1px solid rgba(216,180,90,.34)', borderRadius: 14, boxShadow: '0 10px 28px rgba(0,0,0,.18)' };
+const sectionHead = { padding: '15px 18px', borderBottom: '1px solid rgba(216,180,90,.18)' };
+const tableHead = { padding: '15px 18px', borderBottom: '1px solid rgba(216,180,90,.18)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14 };
+const sectionTitle = { color: '#F7F3E8', fontWeight: 900, fontSize: 16 };
+const sectionNote = { marginTop: 3, color: '#BFAF83', fontSize: 10 };
+const formGrid = { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 13, padding: 18 };
+const labelStyle = { display: 'flex', flexDirection: 'column' as const, gap: 6, color: '#DCCB9C', fontSize: 11, fontWeight: 800 };
+const input = { width: '100%', padding: '10px 11px', borderRadius: 8, border: '1px solid rgba(232,204,122,.48)', background: 'linear-gradient(180deg,#344C69,#293F5B)', color: '#F7F3E8', outline: 'none' };
 const buttonRow = { gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end' };
-const primaryButton = { background: 'linear-gradient(180deg,#E8CC7A,#D8B45A)', color: '#0B1D3A', border: 0, borderRadius: 9, padding: '11px 16px', fontWeight: 900, cursor: 'pointer' };
-const secondaryLink = { background: '#162F5B', color: '#E8CC7A', border: '1px solid #B8943F', padding: '10px 15px', borderRadius: 10, textDecoration: 'none', fontWeight: 800, fontSize: 13 };
-const pill = { background: 'rgba(216,180,90,.10)', color: '#E8CC7A', border: '1px solid #B8943F', borderRadius: 999, padding: '5px 9px', fontSize: 10, fontWeight: 800 };
-const table = { width: '100%', borderCollapse: 'collapse' as const, fontSize: 13 };
-const th = { padding: '11px 14px', borderBottom: '1px solid rgba(216,180,90,.22)', background: '#102A56', color: '#E8CC7A', textAlign: 'left' as const, whiteSpace: 'nowrap' };
-const td = { padding: '12px 14px', borderBottom: '1px solid rgba(216,180,90,.10)', color: '#F7F3E8', verticalAlign: 'middle' as const };
+const saveButton = { padding: '10px 18px', borderRadius: 8, border: '1px solid #D8B45A', background: 'linear-gradient(180deg,#F0D48A,#D8B45A)', color: '#10213A', fontWeight: 900, cursor: 'pointer' };
+const filterRow = { display: 'flex', gap: 10, padding: '13px 18px', background: 'rgba(4,24,47,.45)', borderBottom: '1px solid rgba(216,180,90,.16)', flexWrap: 'wrap' as const };
+const filterInput = { minWidth: 150, padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(232,204,122,.40)', background: '#314A68', color: '#F7F3E8', outline: 'none' };
+const activePill = { padding: '5px 10px', borderRadius: 999, background: 'rgba(216,180,90,.12)', color: '#F0D48A', border: '1px solid #A98235', fontSize: 10, fontWeight: 900 };
+const table = { width: '100%', borderCollapse: 'collapse' as const, fontSize: 12, background: '#F7F5EE' };
+const th = { padding: '12px 13px', background: 'linear-gradient(180deg,#153654,#102E4D)', color: '#F0D48A', borderBottom: '1px solid #A98235', textAlign: 'left' as const, whiteSpace: 'nowrap' };
+const td = { padding: '11px 13px', color: '#172B43', borderBottom: '1px solid rgba(23,43,67,.12)', verticalAlign: 'middle' as const };
 const tdStrong = { ...td, fontWeight: 900 };
-const micro = { marginTop: 4, fontSize: 11, color: '#BFAF83', lineHeight: 1.35 };
-const activeBadge = { display: 'inline-block', background: 'rgba(134,239,172,.10)', color: '#BBF7D0', padding: '4px 8px', borderRadius: 999, fontSize: 10, fontWeight: 800, border: '1px solid #15803D' };
-const inactiveBadge = { display: 'inline-block', background: 'rgba(220,203,156,.08)', color: '#DCCB9C', padding: '4px 8px', borderRadius: 999, fontSize: 10, fontWeight: 800, border: '1px solid #B8943F' };
-const outlineButton = { background: '#102A56', color: '#E8CC7A', border: '1px solid #B8943F', borderRadius: 8, padding: '7px 10px', fontWeight: 800, cursor: 'pointer' };
-const empty = { padding: 30, textAlign: 'center' as const, color: '#DCCB9C' };
-const alertError = { background: 'rgba(248,113,113,.10)', border: '1px solid #B91C1C', color: '#FCA5A5', padding: 13, borderRadius: 12, marginBottom: 16 };
-const alertSuccess = { background: 'rgba(134,239,172,.10)', border: '1px solid #15803D', color: '#BBF7D0', padding: 13, borderRadius: 12, marginBottom: 16 };
+const tdCenter = { ...td, textAlign: 'center' as const, fontWeight: 800 };
+const actionButton = { width: 36, height: 30, borderRadius: 7, border: '1px solid #CFC7B5', background: '#FFFDF6', color: '#172B43', fontWeight: 900, letterSpacing: 1, cursor: 'pointer' };
+const tableFoot = { padding: '13px 18px', display: 'flex', justifyContent: 'space-between', color: '#E5DDCC', fontSize: 11 };
+const footNote = { color: '#BFAF83' };
+const empty = { padding: 28, textAlign: 'center' as const, color: '#665F50' };
+const alertError = { marginBottom: 16, padding: 12, borderRadius: 10, background: 'rgba(248,113,113,.10)', border: '1px solid #B91C1C', color: '#FCA5A5' };
+const alertSuccess = { marginBottom: 16, padding: 12, borderRadius: 10, background: 'rgba(134,239,172,.10)', border: '1px solid #15803D', color: '#BBF7D0' };
