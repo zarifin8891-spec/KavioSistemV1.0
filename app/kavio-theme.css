@@ -44,7 +44,6 @@ a { color: var(--kavio-gold-300); }
 .kavio-gold { color: var(--kavio-gold-300); }
 main { background: var(--kavio-navy-950) !important; color: var(--kavio-ivory) !important; }
 main header { background: var(--kavio-navy-900) !important; border-bottom-color: var(--kavio-gold-700) !important; }
-main section > div, main section > article, main section > form, main section > table, main section > div > div { color: inherit; }
 main input, main select, main textarea { background: linear-gradient(180deg, #344C69, #293F5B) !important; color: var(--kavio-ivory) !important; border-color: rgba(232,204,122,.48) !important; }
 main input::placeholder, main textarea::placeholder { color: #D0CCBF !important; }
 main button { border-color: var(--kavio-gold-500) !important; }
@@ -96,6 +95,11 @@ main td { border-bottom-color: rgba(25,51,76,.15) !important; }
 .spk-alert { padding:12px 14px; border-radius:10px; margin-bottom:14px; font-size:12px; }
 .spk-alert.error { background:rgba(248,113,113,.10); border:1px solid #B91C1C; color:#FCA5A5; }
 .spk-alert.success { background:rgba(134,239,172,.10); border:1px solid #15803D; color:#BBF7D0; }
+
+.kavio-dashboard-page { width:100%; }
+.kavio-dashboard-page main { min-height:auto !important; }
+.kavio-dashboard-page main > section { max-width:1500px !important; margin:0 auto !important; }
+.kavio-dashboard-page main > section > section { margin-left:0; margin-right:0; }
 
 .kavio-content > main { min-height: auto !important; background: transparent !important; }
 .kavio-content > main > header { display: none !important; }
