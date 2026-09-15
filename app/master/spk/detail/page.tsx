@@ -108,6 +108,7 @@ function interpolatePath(points: { x: number; y: number }[]) { if (!points.lengt
 function makeDateLabels(points: { date: string }[], count: number) { if (!points.length) return []; const picked: { date: string }[] = []; for (let i = 0; i < count; i += 1) picked.push(points[Math.round((i * (points.length - 1)) / Math.max(1, count - 1))]); return Array.from(new Map(picked.map((p) => [p.date, p])).values()); }
 function formatMonth(date: string) { return new Intl.DateTimeFormat('id-ID', { month: 'short', year: '2-digit', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`)); }
 function clampDate(date: string, minDate: string, maxDate: string) { return date < minDate ? minDate : date > maxDate ? maxDate : date; }
+function clamp(value: number) { return Math.min(1, Math.max(0, value)); }
 function dateMs(date: string) { return new Date(`${date}T00:00:00Z`).getTime(); }
 function latestPeriodLabel(latestPeriod: { date: string; progress: number } | null) { return latestPeriod ? `${(latestPeriod.progress * 100).toFixed(2)}%` : '—'; }
 function getLatestPeriod(rows: History[]) { if (!rows.length) return null; const date = rows[rows.length - 1].tanggal_update; const progress = rows.filter((row) => row.tanggal_update === date).reduce((sum, row) => sum + Number(row.progress_periode ?? 0), 0); return { date, progress }; }
