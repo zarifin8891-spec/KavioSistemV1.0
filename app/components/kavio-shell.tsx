@@ -49,6 +49,24 @@ export default function KavioShell({ children, active }: { children: React.React
         </header>
         <div className="kavio-content">{children}</div>
       </div>
+      <style>{`
+        .kavio-sidebar{width:216px !important;flex-basis:216px !important;padding:14px 8px !important;}
+        .kavio-brand{gap:9px !important;padding:4px 6px 18px !important;}
+        .kavio-brand-mark{width:42px !important;height:42px !important;font-size:23px !important;flex:0 0 42px;}
+        .kavio-brand strong{font-size:25px !important;letter-spacing:1.8px !important;line-height:1 !important;}
+        .kavio-brand small{font-size:6.5px !important;letter-spacing:.2px !important;white-space:nowrap !important;line-height:1 !important;}
+        .kavio-nav{gap:8px !important;margin-top:14px !important;}
+        .kavio-nav-section{gap:6px !important;}
+        .kavio-nav-section + .kavio-nav-section{padding-top:11px !important;}
+        .kavio-nav-item{gap:10px !important;padding:11px 10px !important;font-size:13px !important;}
+        .kavio-nav-icon{width:18px !important;font-size:16px !important;}
+        .kavio-sidebar-footer{font-size:7.5px !important;line-height:1.45 !important;}
+        @media (max-width:900px){
+          .kavio-sidebar{width:76px !important;flex-basis:76px !important;padding:12px 8px !important;}
+          .kavio-brand{padding-left:0 !important;padding-right:0 !important;}
+          .kavio-brand-mark{width:40px !important;height:40px !important;flex-basis:40px;}
+        }
+      `}</style>
     </div>
   );
 }
