@@ -3,9 +3,8 @@ import Link from 'next/link';
 const nav = [
   ['Beranda', '/dashboard'],
   ['Master Data', '/master'],
-  ['Kavling', '/master/kavling'],
   ['Sales', '/master/sales'],
-  ['SPK', '/master/spk'],
+  ['SPK / Pekerjaan', '/master/spk'],
   ['Progress', '/progress'],
 ];
 
@@ -39,6 +38,12 @@ export default function KavioShell({ children, active }: { children: React.React
 }
 
 function icon(label: string) {
-  const map: Record<string, string> = { Beranda: '⌂', 'Master Data': '▦', Kavling: '⌗', Sales: '♙', SPK: '▣', Progress: '◔' };
+  const map: Record<string, string> = {
+    Beranda: '⌂',
+    'Master Data': '▦',
+    Sales: '♙',
+    'SPK / Pekerjaan': '▣',
+    Progress: '◔',
+  };
   return map[label] ?? '•';
 }
