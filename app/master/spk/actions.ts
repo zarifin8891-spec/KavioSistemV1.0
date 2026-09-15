@@ -121,38 +121,14 @@ export async function activateSpk(formData: FormData) {
   const idSpk = text(formData.get('id_spk'));
   if (!idSpk) errorRedirect('ID SPK tidak valid');
 
-  const { data: spk, error: spkError } = await supabase
-    .from('spk')
-    .select('id_spk, id_kavling, status_spk, is_active')
-    .eq('id_spk', idSpk)
-    .maybeSingle();
-  if (spkError) errorRedirect(spkError.message);
-  if (!spk || spk.status_spk !== 'DRAFT' || spk.is_active) errorRedirect('SPK tidak berada pada status DRAFT yang valid');
-
-  const [{ data: config, error: configError }, { data: kavling, error: kavlingError }, { data: activeOtherSpk, error: activeOtherSpkError }] = await Promise.all([
-    supabase.from('spk_progress_config').select('id_kategori, bobot_final').eq('id_spk', idSpk),
-    supabase.from('master_kavling').select('id_kavling, status_aktif, status_kavling').eq('id_kavling', spk.id_kavling).maybeSingle(),
-    supabase.from('spk').select('id_spk').eq('id_kavling', spk.id_kavling).eq('is_active', true).neq('id_spk', idSpk).maybeSingle(),
-  ]);
-
-  if (configError || kavlingError || activeOtherSpkError) errorRedirect((configError ?? kavlingError ?? activeOtherSpkError)?.message ?? 'Gagal memvalidasi SPK');
-  if (!kavling || !kavling.status_aktif) errorRedirect('Kavling pada SPK tidak aktif atau tidak ditemukan');
-  if (!(SPK_READY_STATUSES as readonly string[]).includes(kavling.status_kavling)) errorRedirect(`Kavling berstatus ${kavling.status_kavling} tidak siap untuk SPK`);
-  if (activeOtherSpk) errorRedirect('Kavling tersebut sudah memiliki SPK aktif lain');
-
-  const totalBobot = (config ?? []).reduce((sum, row) => sum + Number(row.bobot_final ?? 0), 0);
-  if (!(config ?? []).length || Math.abs(totalBobot - 1) > 0.00001) errorRedirect(`SPK tidak dapat diaktifkan. Total bobot harus 100%, saat ini ${(totalBobot * 100).toFixed(2)}%`);
-
-  const { error: updateError } = await supabase.from('spk').update({ status_spk: 'AKTIF', is_active: true }).eq('id_spk', idSpk).eq('status_spk', 'DRAFT').eq('is_active', false);
-  if (updateError) errorRedirect(updateError.message);
-
-  const { error: kavlingUpdateError } = await supabase.from('master_kavling').update({ status_kavling: 'BUILDING' }).eq('id_kavling', spk.id_kavling).eq('status_aktif', true);
-  if (kavlingUpdateError) errorRedirect(kavlingUpdateError.message);
+  const { error } = await supabase.rpc('activate_spk_atomic', { p_id_spk: idSpk });
+  if (error) errorRedirect(error.message);
 
   revalidatePath('/master/spk');
   revalidatePath('/master/kavling');
   revalidatePath('/master/sales');
   revalidatePath('/dashboard');
+  revalidatePath(`/master/spk/detail/${idSpk}`);
   redirect('/master/spk?success=SPK%20berhasil%20diaktifkan%20dan%20status%20kavling%20menjadi%20BUILDING');
 }
 
@@ -164,31 +140,14 @@ export async function deactivateSpk(formData: FormData) {
   const idSpk = text(formData.get('id_spk'));
   if (!idSpk) errorRedirect('ID SPK tidak valid');
 
-  const { data: spk, error: spkError } = await supabase.from('spk').select('id_spk, id_kavling, status_spk, is_active').eq('id_spk', idSpk).maybeSingle();
-  if (spkError) errorRedirect(spkError.message);
-  if (!spk || !spk.is_active) errorRedirect('SPK aktif tidak ditemukan');
-  if (spk.status_spk !== 'AKTIF') errorRedirect('Hanya SPK AKTIF yang dapat ditandai selesai');
-
-  const [{ data: activeSales, error: salesError }, { data: kavling, error: kavlingError }] = await Promise.all([
-    supabase.from('sales').select('id_sales, status_sales').eq('id_kavling', spk.id_kavling).eq('status_aktif', true).maybeSingle(),
-    supabase.from('master_kavling').select('status_kavling, status_aktif').eq('id_kavling', spk.id_kavling).maybeSingle(),
-  ]);
-  if (salesError || kavlingError) errorRedirect((salesError ?? kavlingError)?.message ?? 'Gagal membaca relasi SPK');
-  if (!kavling || !kavling.status_aktif) errorRedirect('Kavling pada SPK tidak aktif atau tidak ditemukan');
-
-  const { error } = await supabase.from('spk').update({ status_spk: 'SELESAI', is_active: false }).eq('id_spk', idSpk).eq('is_active', true).eq('status_spk', 'AKTIF');
+  const { data: nextStatus, error } = await supabase.rpc('deactivate_spk_atomic', { p_id_spk: idSpk });
   if (error) errorRedirect(error.message);
 
-  let nextKavlingStatus = 'READY_STOCK';
-  if (activeSales?.status_sales === 'AKAD') nextKavlingStatus = 'SOLD';
-  else if (activeSales) nextKavlingStatus = 'BOOKING';
-
-  const { error: kavlingErrorUpdate } = await supabase.from('master_kavling').update({ status_kavling: nextKavlingStatus }).eq('id_kavling', spk.id_kavling).eq('status_aktif', true);
-  if (kavlingErrorUpdate) errorRedirect(kavlingErrorUpdate.message);
-
+  const finalStatus = String(nextStatus ?? 'READY_STOCK');
   revalidatePath('/master/spk');
   revalidatePath('/master/kavling');
   revalidatePath('/master/sales');
   revalidatePath('/dashboard');
-  redirect(`/master/spk?success=${encodeURIComponent(`SPK selesai. Status kavling menjadi ${nextKavlingStatus}`)}`);
+  revalidatePath(`/master/spk/detail/${idSpk}`);
+  redirect(`/master/spk?success=${encodeURIComponent(`SPK selesai. Status kavling menjadi ${finalStatus}`)}`);
 }
