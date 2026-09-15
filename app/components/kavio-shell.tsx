@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const sections = [
   { title: 'UTAMA', items: [['Beranda', '/dashboard']] },
@@ -7,6 +10,17 @@ const sections = [
 ] as const;
 
 export default function KavioShell({ children, active }: { children: React.ReactNode; active?: string }) {
+  const pathname = usePathname();
+  const effectiveActive = pathname.startsWith('/master/sales')
+    ? '/master/sales'
+    : pathname.startsWith('/master/spk')
+      ? '/master/spk'
+      : pathname.startsWith('/progress')
+        ? '/progress'
+        : pathname.startsWith('/dashboard')
+          ? '/dashboard'
+          : active;
+
   return (
     <div className="kavio-shell">
       <aside className="kavio-sidebar">
@@ -19,7 +33,7 @@ export default function KavioShell({ children, active }: { children: React.React
             <div key={section.title} className="kavio-nav-section">
               <div className="kavio-nav-section-title">{section.title}</div>
               {section.items.map(([label, href]) => (
-                <Link key={href} href={href} className={`kavio-nav-item ${active === href ? 'is-active' : ''}`}>
+                <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
                   <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
                   <span>{label}</span>
                 </Link>
