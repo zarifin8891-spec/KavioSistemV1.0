@@ -47,7 +47,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
 
         <section style={card}>
           <div style={sectionTitle}>Tambah Kavling</div>
-          <form action={createKavling} style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 12, padding: 18 }}>
+          <form action={createKavling} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12, padding: 18 }}>
             <Field name="id_kavling" label="ID Kavling" placeholder="A-11" required />
             <Field name="blok" label="Blok" placeholder="A" required />
             <Field name="no_kavling" label="No. Kavling" placeholder="11" required />
@@ -58,17 +58,9 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
                 {(tipeRumah ?? []).map((t) => <option key={t.id_tipe} value={t.id_tipe}>{t.nama_tipe}</option>)}
               </select>
             </label>
-            <label style={labelStyle}>
-              <span>Status Kavling</span>
-              <select name="status_kavling" style={inputStyle} defaultValue="AVAILABLE">
-                <option value="AVAILABLE">AVAILABLE</option>
-                <option value="BOOKING">BOOKING</option>
-                <option value="SOLD">SOLD</option>
-                <option value="BUILDING">BUILDING</option>
-                <option value="READY_STOCK">READY STOCK</option>
-                <option value="COMPLETED">COMPLETED (legacy)</option>
-              </select>
-            </label>
+            <div style={{ gridColumn: '1 / -1', marginTop: 2, padding: '10px 12px', borderRadius: 10, background: '#f8fafc', color: '#64748b', fontSize: 12, border: '1px solid #e2e8f0' }}>
+              Status awal kavling otomatis <strong>AVAILABLE</strong>. Status <strong>BUILDING</strong>, <strong>READY_STOCK</strong>, dan <strong>SOLD</strong> mengikuti proses SPK/Sales dan tidak diinput manual dari form master.
+            </div>
             <div style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
               <button type="submit" style={primaryButton}>+ Simpan Kavling</button>
             </div>
@@ -89,7 +81,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
                     <td style={td}>{row.blok}</td>
                     <td style={td}>{row.no_kavling}</td>
                     <td style={td}>{tipeMap.get(row.id_tipe) ?? row.id_tipe}</td>
-                    <td style={td}>{row.status_kavling}</td>
+                    <td style={td}><span style={statusBadge(row.status_kavling)}>{row.status_kavling}</span></td>
                     <td style={td}><span style={row.status_aktif ? activeBadge : inactiveBadge}>{row.status_aktif ? 'AKTIF' : 'NONAKTIF'}</span></td>
                     <td style={td}>
                       <form action={toggleKavling}>
@@ -104,6 +96,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
               </tbody>
             </table>
           </div>
+          <div style={legend}>Lifecycle: <strong>AVAILABLE</strong> → BOOKING/BUILDING → READY_STOCK/SOLD</div>
         </section>
       </section>
     </main>
@@ -112,6 +105,19 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
 
 function Field({ name, label, placeholder, required }: { name: string; label: string; placeholder: string; required?: boolean }) {
   return <label style={labelStyle}><span>{label}</span><input name={name} placeholder={placeholder} required={required} style={inputStyle} /></label>;
+}
+
+function statusBadge(status: string) {
+  const map: Record<string, { background: string; color: string; border: string }> = {
+    AVAILABLE: { background: '#eff6ff', color: '#1d4ed8', border: '#93c5fd' },
+    BOOKING: { background: '#fffbeb', color: '#92400e', border: '#fcd34d' },
+    BUILDING: { background: '#fef3c7', color: '#92400e', border: '#f59e0b' },
+    READY_STOCK: { background: '#ecfdf5', color: '#047857', border: '#6ee7b7' },
+    SOLD: { background: '#f0fdf4', color: '#166534', border: '#86efac' },
+    COMPLETED: { background: '#f1f5f9', color: '#475569', border: '#cbd5e1' },
+  };
+  const tone = map[status] ?? map.COMPLETED;
+  return { display: 'inline-block', background: tone.background, color: tone.color, padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800, border: `1px solid ${tone.border}` };
 }
 
 const header = { background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '16px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
@@ -131,5 +137,6 @@ const td = { padding: '13px 14px', borderBottom: '1px solid #f1f5f9' };
 const tdStrong = { ...td, fontWeight: 800 };
 const activeBadge = { display: 'inline-block', background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800 };
 const inactiveBadge = { display: 'inline-block', background: '#f1f5f9', color: '#64748b', padding: '4px 8px', borderRadius: 999, fontSize: 11, fontWeight: 800 };
+const legend = { padding: '11px 16px', borderTop: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', fontSize: 12 };
 const alertError = { background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: 12, borderRadius: 10, marginBottom: 14 };
 const alertSuccess = { background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', padding: 12, borderRadius: 10, marginBottom: 14 };
