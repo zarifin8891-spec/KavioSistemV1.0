@@ -1,12 +1,10 @@
 import Link from 'next/link';
 
-const nav = [
-  ['Beranda', '/dashboard'],
-  ['Master Data', '/master'],
-  ['Sales', '/master/sales'],
-  ['SPK / Pekerjaan', '/master/spk'],
-  ['Progress', '/progress'],
-];
+const sections = [
+  { title: 'UTAMA', items: [['Beranda', '/dashboard']] },
+  { title: 'MASTER DATA', items: [['Master Data', '/master']] },
+  { title: 'OPERASIONAL', items: [['Sales', '/master/sales'], ['SPK / Pekerjaan', '/master/spk'], ['Progress', '/progress']] },
+] as const;
 
 export default function KavioShell({ children, active }: { children: React.ReactNode; active?: string }) {
   return (
@@ -17,11 +15,16 @@ export default function KavioShell({ children, active }: { children: React.React
           <span><strong>KAVIO</strong><small>KONTROL PROYEK, NILAI LEBIH BESAR</small></span>
         </Link>
         <nav className="kavio-nav">
-          {nav.map(([label, href]) => (
-            <Link key={href} href={href} className={`kavio-nav-item ${active === href ? 'is-active' : ''}`}>
-              <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
-              <span>{label}</span>
-            </Link>
+          {sections.map((section) => (
+            <div key={section.title} className="kavio-nav-section">
+              <div className="kavio-nav-section-title">{section.title}</div>
+              {section.items.map(([label, href]) => (
+                <Link key={href} href={href} className={`kavio-nav-item ${active === href ? 'is-active' : ''}`}>
+                  <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
+                  <span>{label}</span>
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="kavio-sidebar-footer">SATU DATA<br />SATU KENDALI<br />SATU HASIL</div>
@@ -38,12 +41,6 @@ export default function KavioShell({ children, active }: { children: React.React
 }
 
 function icon(label: string) {
-  const map: Record<string, string> = {
-    Beranda: '⌂',
-    'Master Data': '▦',
-    Sales: '♙',
-    'SPK / Pekerjaan': '▣',
-    Progress: '◔',
-  };
+  const map: Record<string, string> = { Beranda: '⌂', 'Master Data': '▦', Sales: '♙', 'SPK / Pekerjaan': '▣', Progress: '◔' };
   return map[label] ?? '•';
 }
