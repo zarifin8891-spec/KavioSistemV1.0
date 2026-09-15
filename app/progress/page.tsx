@@ -119,8 +119,8 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
 
 function getLatestPeriod(rows: History[]) { if (!rows.length) return null; const date = rows[0].tanggal_update; const progress = rows.filter((row) => row.tanggal_update === date).reduce((sum, row) => sum + Number(row.progress_periode ?? 0), 0); return { date, progress }; }
 function Kpi({ label, value, tone }: { label: string; value: string; tone?: 'danger' | 'warning' | 'ok' }) { const color = tone === 'danger' ? '#fecaca' : tone === 'warning' ? '#E8CC7A' : tone === 'ok' ? '#86efac' : '#F7F3E8'; return <div style={styles.kpi}><div style={styles.smallLabel}>{label}</div><div style={{ marginTop: 6, fontSize: 23, fontWeight: 900, color }}>{value}</div></div>; }
-function Th({ children }: { children: React.ReactNode }) { return <th style={styles.th}>{children}</th>; }
-function Td({ children, strong = false }: { children: React.ReactNode; strong?: boolean }) { return <td style={{ ...styles.td, ...(strong ? { fontWeight: 800 } : {}) }}>{children}</td>; }
+function Th({ children }: { children?: React.ReactNode }) { return <th style={styles.th}>{children}</th>; }
+function Td({ children, strong = false }: { children?: React.ReactNode; strong?: boolean }) { return <td style={{ ...styles.td, ...(strong ? { fontWeight: 800 } : {}) }}>{children}</td>; }
 
 const styles = {
   main: { minHeight: '100vh', background: '#0B1D3A', color: '#F7F3E8' },
