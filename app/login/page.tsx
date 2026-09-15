@@ -33,17 +33,25 @@ export default function LoginPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, background: '#f5f7fb' }}>
-      <section style={{ width: '100%', maxWidth: 420, background: '#fff', borderRadius: 20, padding: 32, boxShadow: '0 12px 40px rgba(0,0,0,.08)' }}>
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: 1.2, color: '#2563eb' }}>KAVIO</div>
-          <h1 style={{ margin: '6px 0 8px', fontSize: 30 }}>Monitor V1.0</h1>
-          <p style={{ margin: 0, color: '#64748b' }}>Masuk untuk memantau proyek perumahan.</p>
+    <main className="kavio-login-page">
+      <section className="kavio-login-card">
+        <div className="kavio-login-brand">
+          <div className="kavio-login-mark">K</div>
+          <div>
+            <div className="kavio-login-name">KAVIO</div>
+            <div className="kavio-login-version">MONITOR V1.0</div>
+          </div>
         </div>
 
-        <form onSubmit={handleLogin} style={{ display: 'grid', gap: 16 }}>
-          <label style={{ display: 'grid', gap: 7, fontSize: 14, fontWeight: 600 }}>
-            Email
+        <div className="kavio-login-heading">
+          <div className="kavio-login-eyebrow">EXECUTIVE PROJECT CONTROL</div>
+          <h1>Masuk ke KAVIO</h1>
+          <p>Pantau penjualan, pekerjaan, progress, dan kondisi proyek dari satu kendali.</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="kavio-login-form">
+          <label>
+            <span>Email</span>
             <input
               type="email"
               value={email}
@@ -51,12 +59,11 @@ export default function LoginPage() {
               required
               autoComplete="email"
               placeholder="nama@perusahaan.com"
-              style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 16 }}
             />
           </label>
 
-          <label style={{ display: 'grid', gap: 7, fontSize: 14, fontWeight: 600 }}>
-            Password
+          <label>
+            <span>Password</span>
             <input
               type="password"
               value={password}
@@ -64,20 +71,17 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
               placeholder="Password"
-              style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 16 }}
             />
           </label>
 
-          {error && <div role="alert" style={{ padding: 12, borderRadius: 10, background: '#fef2f2', color: '#b91c1c', fontSize: 14 }}>{error}</div>}
+          {error && <div role="alert" className="kavio-login-error">{error}</div>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ padding: '13px 16px', border: 0, borderRadius: 10, background: '#2563eb', color: '#fff', fontWeight: 700, fontSize: 16, cursor: loading ? 'wait' : 'pointer' }}
-          >
-            {loading ? 'Memproses...' : 'Masuk'}
+          <button type="submit" disabled={loading} className="kavio-login-button">
+            {loading ? 'Memproses...' : 'Masuk ke KAVIO'}
           </button>
         </form>
+
+        <div className="kavio-login-footer">SATU DATA • SATU KENDALI • SATU HASIL</div>
       </section>
     </main>
   );
