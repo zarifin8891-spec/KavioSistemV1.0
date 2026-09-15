@@ -1,0 +1,50 @@
+/* Dashboard visual corrections based on the current approved reference. */
+.kavio-dashboard-page > main > section {
+  padding-top: 8px !important;
+}
+
+/* Keep the dashboard header in the same navy family as the rest of the interface. */
+.kavio-dashboard-page > main > section > div:first-child {
+  background: #102A56 !important;
+  border-top: 1px solid rgba(216,180,90,.18) !important;
+}
+
+/* Pull the entire dashboard content upward while preserving comfortable spacing. */
+.kavio-dashboard-page > main > section > div:first-child {
+  margin-bottom: 24px !important;
+}
+
+/* Stronger contrast for the Monitoring SPK block. */
+.kavio-dashboard-page > main > section > section:last-child {
+  background: #0D2948 !important;
+  border-color: rgba(216,180,90,.40) !important;
+}
+
+.kavio-dashboard-page > main > section > section:last-child > div:first-child {
+  background: #102A56 !important;
+  border-bottom-color: rgba(216,180,90,.24) !important;
+}
+
+.kavio-dashboard-page > main > section > section:last-child table {
+  background: #173452 !important;
+}
+
+.kavio-dashboard-page > main > section > section:last-child th {
+  background: #08213D !important;
+  color: #F0D48A !important;
+}
+
+.kavio-dashboard-page > main > section > section:last-child td {
+  color: #F7F3E8 !important;
+  background: transparent !important;
+}
+
+.kavio-dashboard-page > main > section > section:last-child tbody tr:hover td {
+  background: rgba(216,180,90,.07) !important;
+}
+
+@media (max-width: 900px) {
+  .kavio-dashboard-page > main > section {
+    padding-top: 4px !important;
+  }
+}
