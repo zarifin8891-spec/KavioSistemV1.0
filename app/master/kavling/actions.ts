@@ -69,7 +69,7 @@ export async function toggleKavling(formData: FormData) {
   if (statusAktif) {
     const [{ data: activeSpk, error: spkError }, { data: activeSales, error: salesError }] = await Promise.all([
       supabase.from('spk').select('id_spk').eq('id_kavling', idKavling).eq('is_active', true).maybeSingle(),
-      supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('is_active', true).maybeSingle(),
+      supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('status_aktif', true).maybeSingle(),
     ]);
 
     if (spkError || salesError) errorRedirect((spkError ?? salesError)?.message ?? 'Gagal membaca relasi kavling');
