@@ -31,7 +31,6 @@ export default function KavioShell({ children, active }: { children: React.React
         <nav className="kavio-nav">
           {sections.map((section) => (
             <div key={section.title} className="kavio-nav-section">
-              <div className="kavio-nav-section-title">{section.title}</div>
               {section.items.map(([label, href]) => (
                 <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
                   <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
