@@ -24,7 +24,10 @@ a { color: var(--kavio-gold-300); }
 .kavio-brand-mark { width: 40px; height: 40px; border: 2px solid var(--kavio-gold-500); border-radius: 8px; display: grid; place-items: center; font-weight: 900; font-size: 22px; background: rgba(216,180,90,.07); box-shadow: 0 0 18px rgba(216,180,90,.08); }
 .kavio-brand strong { display: block; font-size: 19px; letter-spacing: 2px; }
 .kavio-brand small { display: block; margin-top: 3px; color: var(--kavio-ivory); opacity: .88; font-size: 7px; letter-spacing: .45px; }
-.kavio-nav { display: grid; gap: 5px; margin-top: 18px; }
+.kavio-nav { display: grid; gap: 10px; margin-top: 18px; }
+.kavio-nav-section { display: grid; gap: 5px; }
+.kavio-nav-section + .kavio-nav-section { padding-top: 9px; border-top: 1px solid rgba(216,180,90,.16); }
+.kavio-nav-section-title { padding: 2px 13px 3px; color: var(--kavio-gold-700); font-size: 8px; font-weight: 900; letter-spacing: 1.5px; }
 .kavio-nav-item { display: flex; align-items: center; gap: 11px; padding: 12px 13px; border-radius: 8px; text-decoration: none !important; color: #E5E0D4 !important; font-size: 13px; font-weight: 700; border: 1px solid transparent; }
 .kavio-nav-item:hover { background: rgba(216,180,90,.08); color: var(--kavio-gold-300) !important; border-color: rgba(216,180,90,.16); }
 .kavio-nav-item.is-active { color: #172B43 !important; background: linear-gradient(90deg, #F0D48A 0%, #D8B45A 100%); border-color: rgba(255,235,170,.55); box-shadow: 0 5px 18px rgba(216,180,90,.18); }
@@ -58,7 +61,9 @@ main td { border-bottom-color: rgba(25,51,76,.15) !important; }
 @media (max-width: 900px) {
   .kavio-sidebar { width: 76px; flex-basis: 76px; padding: 12px 8px; }
   .kavio-brand { justify-content: center; padding-left: 0; padding-right: 0; }
-  .kavio-brand > span:last-child, .kavio-nav-item > span:last-child, .kavio-sidebar-footer { display: none; }
+  .kavio-brand > span:last-child, .kavio-nav-item > span:last-child, .kavio-nav-section-title, .kavio-sidebar-footer { display: none; }
+  .kavio-nav { gap: 5px; }
+  .kavio-nav-section + .kavio-nav-section { padding-top: 5px; }
   .kavio-nav-item { justify-content: center; padding: 11px 6px; }
   .kavio-content { padding: 18px; }
 }
