@@ -46,9 +46,19 @@ export default async function DashboardPage() {
   const today = new Date().toISOString().slice(0,10);
 
   return <main style={page}>
-    <header style={header}><div><div style={brand}>KAVIO</div><div style={title}>Monitor V1.0</div></div><div style={userBox}><div>{user.email}</div><form action="/auth/signout" method="post"><button type="submit" style={logout}>Keluar</button></form></div></header>
     <section style={content}>
-      <div style={hero}><div><div style={eyebrow}>EXECUTIVE CONTROL ROOM</div><h1 style={h1}>Dashboard Monitoring</h1><p style={subtitle}>Kesehatan proyek, risiko, dan tindakan prioritas dalam satu layar.</p></div><div style={links}><Link href="/master/spk" style={primaryLink}>Kelola SPK</Link><Link href="/progress" style={secondaryLink}>Input Progress</Link><Link href="/master" style={ghostLink}>Master Data</Link></div></div>
+      <div style={hero}>
+        <div style={heroText}>
+          <div style={eyebrow}>EXECUTIVE CONTROL ROOM</div>
+          <h1 style={h1}>DASHBOARD MONITORING</h1>
+          <p style={subtitle}>Kesehatan proyek, risiko dan tindakan prioritas</p>
+        </div>
+        <div style={links}>
+          <Link href="/master/spk" style={primaryLink}>KELOLA SPK</Link>
+          <Link href="/progress" style={secondaryLink}>INPUT PROGRESS</Link>
+          <form action="/auth/signout" method="post"><button type="submit" style={logoutButton}>KELUAR</button></form>
+        </div>
+      </div>
       {error && <div style={alertError}>{error.message}</div>}
 
       <section style={healthBand}>
@@ -80,22 +90,18 @@ function healthRing(score:number){const tone=score>=75?'#D8B45A':score>=50?'#E8C
 function miniHealth(level:HealthLevel){const s=healthStyles[level];return {width:64,minWidth:64,borderRadius:12,padding:'7px 6px',background:s.bg,color:s.color,border:`1px solid ${s.border}`,textAlign:'center' as const,display:'flex',flexDirection:'column' as const,gap:2};}
 function segmentFill(level:HealthLevel){return {height:'100%',borderRadius:999,background:healthStyles[level].color};}
 function priorityRank(p:ActionPriority){return p==='TINGGI'?0:p==='SEDANG'?1:2}
-const page={minHeight:'100vh',background:'#0B1D3A',color:'#F7F3E8'};
-const header={background:'#102A56',borderBottom:'1px solid #B8943F',padding:'18px 28px',display:'flex',justifyContent:'space-between',alignItems:'center'};
-const brand={fontSize:13,fontWeight:900,letterSpacing:2,color:'#E8CC7A'};
-const title={fontSize:22,fontWeight:800,color:'#F7F3E8'};
-const userBox={textAlign:'right' as const,fontSize:12,color:'#DCCB9C'};
-const logout={marginTop:5,border:0,background:'transparent',color:'#E8CC7A',fontWeight:800,cursor:'pointer'};
-const content={maxWidth:1500,margin:'0 auto',padding:28};
-const hero={display:'flex',justifyContent:'space-between',alignItems:'end',gap:18,flexWrap:'wrap' as const,marginBottom:20};
-const eyebrow={fontSize:11,fontWeight:900,letterSpacing:1.5,color:'#E8CC7A'};
-const h1={margin:'5px 0 5px',fontSize:31,color:'#F7F3E8'};
-const subtitle={margin:0,color:'#C9BC99',fontSize:14};
-const links={display:'flex',gap:10,flexWrap:'wrap' as const};
-const primaryLink={background:'linear-gradient(180deg,#E8CC7A,#D8B45A)',color:'#0B1D3A',padding:'11px 16px',borderRadius:10,textDecoration:'none',fontWeight:900,fontSize:13};
-const secondaryLink={background:'#162F5B',color:'#E8CC7A',padding:'10px 15px',borderRadius:10,textDecoration:'none',fontWeight:800,fontSize:13,border:'1px solid #B8943F'};
-const ghostLink={background:'transparent',color:'#DCCB9C',padding:'10px 15px',borderRadius:10,textDecoration:'none',fontWeight:700,fontSize:13,border:'1px solid rgba(216,180,90,.35)'};
-const healthBand={display:'grid',gridTemplateColumns:'1.4fr repeat(3,1fr)',gap:1,background:'#B8943F',border:'1px solid #B8943F',borderRadius:16,overflow:'hidden',marginBottom:16};
+const page={minHeight:'100vh',background:'transparent',color:'#F7F3E8'};
+const content={maxWidth:1500,margin:'0 auto',padding:'18px 14px 38px'};
+const hero={display:'flex',justifyContent:'space-between',alignItems:'center',gap:18,flexWrap:'wrap' as const,minHeight:82,padding:'10px 20px',marginBottom:32,background:'#06245D',borderBottom:'1px solid #D8B45A'};
+const heroText={minWidth:320};
+const eyebrow={fontSize:11,fontWeight:800,letterSpacing:1.15,color:'#F0B900'};
+const h1={margin:'4px 0 2px',fontSize:27,fontWeight:500,letterSpacing:.2,color:'#F7F3E8'};
+const subtitle={margin:0,color:'#F0B900',fontSize:13};
+const links={display:'flex',gap:10,alignItems:'center',flexWrap:'wrap' as const};
+const primaryLink={background:'linear-gradient(180deg,#F0C11A,#E4A900)',color:'#0B1D3A',padding:'7px 18px',borderRadius:7,textDecoration:'none',fontWeight:800,fontSize:11,border:'1px solid #F5C840'};
+const secondaryLink={background:'transparent',color:'#F0C11A',padding:'7px 18px',borderRadius:7,textDecoration:'none',fontWeight:800,fontSize:11,border:'1px solid #C69D15'};
+const logoutButton={background:'transparent',color:'#F0C11A',padding:'7px 18px',borderRadius:7,fontWeight:800,fontSize:11,border:'1px solid #C69D15',cursor:'pointer'};
+const healthBand={display:'grid',gridTemplateColumns:'1.4fr repeat(3,1fr)',gap:1,background:'#B8943F',border:'1px solid #B8943F',borderRadius:16,overflow:'hidden',marginBottom:20};
 const healthMain={background:'#102A56',padding:20};
 const healthMainRow={display:'flex',alignItems:'center',gap:18,marginTop:10};
 const labelGold={color:'#DCCB9C',fontSize:11,fontWeight:800,letterSpacing:1.2};
@@ -105,11 +111,11 @@ const segment={background:'#162F5B',padding:18};
 const segmentTop={display:'flex',justifyContent:'space-between',fontWeight:900,color:'#F7F3E8'};
 const segmentTrack={height:8,borderRadius:999,background:'#0B1D3A',overflow:'hidden',marginTop:13};
 const segmentPct={marginTop:8,fontSize:11,color:'#BFAF83'};
-const kpiGrid={display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:14,marginBottom:16};
+const kpiGrid={display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:14,marginBottom:20};
 const kpiValue={marginTop:7,fontSize:27,fontWeight:900,color:'#F7F3E8'};
 const muted={color:'#DCCB9C',fontSize:12};
 const micro={marginTop:4,fontSize:11,color:'#BFAF83',lineHeight:1.35};
-const twoCol={display:'grid',gridTemplateColumns:'1fr 1.25fr',gap:16,marginBottom:16};
+const twoCol={display:'grid',gridTemplateColumns:'1fr 1.25fr',gap:16,marginBottom:20};
 const card={background:'#162F5B',border:'1px solid rgba(216,180,90,.35)',borderRadius:16,boxShadow:'0 10px 28px rgba(0,0,0,.16)',overflow:'hidden'};
 const sectionHead={padding:'16px 18px',borderBottom:'1px solid rgba(216,180,90,.18)',display:'flex',justifyContent:'space-between',alignItems:'center',gap:12};
 const sectionTitle={fontSize:15,fontWeight:900,color:'#F7F3E8'};
