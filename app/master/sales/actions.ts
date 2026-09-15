@@ -92,28 +92,50 @@ export async function deactivateSales(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
   const idSales = text(formData.get('id_sales'));
-  if (!idSales) redirectError('ID sales tidak valid');
+  if (!idSales) {
+    redirectError('ID sales tidak valid');
+    return;
+  }
 
   const { data: sales, error } = await supabase.from('sales').select('id_sales, id_kavling, status_sales, status_aktif').eq('id_sales', idSales).maybeSingle();
-  if (error || !sales) redirectError(error?.message ?? 'Data sales tidak ditemukan');
+  if (error || !sales) {
+    redirectError(error?.message ?? 'Data sales tidak ditemukan');
+    return;
+  }
 
   const { error: updateError } = await supabase.from('sales').update({ status_aktif: false, status_sales: sales.status_sales === 'AKAD' ? 'AKAD' : 'BATAL' }).eq('id_sales', idSales).eq('status_aktif', true);
-  if (updateError) redirectError(updateError.message);
+  if (updateError) {
+    redirectError(updateError.message);
+    return;
+  }
 
   const [{ data: activeSpk, error: spkError }, { data: kavling, error: kavlingReadError }, { data: completedSpk, error: completedSpkError }] = await Promise.all([
     supabase.from('spk').select('id_spk').eq('id_kavling', sales.id_kavling).eq('is_active', true).maybeSingle(),
     supabase.from('master_kavling').select('status_kavling').eq('id_kavling', sales.id_kavling).maybeSingle(),
     supabase.from('spk').select('id_spk').eq('id_kavling', sales.id_kavling).eq('status_spk', 'SELESAI').limit(1).maybeSingle(),
   ]);
-  if (spkError || kavlingReadError || completedSpkError) redirectError((spkError ?? kavlingReadError ?? completedSpkError)?.message ?? 'Gagal membaca status kavling');
+  if (spkError || kavlingReadError || completedSpkError) {
+    redirectError((spkError ?? kavlingReadError ?? completedSpkError)?.message ?? 'Gagal membaca status kavling');
+    return;
+  }
+  if (!kavling) {
+    redirectError('Kavling sales tidak ditemukan');
+    return;
+  }
 
   if (!activeSpk) {
     const nextStatus = sales.status_sales === 'AKAD' ? 'SOLD' : completedSpk ? 'READY_STOCK' : 'AVAILABLE';
     const { error: kavlingError } = await supabase.from('master_kavling').update({ status_kavling: nextStatus }).eq('id_kavling', sales.id_kavling);
-    if (kavlingError) redirectError(kavlingError.message);
+    if (kavlingError) {
+      redirectError(kavlingError.message);
+      return;
+    }
   } else {
     const { error: kavlingError } = await supabase.from('master_kavling').update({ status_kavling: 'BUILDING' }).eq('id_kavling', sales.id_kavling);
-    if (kavlingError) redirectError(kavlingError.message);
+    if (kavlingError) {
+      redirectError(kavlingError.message);
+      return;
+    }
   }
 
   revalidatePath('/master/sales');
