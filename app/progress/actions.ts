@@ -70,5 +70,6 @@ export async function createProgressUpdate(formData: FormData) {
 
   revalidatePath('/progress');
   revalidatePath('/dashboard');
-  redirect(`/progress?spk=${encodeURIComponent(idSpk)}&success=Progress%20periode%20berhasil%20disimpan`);
+  revalidatePath(`/master/spk/detail/${idSpk}`);
+  redirect(`/master/spk/detail/${encodeURIComponent(idSpk)}`);
 }
