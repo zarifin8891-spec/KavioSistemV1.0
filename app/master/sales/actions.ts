@@ -37,10 +37,14 @@ export async function createSales(formData: FormData) {
   ]);
 
   if (kavlingError || salesError || spkError) redirectError((kavlingError ?? salesError ?? spkError)?.message ?? 'Gagal membaca relasi kavling');
-  if (!kavling || !kavling.status_aktif) redirectError('Kavling tidak ditemukan atau nonaktif');
+  if (!kavling || !kavling.status_aktif) {
+    redirectError('Kavling tidak ditemukan atau nonaktif');
+    return;
+  }
   if (activeSales) redirectError('Kavling tersebut sudah memiliki sales aktif');
   if (!(SALEABLE_KAVLING_STATUS as readonly string[]).includes(kavling.status_kavling)) {
     redirectError(`Kavling berstatus ${kavling.status_kavling} tidak dapat dibuatkan sales baru`);
+    return;
   }
   if (statusSales === 'AKAD' && !targetAkad) redirectError('Target akad wajib diisi untuk status AKAD');
 
@@ -55,7 +59,10 @@ export async function createSales(formData: FormData) {
     status_aktif: statusSales !== 'BATAL',
   }).select('id_sales').single();
 
-  if (insertSales.error || !insertSales.data) redirectError(insertSales.error?.message ?? 'Sales gagal disimpan');
+  if (insertSales.error || !insertSales.data) {
+    redirectError(insertSales.error?.message ?? 'Sales gagal disimpan');
+    return;
+  }
 
   // SPK aktif menguasai status pembangunan. Sales hanya memengaruhi status penjualan.
   const nextKavlingStatus = activeSpk
@@ -70,6 +77,7 @@ export async function createSales(formData: FormData) {
   if (kavlingUpdateError) {
     await supabase.from('sales').delete().eq('id_sales', insertSales.data.id_sales);
     redirectError(kavlingUpdateError.message);
+    return;
   }
 
   revalidatePath('/master/sales');
