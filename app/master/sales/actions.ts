@@ -1,10 +1,9 @@
 "use server";
-
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 
-const VALID_STATUS = ['BOOKING', 'PROSES_KPR', 'AKAD', 'BATAL'] as const;
+const VALID_STATUS = ['BOOKING', 'DP', 'PROSES_KPR', 'AKAD', 'BATAL'] as const;
 const VALID_PAYMENT = ['KPR', 'CASH', 'CASH_BERTAHAP'] as const;
 const SALEABLE_KAVLING_STATUS = ['AVAILABLE', 'BUILDING', 'READY_STOCK'] as const;
 
@@ -58,8 +57,7 @@ export async function createSales(formData: FormData) {
 
   if (insertSales.error || !insertSales.data) redirectError(insertSales.error?.message ?? 'Sales gagal disimpan');
 
-  // SPK aktif menguasai status pembangunan. Sales hanya memengaruhi status
-  // penjualan; selama rumah masih dibangun, status kavling harus tetap BUILDING.
+  // SPK aktif menguasai status pembangunan. Sales hanya memengaruhi status penjualan.
   const nextKavlingStatus = activeSpk
     ? 'BUILDING'
     : statusSales === 'BATAL'
