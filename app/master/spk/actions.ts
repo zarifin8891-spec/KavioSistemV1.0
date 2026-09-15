@@ -13,7 +13,7 @@ function positivePercent(value: FormDataEntryValue | null) {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : NaN;
 }
 
-function errorRedirect(message: string) {
+function errorRedirect(message: string): never {
   redirect(`/master/spk?error=${encodeURIComponent(message)}`);
 }
 
