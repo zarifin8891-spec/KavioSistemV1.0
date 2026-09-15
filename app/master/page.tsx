@@ -1,35 +1,34 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
-import KavioShell from '../components/kavio-shell';
 
 const masterLinks = [
-  { href: '/master/kavling', title: 'Kavling', desc: 'Blok, nomor kavling, tipe rumah, dan lifecycle inventory.', icon: '⌗' },
   { href: '/master/tipe-rumah', title: 'Tipe Rumah', desc: 'Master tipe rumah dan spesifikasi luas.', icon: '⌂' },
   { href: '/master/kategori-pekerjaan', title: 'Kategori Pekerjaan', desc: 'Kategori dan bobot pekerjaan pembangunan.', icon: '▦' },
+  { href: '/master/kavling', title: 'Kavling', desc: 'Blok, nomor kavling, tipe rumah, dan lifecycle inventory.', icon: '⌗' },
   { href: '/master/kantor-pelaksana', title: 'Kantor Pelaksana', desc: 'Kantor/pelaksana yang menangani pekerjaan.', icon: '▥' },
   { href: '/master/mandor', title: 'Mandor', desc: 'Mandor dan relasinya dengan kantor pelaksana.', icon: '♙' },
-  { href: '/master/spk', title: 'SPK Pembangunan', desc: 'Penerbitan, bobot, aktivasi, dan histori SPK.', icon: '▣' },
+  { href: '/master/template-progress', title: 'Template Progress', desc: 'Template bobot progress standar berdasarkan tipe rumah.', icon: '◔' },
 ];
 
-export default async function MasterHubPage() {
+export default async function MasterPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   return (
-    <KavioShell active="/master">
+    <>
       <div className="kavio-page-title">
         <div className="kavio-gold" style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.4 }}>MASTER DATA CONTROL</div>
         <h1>Pusat Master KAVIO</h1>
-        <p>Semua referensi utama proyek dikelola dari satu pintu agar data SPK dan progress tetap konsisten.</p>
+        <p>Semua referensi utama proyek dikelola dari satu pintu agar data Sales, SPK, dan Progress tetap konsisten.</p>
       </div>
 
       <section className="kavio-card" style={{ marginBottom: 18 }}>
         <div className="kavio-card-head">
           <div><div className="kavio-card-title">Urutan kerja yang disarankan</div><div className="kavio-card-note">Bangun referensi sebelum transaksi operasional.</div></div>
-          <span className="kavio-status">CONTROL</span>
+          <span className="kavio-status">MASTER</span>
         </div>
-        <div style={{ padding: '14px 18px', color: 'var(--kavio-gold-300)', fontWeight: 800, fontSize: 13 }}>Tipe Rumah → Kategori Pekerjaan → Kavling → Kantor Pelaksana → Mandor → SPK</div>
+        <div style={{ padding: '14px 18px', color: 'var(--kavio-gold-300)', fontWeight: 800, fontSize: 13 }}>Tipe Rumah → Kategori Pekerjaan → Kavling → Kantor Pelaksana → Mandor → Template Progress</div>
       </section>
 
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 15 }}>
@@ -42,6 +41,6 @@ export default async function MasterHubPage() {
           </a>
         ))}
       </section>
-    </KavioShell>
+    </>
   );
 }
