@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './kavio-theme.css';
+import './kavio-dashboard-overrides.css';
 import './kavio-dashboard-tune.css';
 
 export const metadata: Metadata = {
