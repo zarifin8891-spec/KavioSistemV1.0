@@ -36,32 +36,46 @@ input, select, textarea, td, .kavio-sidebar-user, .kavio-search span {
   text-transform: none !important;
 }
 
-/* SALES — reuse the existing functional Add Sales link and place it in the filter row area. */
+/* KAVIO standard: section/page headers and command buttons are regular weight. */
+.kavio-page-title h1,
+.kavio-page-title p,
+.spk-heading h1,
+.spk-heading p,
+.sales-page h1,
+.sales-page .sales-title p,
+.kavio-dashboard-page h1,
+.kavio-dashboard-page h2,
+.kavio-dashboard-page h3,
+button,
+.kavio-page-title button,
+.spk-heading button,
+.sales-page button,
+.kavio-dashboard-page button,
+a.kavio-button,
+a.sales-add,
+a.sales-add-button,
+a.sales-detail-btn,
+.sales-page .sales-primary,
+.sales-page .sales-secondary {
+  font-weight: 400 !important;
+}
+
+/* Keep the visual hierarchy through size, spacing and uppercase—not bold weight. */
+.kavio-page-title h1,
+.spk-heading h1,
+.sales-page h1,
+.kavio-dashboard-page h1 {
+  letter-spacing: 1.2px !important;
+}
+
+/* SALES — the functional add-sales control stays with the filter toolbar. */
 .sales-page > section {
   position: relative !important;
-}
-
-.sales-page > section > div:first-child > div:last-child > a {
-  position: absolute !important;
-  right: 18px !important;
-  top: 128px !important;
-  z-index: 20 !important;
-}
-
-.sales-page > section > section:last-child > div:nth-child(2) {
-  padding-right: 190px !important;
-  min-height: 62px !important;
-  align-items: center !important;
 }
 
 @media (max-width: 900px) {
   .sales-page > section > div:first-child > div:last-child > a {
     position: static !important;
     margin-left: auto !important;
-  }
-
-  .sales-page > section > section:last-child > div:nth-child(2) {
-    padding-right: 13px !important;
-    min-height: 0 !important;
   }
 }
