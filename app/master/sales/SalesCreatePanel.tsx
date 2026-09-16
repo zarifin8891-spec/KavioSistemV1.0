@@ -21,11 +21,9 @@ export default function SalesCreatePanel({
 }) {
   const [open, setOpen] = useState(false);
   const [payment, setPayment] = useState('KPR');
-  const [status, setStatus] = useState('BOOKING');
 
   const typeMap = new Map(tipeMap.map((row) => [row.id_tipe, row.nama_tipe]));
   const isKpr = payment === 'KPR';
-  const isAkad = status === 'AKAD';
 
   return (
     <div className="sales-create-wrap">
@@ -38,11 +36,17 @@ export default function SalesCreatePanel({
           <div className="sales-create-head">
             <div>
               <h2>INPUT SALES BARU</h2>
-              <p>Isi data penjualan. Data Bank KPR dan informasi Akad mengikuti status transaksi.</p>
+              <p>ISI DATA PENJUALAN, PEMBAYARAN, DAN TARGET AKAD.</p>
             </div>
           </div>
 
           <form action={createSales} className="sales-create-grid">
+            {/* BARIS 1: TANGGAL BOOKING / KAVLING / NAMA KONSUMEN / STATUS */}
+            <label>
+              TANGGAL BOOKING
+              <input name="tgl_booking" type="date" />
+            </label>
+
             <label>
               KAVLING
               <select name="id_kavling" required defaultValue="">
@@ -62,7 +66,7 @@ export default function SalesCreatePanel({
 
             <label>
               STATUS SALES
-              <select name="status_sales" value={status} onChange={(event) => setStatus(event.target.value)} required>
+              <select name="status_sales" defaultValue="BOOKING" required>
                 <option value="BOOKING">BOOKING</option>
                 <option value="DP">DP</option>
                 <option value="PROSES_KPR">PROSES KPR</option>
@@ -71,6 +75,7 @@ export default function SalesCreatePanel({
               </select>
             </label>
 
+            {/* BARIS 2: JENIS PEMBAYARAN / BANK KPR / HARGA JUAL / TARGET AKAD */}
             <label>
               JENIS PEMBAYARAN
               <select name="jenis_pembayaran" value={payment} onChange={(event) => setPayment(event.target.value)} required>
@@ -94,33 +99,12 @@ export default function SalesCreatePanel({
             </label>
 
             <label>
-              TANGGAL BOOKING
-              <input name="tgl_booking" type="date" />
-            </label>
-
-            <label>
               TARGET AKAD
               <input name="target_akad" type="date" />
             </label>
 
-            {isAkad && (
-              <>
-                <label>
-                  TANGGAL AKAD <span className="sales-required">*</span>
-                  <input name="tgl_akad" type="date" required />
-                </label>
-                <label>
-                  NOTARIS AKAD <span className="sales-required">*</span>
-                  <select name="id_notaris" required defaultValue="">
-                    <option value="" disabled>PILIH NOTARIS</option>
-                    {notaries.map((row) => <option key={row.id_notaris} value={row.id_notaris}>{row.nama_notaris}</option>)}
-                  </select>
-                </label>
-              </>
-            )}
-
             <div className="sales-create-foot">
-              <span>{isKpr ? 'BANK KPR WAJIB DIISI.' : 'PEMBAYARAN CASH TIDAK MEMERLUKAN BANK.'} {isAkad ? 'TANGGAL AKAD DAN NOTARIS WAJIB DIISI.' : ''}</span>
+              <span>{isKpr ? 'BANK KPR WAJIB DIISI.' : 'PEMBAYARAN CASH TIDAK MEMERLUKAN BANK.'}</span>
               <button type="submit" disabled={!kavlings.length}>SIMPAN SALES</button>
             </div>
           </form>
