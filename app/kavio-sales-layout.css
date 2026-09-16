@@ -30,16 +30,16 @@
   display: none !important;
 }
 
-/* Add Sales button is part of the list toolbar visually. */
+/* The original action remains functional, but is positioned into the list toolbar. */
 .sales-page > section > div:first-child > div:last-child {
   position: static !important;
 }
 
 .sales-page > section > div:first-child > div:last-child > a {
   position: absolute !important;
-  top: 27px !important;
+  top: 130px !important;
   right: 0 !important;
-  z-index: 10 !important;
+  z-index: 20 !important;
   margin: 0 !important;
 }
 
@@ -67,14 +67,8 @@
   margin-top: 18px !important;
 }
 
-/* Place the button inside the same horizontal band as Status / Type / Search. */
 .sales-page > section > section:last-child {
   position: relative !important;
-}
-
-.sales-page > section > section:last-child::before {
-  content: '';
-  display: block;
 }
 
 @media (max-width: 900px) {
@@ -83,7 +77,7 @@
   }
 
   .sales-page > section > div:first-child > div:last-child > a {
-    top: 24px !important;
+    top: 118px !important;
     right: 0 !important;
   }
 }
