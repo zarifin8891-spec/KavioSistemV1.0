@@ -7,8 +7,9 @@ const VALID_STATUS = ['BOOKING', 'DP', 'PROSES_KPR', 'AKAD', 'BATAL'] as const;
 const VALID_PAYMENT = ['KPR', 'CASH', 'CASH_BERTAHAP'] as const;
 const SALEABLE_KAVLING_STATUS = ['AVAILABLE', 'BUILDING', 'READY_STOCK'] as const;
 function text(value: FormDataEntryValue | null) { return String(value ?? '').trim(); }
-function money(value: FormDataEntryValue | null) { const raw = text(value); if (raw === '') return null; const n = Number(raw); return Number.isFinite(n) && n >= 0 ? n : NaN; }
+function money(value: FormDataEntryValue | null) { const raw = text(value); if (!raw) return null; const n = Number(raw); return Number.isFinite(n) && n >= 0 ? n : NaN; }
 function redirectError(message: string) { redirect(`/master/sales?error=${encodeURIComponent(message)}&add=1`); }
+function detailError(idSales: string, message: string) { redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&error=${encodeURIComponent(message)}`); }
 
 export async function createSales(formData: FormData) {
   const supabase = await createClient();
@@ -24,33 +25,48 @@ export async function createSales(formData: FormData) {
   const tglBooking = text(formData.get('tgl_booking')) || null;
   const targetAkad = text(formData.get('target_akad')) || null;
   const tglAkad = text(formData.get('tgl_akad')) || null;
-  if (!idKavling || !namaKonsumen) redirectError('Kavling dan nama konsumen wajib diisi');
-  if (!(VALID_STATUS as readonly string[]).includes(statusSales)) redirectError('Status sales tidak valid');
-  if (!(VALID_PAYMENT as readonly string[]).includes(jenisPembayaran)) redirectError('Jenis pembayaran tidak valid');
-  if (typeof hargaJual === 'number' && !Number.isFinite(hargaJual)) redirectError('Harga jual tidak valid');
-  if (tglBooking && targetAkad && targetAkad < tglBooking) redirectError('Target akad tidak boleh sebelum tanggal booking');
-  if (jenisPembayaran === 'KPR' && !idBank) redirectError('Bank wajib dipilih untuk pembayaran KPR');
-  if (statusSales === 'AKAD' && (!tglAkad || !idNotaris)) redirectError('Tanggal akad dan notaris wajib diisi untuk status AKAD');
+
+  if (!idKavling || !namaKonsumen) return redirectError('KAVLING DAN NAMA KONSUMEN WAJIB DIISI');
+  if (!(VALID_STATUS as readonly string[]).includes(statusSales)) return redirectError('STATUS SALES TIDAK VALID');
+  if (!(VALID_PAYMENT as readonly string[]).includes(jenisPembayaran)) return redirectError('JENIS PEMBAYARAN TIDAK VALID');
+  if (typeof hargaJual === 'number' && !Number.isFinite(hargaJual)) return redirectError('HARGA JUAL TIDAK VALID');
+  if (tglBooking && targetAkad && targetAkad < tglBooking) return redirectError('TARGET AKAD TIDAK BOLEH SEBELUM TANGGAL BOOKING');
+  if (tglBooking && tglAkad && tglAkad < tglBooking) return redirectError('TANGGAL AKAD TIDAK BOLEH SEBELUM TANGGAL BOOKING');
+  if (jenisPembayaran === 'KPR' && !idBank) return redirectError('BANK KPR WAJIB DIPILIH UNTUK PEMBAYARAN KPR');
+  if (jenisPembayaran !== 'KPR') formData.set('id_bank', '');
+  if (statusSales === 'AKAD' && (!tglAkad || !idNotaris || !targetAkad)) return redirectError('TARGET AKAD, TANGGAL AKAD, DAN NOTARIS WAJIB DIISI UNTUK STATUS AKAD');
 
   const [{ data: kavling, error: kavlingError }, { data: activeSales, error: salesError }, { data: activeSpk, error: spkError }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling,status_kavling,status_aktif').eq('id_kavling', idKavling).maybeSingle(),
     supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('status_aktif', true).maybeSingle(),
     supabase.from('spk').select('id_spk').eq('id_kavling', idKavling).eq('is_active', true).maybeSingle(),
   ]);
-  if (kavlingError || salesError || spkError) redirectError((kavlingError ?? salesError ?? spkError)?.message ?? 'Gagal membaca relasi kavling');
-  if (!kavling || !kavling.status_aktif) return redirectError('Kavling tidak ditemukan atau nonaktif');
-  if (activeSales) return redirectError('Kavling tersebut sudah memiliki sales aktif');
-  if (!(SALEABLE_KAVLING_STATUS as readonly string[]).includes(kavling.status_kavling)) return redirectError(`Kavling berstatus ${kavling.status_kavling} tidak dapat dibuatkan sales baru`);
-  if (statusSales === 'AKAD' && !targetAkad) redirectError('Target akad wajib diisi untuk status AKAD');
+  if (kavlingError || salesError || spkError) return redirectError((kavlingError ?? salesError ?? spkError)?.message ?? 'GAGAL MEMBACA RELASI KAVLING');
+  if (!kavling || !kavling.status_aktif) return redirectError('KAVLING TIDAK DITEMUKAN ATAU NONAKTIF');
+  if (activeSales) return redirectError('KAVLING TERSEBUT SUDAH MEMILIKI SALES AKTIF');
+  if (!(SALEABLE_KAVLING_STATUS as readonly string[]).includes(kavling.status_kavling)) return redirectError(`KAVLING BERSTATUS ${kavling.status_kavling} TIDAK DAPAT DIBUATKAN SALES BARU`);
 
-  const { data: inserted, error: insertError } = await supabase.from('sales').insert({ id_kavling:idKavling, nama_konsumen:namaKonsumen, status_sales:statusSales, jenis_pembayaran:jenisPembayaran, id_bank:idBank, id_notaris:idNotaris, harga_jual:hargaJual, tgl_booking:tglBooking, target_akad:targetAkad, tgl_akad:tglAkad, status_aktif:statusSales !== 'BATAL' }).select('id_sales').single();
-  if (insertError || !inserted) return redirectError(insertError?.message ?? 'Sales gagal disimpan');
+  const { data: inserted, error: insertError } = await supabase.from('sales').insert({
+    id_kavling: idKavling,
+    nama_konsumen: namaKonsumen,
+    status_sales: statusSales,
+    jenis_pembayaran: jenisPembayaran,
+    id_bank: jenisPembayaran === 'KPR' ? idBank : null,
+    id_notaris: statusSales === 'AKAD' ? idNotaris : null,
+    harga_jual: hargaJual,
+    tgl_booking: tglBooking,
+    target_akad: targetAkad,
+    tgl_akad: statusSales === 'AKAD' ? tglAkad : null,
+    status_aktif: statusSales !== 'BATAL',
+  }).select('id_sales').single();
+  if (insertError || !inserted) return redirectError(insertError?.message ?? 'SALES GAGAL DISIMPAN');
 
   const nextKavlingStatus = activeSpk ? 'BUILDING' : statusSales === 'BATAL' ? (kavling.status_kavling === 'READY_STOCK' ? 'READY_STOCK' : 'AVAILABLE') : statusSales === 'AKAD' ? 'SOLD' : 'BOOKING';
   const { error: kavlingUpdateError } = await supabase.from('master_kavling').update({ status_kavling: nextKavlingStatus }).eq('id_kavling', idKavling);
   if (kavlingUpdateError) { await supabase.from('sales').delete().eq('id_sales', inserted.id_sales); return redirectError(kavlingUpdateError.message); }
+
   revalidatePath('/master/sales'); revalidatePath('/master/kavling'); revalidatePath('/master/spk'); revalidatePath('/dashboard');
-  redirect('/master/sales?success=Sales%20berhasil%20disimpan');
+  redirect(`/master/sales?success=${encodeURIComponent('SALES BERHASIL DISIMPAN')}`);
 }
 
 export async function updateSalesInfo(formData: FormData) {
@@ -58,34 +74,37 @@ export async function updateSalesInfo(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
   const idSales = text(formData.get('id_sales'));
+  const statusSales = text(formData.get('status_sales'));
   const jenisPembayaran = text(formData.get('jenis_pembayaran'));
   const idBank = text(formData.get('id_bank')) || null;
   const idNotaris = text(formData.get('id_notaris')) || null;
   const tglAkad = text(formData.get('tgl_akad')) || null;
   const targetAkad = text(formData.get('target_akad')) || null;
-  const statusSales = text(formData.get('status_sales'));
-  if (!idSales) return redirect(`/master/sales?error=ID%20sales%20tidak%20valid`);
-  if (jenisPembayaran === 'KPR' && !idBank) return redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&error=Bank%20wajib%20dipilih%20untuk%20KPR`);
-  if (statusSales === 'AKAD' && (!tglAkad || !idNotaris)) return redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&error=Tanggal%20akad%20dan%20notaris%20wajib%20diisi`);
-  const { error } = await supabase.from('sales').update({ jenis_pembayaran:jenisPembayaran, id_bank:idBank, id_notaris:idNotaris, tgl_akad:tglAkad, target_akad:targetAkad, status_sales:statusSales }).eq('id_sales', idSales);
-  if (error) return redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&error=${encodeURIComponent(error.message)}`);
-  revalidatePath('/master/sales'); revalidatePath(`/master/sales/detail`); revalidatePath('/dashboard');
-  redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&success=Data%20Sales%20diperbarui`);
+  if (!idSales) return redirect('/master/sales?error=ID%20SALES%20TIDAK%20VALID');
+  if (!(VALID_STATUS as readonly string[]).includes(statusSales)) return detailError(idSales, 'STATUS SALES TIDAK VALID');
+  if (!(VALID_PAYMENT as readonly string[]).includes(jenisPembayaran)) return detailError(idSales, 'JENIS PEMBAYARAN TIDAK VALID');
+  if (jenisPembayaran === 'KPR' && !idBank) return detailError(idSales, 'BANK KPR WAJIB DIISI');
+  if (statusSales === 'AKAD' && (!tglAkad || !idNotaris || !targetAkad)) return detailError(idSales, 'TARGET AKAD, TANGGAL AKAD, DAN NOTARIS WAJIB DIISI');
+  if (jenisPembayaran !== 'KPR' && idBank) return detailError(idSales, 'BANK HANYA DIISI UNTUK PEMBAYARAN KPR');
+  const { error } = await supabase.from('sales').update({ status_sales: statusSales, jenis_pembayaran: jenisPembayaran, id_bank: jenisPembayaran === 'KPR' ? idBank : null, id_notaris: statusSales === 'AKAD' ? idNotaris : null, tgl_akad: statusSales === 'AKAD' ? tglAkad : null, target_akad: targetAkad, status_aktif: statusSales !== 'BATAL' }).eq('id_sales', idSales);
+  if (error) return detailError(idSales, error.message);
+  revalidatePath('/master/sales'); revalidatePath('/master/sales/detail'); revalidatePath('/dashboard');
+  redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&success=DATA%20SALES%20DIPERBARUI`);
 }
 
 export async function deactivateSales(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
-  const idSales = text(formData.get('id_sales')); if (!idSales) return redirectError('ID sales tidak valid');
+  const idSales = text(formData.get('id_sales')); if (!idSales) return redirectError('ID SALES TIDAK VALID');
   const { data: sales, error } = await supabase.from('sales').select('id_sales,id_kavling,status_sales,status_aktif').eq('id_sales', idSales).maybeSingle();
-  if (error || !sales) return redirectError(error?.message ?? 'Data sales tidak ditemukan');
+  if (error || !sales) return redirectError(error?.message ?? 'DATA SALES TIDAK DITEMUKAN');
   const { error: updateError } = await supabase.from('sales').update({ status_aktif:false, status_sales:sales.status_sales === 'AKAD' ? 'AKAD' : 'BATAL' }).eq('id_sales',idSales).eq('status_aktif',true);
   if (updateError) return redirectError(updateError.message);
   const [{ data: activeSpk, error:spkError },{data:kavling,error:kavlingError},{data:completedSpk,error:completedError}] = await Promise.all([supabase.from('spk').select('id_spk').eq('id_kavling',sales.id_kavling).eq('is_active',true).maybeSingle(),supabase.from('master_kavling').select('status_kavling').eq('id_kavling',sales.id_kavling).maybeSingle(),supabase.from('spk').select('id_spk').eq('id_kavling',sales.id_kavling).eq('status_spk','SELESAI').limit(1).maybeSingle()]);
-  if (spkError || kavlingError || completedError) return redirectError((spkError??kavlingError??completedError)?.message ?? 'Gagal membaca status kavling');
-  if (!kavling) return redirectError('Kavling sales tidak ditemukan');
+  if (spkError || kavlingError || completedError) return redirectError((spkError??kavlingError??completedError)?.message ?? 'GAGAL MEMBACA STATUS KAVLING');
+  if (!kavling) return redirectError('KAVLING SALES TIDAK DITEMUKAN');
   if (!activeSpk) { const nextStatus = sales.status_sales === 'AKAD' ? 'SOLD' : completedSpk ? 'READY_STOCK' : 'AVAILABLE'; const {error:kErr}=await supabase.from('master_kavling').update({status_kavling:nextStatus}).eq('id_kavling',sales.id_kavling); if(kErr)return redirectError(kErr.message); }
   revalidatePath('/master/sales'); revalidatePath('/master/kavling'); revalidatePath('/master/spk'); revalidatePath('/dashboard');
-  redirect('/master/sales?success=Sales%20berhasil%20ditutup');
+  redirect('/master/sales?success=SALES%20BERHASIL%20DITUTUP');
 }
