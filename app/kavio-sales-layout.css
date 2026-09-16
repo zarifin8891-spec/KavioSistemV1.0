@@ -1,83 +1,53 @@
-/* Sales layout refinement — presentation only. */
+/* Sales module layout — stable controls and responsive toolbar. */
+.sales-page { width: 100%; }
+.sales-page > .sales-content { max-width: 1500px; margin: 0 auto; padding: 0 0 30px; }
+.sales-page .sales-title { margin-bottom: 18px; }
+.sales-page .sales-title h1 { margin: 0; color: #F7F3E8; font-size: 32px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; }
+.sales-page .sales-title p { margin: 3px 0 0; color: #C9BC99; font-size: 12px; font-weight: 700; text-transform: uppercase; }
 
-.sales-page > section {
-  padding-top: 0 !important;
-  position: relative !important;
-}
+/* The Sales table is the main module surface. */
+.sales-page .sales-module-card { background: linear-gradient(180deg,#123150,#081F39); border: 1px solid rgba(216,180,90,.34); border-radius: 14px; box-shadow: 0 10px 28px rgba(0,0,0,.18); overflow: hidden; }
+.sales-page .sales-filter-row { display: flex; align-items: center; gap: 10px; padding: 13px 18px; background: rgba(4,24,47,.55); border-bottom: 1px solid rgba(216,180,90,.16); }
+.sales-page .sales-filter { min-width: 155px; height: 42px; padding: 9px 12px; border: 1px solid rgba(232,204,122,.40); border-radius: 8px; background: #314A68 !important; color: #F7F3E8 !important; font-size: 12px; }
+.sales-page .sales-search { min-width: 250px; flex: 0 1 300px; }
 
-/* Keep the module header compact and remove the duplicate section label. */
-.sales-page > section > div:first-child > div:first-child > div:first-child {
-  display: none !important;
-}
+/* Always-visible Add Sales control. */
+.sales-page .sales-add { display: inline-flex !important; align-items: center; justify-content: center; margin-left: auto !important; min-width: 158px; height: 42px; padding: 0 16px; border: 1px solid #F0D48A !important; border-radius: 8px; background: linear-gradient(180deg,#F0D48A,#D8B45A) !important; color: #10213A !important; text-decoration: none !important; font-size: 12px; font-weight: 900; white-space: nowrap; box-shadow: 0 6px 18px rgba(216,180,90,.14); }
+.sales-page .sales-add:hover { filter: brightness(1.04); transform: translateY(-1px); }
 
-.sales-page h1 {
-  font-size: 0 !important;
-  line-height: 1 !important;
-  margin: 0 0 4px !important;
-}
+/* Input Sales panel opened with ?add=1. */
+.sales-page .sales-form-card { margin-bottom: 18px; }
+.sales-page .sales-form-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 18px; border-bottom: 1px solid rgba(216,180,90,.18); }
+.sales-page .sales-form-head strong { display: block; color: #F7F3E8; font-size: 16px; font-weight: 900; }
+.sales-page .sales-form-head small { display: block; margin-top: 3px; color: #BFAF83; font-size: 10px; }
+.sales-page .sales-form-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 13px; padding: 18px; }
+.sales-page .sales-field { display: flex; flex-direction: column; gap: 6px; color: #DCCB9C; font-size: 11px; font-weight: 800; }
+.sales-page .sales-field input,.sales-page .sales-field select,.sales-page .sales-field textarea { width: 100%; padding: 10px 11px; border: 1px solid rgba(232,204,122,.48); border-radius: 8px; background: linear-gradient(180deg,#344C69,#293F5B) !important; color: #F7F3E8 !important; outline: none; font-size: 12px; }
+.sales-page .sales-field option { background: #173452; color: #F7F3E8; }
+.sales-page .sales-required { color: #F0D48A; }
+.sales-page .sales-kpr-note,.sales-page .sales-full { grid-column: 1 / -1; }
+.sales-page .sales-kpr-note { color: #BFAF83; font-size: 10px; line-height: 1.45; padding-top: 2px; }
+.sales-page .sales-actions { display: flex; justify-content: flex-end; }
+.sales-page .sales-primary { padding: 10px 18px; border: 1px solid #F0D48A; border-radius: 8px; background: linear-gradient(180deg,#F0D48A,#D8B45A); color: #10213A; font-size: 12px; font-weight: 900; cursor: pointer; }
+.sales-page .sales-secondary { display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; border: 1px solid #A98235; border-radius: 8px; background: #102A56; color: #F0D48A; text-decoration: none; font-size: 10px; font-weight: 900; }
 
-.sales-page h1::after {
-  content: 'Sales Management';
-  display: block;
-  color: #F7F3E8;
-  font-size: 30px;
-  line-height: 1.08;
-  font-weight: 900;
-}
-
-/* Logged-in user now lives in the sidebar. */
-.sales-page > section > div:first-child > div:last-child > span:first-child {
-  display: none !important;
-}
-
-/* The original action remains functional, but is positioned into the list toolbar. */
-.sales-page > section > div:first-child > div:last-child {
-  position: static !important;
-}
-
-.sales-page > section > div:first-child > div:last-child > a {
-  position: absolute !important;
-  top: 130px !important;
-  right: 0 !important;
-  z-index: 20 !important;
-  margin: 0 !important;
-}
-
-/* The list is the primary Sales view; summary cards stay out of the way. */
-.sales-page > section > div:nth-child(2) {
-  display: none !important;
-}
-
-/* The active count is already repeated in the table footer, so remove the header copy. */
-.sales-page > section > section:last-child > div:first-child {
-  display: none !important;
-}
-
-/* Add Sales opens the existing form via the URL fragment. */
-.sales-page #input-sales {
-  display: none !important;
-  margin-top: 16px !important;
-}
-
-.sales-page #input-sales:target {
-  display: block !important;
-}
-
-.sales-page #input-sales:target + section {
-  margin-top: 18px !important;
-}
-
-.sales-page > section > section:last-child {
-  position: relative !important;
-}
+.sales-page .sales-table-wrap { overflow-x: auto; }
+.sales-page .sales-table { width: 100%; border-collapse: collapse; background: #F7F5EE; color: #172B43; font-size: 12px; }
+.sales-page .sales-table th { padding: 12px 13px; background: linear-gradient(180deg,#153654,#102E4D); color: #F0D48A; border-bottom: 1px solid #A98235; text-align: left; white-space: nowrap; }
+.sales-page .sales-table td { padding: 11px 13px; border-bottom: 1px solid rgba(23,43,67,.12); white-space: nowrap; }
+.sales-page .sales-table tbody tr:hover { background: #EEE9DA; }
+.sales-page .sales-link { color: #153654; font-weight: 900; text-decoration: none; }
+.sales-page .sales-badge { display: inline-flex; padding: 6px 11px; border-radius: 7px; background: rgba(92,171,239,.18); color: #1F4F78; border: 1px solid #4D91C8; font-size: 10px; font-weight: 900; }
+.sales-page .sales-detail-btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px 9px; border-radius: 7px; border: 1px solid #B8943F; background: #E8CC7A; color: #172B43; text-decoration: none; font-size: 10px; font-weight: 900; }
+.sales-page .sales-foot { display: flex; justify-content: space-between; padding: 13px 18px; color: #E5DDCC; font-size: 11px; }
 
 @media (max-width: 900px) {
-  .sales-page h1::after {
-    font-size: 26px;
-  }
-
-  .sales-page > section > div:first-child > div:last-child > a {
-    top: 118px !important;
-    right: 0 !important;
-  }
+  .sales-page .sales-filter-row { flex-wrap: wrap; }
+  .sales-page .sales-add { margin-left: 0 !important; }
+  .sales-page .sales-filter,.sales-page .sales-search { flex: 1 1 180px; min-width: 0; }
+  .sales-page .sales-form-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 600px) {
+  .sales-page .sales-form-grid { grid-template-columns: 1fr; }
+  .sales-page .sales-title h1 { font-size: 26px; }
 }
