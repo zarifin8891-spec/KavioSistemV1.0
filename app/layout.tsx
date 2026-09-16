@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './kavio-theme.css';
-import './kavio-dashboard-overrides.css';
+import './kavio-dashboard-tune.css';
 
 export const metadata: Metadata = {
   title: 'KAVIO Monitor V1.0',
