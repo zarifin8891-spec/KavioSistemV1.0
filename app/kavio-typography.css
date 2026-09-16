@@ -1,0 +1,8 @@
+/* Global KAVIO typography standard */
+*, *::before, *::after {
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif !important;
+}
+
+html, body, button, input, select, textarea {
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif !important;
+}
