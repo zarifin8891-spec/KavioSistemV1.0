@@ -3,6 +3,7 @@ import './kavio-theme.css';
 import './kavio-dashboard-overrides.css';
 import './kavio-dashboard-tune.css';
 import './kavio-dashboard-attention.css';
+import './kavio-sales-layout.css';
 
 export const metadata: Metadata = {
   title: 'KAVIO Monitor V1.0',
