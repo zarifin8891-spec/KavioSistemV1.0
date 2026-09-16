@@ -174,3 +174,55 @@
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow > div:last-child > span {
   font-size: 9px !important;
 }
+
+/* Final compact pass: target the actual HealthRow children directly. */
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) {
+  padding: 2px 18px 8px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div {
+  padding: 6px 0 !important;
+  gap: 8px !important;
+  min-height: 0 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:first-child {
+  width: 54px !important;
+  min-width: 54px !important;
+  flex: 0 0 54px !important;
+  padding: 3px 2px !important;
+  border-radius: 8px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:first-child > span {
+  font-size: 14px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:first-child > small {
+  font-size: 8px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:nth-child(2) > a {
+  font-size: 12px !important;
+  line-height: 1.05 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:nth-child(2) > div {
+  margin-top: 1px !important;
+  font-size: 8px !important;
+  line-height: 1.1 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:last-child {
+  min-width: 58px !important;
+  font-size: 8px !important;
+  line-height: 1.05 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:last-child > strong {
+  font-size: 10px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:last-child > span {
+  font-size: 8px !important;
+}
