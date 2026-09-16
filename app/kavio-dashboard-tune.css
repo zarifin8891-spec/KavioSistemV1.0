@@ -53,8 +53,8 @@
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow {
-  padding: 8px 0 !important;
-  gap: 10px !important;
+  padding: 7px 0 !important;
+  gap: 9px !important;
   min-height: 0 !important;
 }
 
@@ -64,55 +64,56 @@
 
 /* Compact the health badge and supporting text in SPK Perlu Perhatian. */
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow > div:first-child {
-  flex: 0 0 64px !important;
-  width: 64px !important;
+  flex: 0 0 60px !important;
+  width: 60px !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow > div:nth-child(2) {
-  padding-right: 4px !important;
+  padding-right: 2px !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow > div:nth-child(2) a {
-  font-size: 14px !important;
-  line-height: 1.15 !important;
+  font-size: 13px !important;
+  line-height: 1.1 !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow > div:nth-child(2) .micro {
-  margin-top: 2px !important;
-  font-size: 10px !important;
-  line-height: 1.2 !important;
+  margin-top: 1px !important;
+  font-size: 9px !important;
+  line-height: 1.15 !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow .miniHealth {
-  width: 64px !important;
-  min-width: 64px !important;
-  padding: 5px 5px !important;
-  border-radius: 10px !important;
-  font-size: 11px !important;
+  width: 60px !important;
+  min-width: 60px !important;
+  padding: 4px 4px !important;
+  border-radius: 9px !important;
+  font-size: 10px !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow .miniHealth span {
-  font-size: 16px !important;
+  font-size: 15px !important;
   line-height: 1 !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow .miniHealth small {
-  font-size: 9px !important;
-  line-height: 1.05 !important;
+  font-size: 8px !important;
+  line-height: 1 !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthMetrics {
-  min-width: 70px !important;
-  font-size: 10px !important;
-  line-height: 1.15 !important;
+  min-width: 66px !important;
+  font-size: 9px !important;
+  line-height: 1.1 !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthMetrics strong {
-  font-size: 12px !important;
+  font-size: 11px !important;
+  line-height: 1.05 !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthMetrics span {
-  font-size: 10px !important;
+  font-size: 9px !important;
 }
 
 @media (max-width: 900px) {
@@ -126,5 +127,6 @@
 
   .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow {
     gap: 8px !important;
+    padding: 6px 0 !important;
   }
 }
