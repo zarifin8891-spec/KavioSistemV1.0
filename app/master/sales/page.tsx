@@ -53,8 +53,8 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
           <select style={filterInput} defaultValue=""><option value="">SEMUA STATUS</option><option value="BOOKING">BOOKING</option><option value="DP">DP</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select>
           <select style={filterInput} defaultValue=""><option value="">SEMUA TIPE</option>{types.map(t=><option key={t.id_tipe} value={t.id_tipe}>{t.nama_tipe.toUpperCase()}</option>)}</select>
           <input style={{ ...filterInput, minWidth: 250 }} placeholder="CARI NAMA KONSUMEN..." />
-          <SalesCreatePanel kavlings={saleable} tipeMap={types} banks={banks} notaries={notaries} />
         </div>
+        <SalesCreatePanel kavlings={saleable} tipeMap={types} banks={banks} notaries={notaries} />
 
         <div style={{ overflowX: 'auto' }}>
           <table style={table}>
@@ -71,7 +71,6 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
     </section>
   </main>;
 }
-
 function Summary({label,value}:{label:string;value:number}){return <div style={summaryCard}><div style={summaryLabel}>{label}</div><div style={summaryValue}>{value}</div></div>}
 function formatCurrency(value:number|string|null){const n=Number(value);return Number.isFinite(n)&&n>0?new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n):'—'}
 function statusLabel(status:string){return status==='PROSES_KPR'?'PROSES KPR':status}
@@ -80,7 +79,7 @@ const summaryGrid={display:'grid',gridTemplateColumns:'repeat(5,minmax(0,1fr))',
 const summaryCard={padding:'13px 15px',border:'1px solid rgba(216,180,90,.30)',borderRadius:11,background:'linear-gradient(180deg,#173452,#0D2948)'};
 const summaryLabel={color:'#C9BC99',fontSize:9,fontWeight:900,letterSpacing:.8};
 const summaryValue={marginTop:4,color:'#F0D48A',fontSize:23,fontWeight:900};
-const filterRow={display:'flex',gap:10,padding:'13px 18px',background:'rgba(4,24,47,.55)',borderBottom:'1px solid rgba(216,180,90,.16)',alignItems:'center'};
+const filterRow={display:'flex',gap:10,padding:'13px 18px',paddingRight:205,minHeight:68,background:'rgba(4,24,47,.55)',borderBottom:'1px solid rgba(216,180,90,.16)',alignItems:'center'};
 const filterInput={minWidth:155,padding:'9px 12px',borderRadius:8,border:'1px solid rgba(232,204,122,.40)',background:'#314A68',color:'#F7F3E8',outline:'none',fontSize:12};
 const table={width:'100%',borderCollapse:'collapse' as const,fontSize:12,background:'rgba(13,41,72,.78)'};
 const th={padding:'12px 13px',background:'linear-gradient(180deg,#153654,#102E4D)',color:'#F0D48A',borderBottom:'1px solid #A98235',textAlign:'left' as const,whiteSpace:'nowrap'};
