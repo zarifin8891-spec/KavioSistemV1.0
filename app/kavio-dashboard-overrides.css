@@ -1,4 +1,4 @@
-/* Dashboard visual corrections based on the current approved reference. */
+/* Dashboard visual corrections based on the approved reference. */
 .kavio-dashboard-page > main > section {
   padding-top: 8px !important;
 }
@@ -7,40 +7,70 @@
 .kavio-dashboard-page > main > section > div:first-child {
   background: #102A56 !important;
   border-top: 1px solid rgba(216,180,90,.18) !important;
-}
-
-/* Pull the entire dashboard content upward while preserving comfortable spacing. */
-.kavio-dashboard-page > main > section > div:first-child {
   margin-bottom: 24px !important;
 }
 
-/* Stronger contrast for the Monitoring SPK block. */
+/* Keep section headers visually consistent across dashboard panels. */
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div > div:first-child,
+.kavio-dashboard-page > main > section > section:last-child > div:first-child {
+  background: #102A56 !important;
+  border-bottom: 1px solid rgba(216,180,90,.20) !important;
+  padding: 14px 18px !important;
+}
+
+/* Use the same dark navy treatment for every dashboard data list/table. */
+.kavio-dashboard-page > main > section > section:nth-of-type(3) table,
+.kavio-dashboard-page > main > section > section:last-child table {
+  width: 100%;
+  background: #0D2948 !important;
+  color: #F7F3E8 !important;
+  border-radius: 0 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) thead th,
+.kavio-dashboard-page > main > section > section:last-child thead th {
+  background: #08213D !important;
+  color: #F0D48A !important;
+  border-bottom: 1px solid rgba(216,180,90,.30) !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) tbody tr,
+.kavio-dashboard-page > main > section > section:last-child tbody tr {
+  background: #0F2D4A !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) tbody tr:nth-child(even),
+.kavio-dashboard-page > main > section > section:last-child tbody tr:nth-child(even) {
+  background: #0C2742 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) tbody td,
+.kavio-dashboard-page > main > section > section:last-child tbody td {
+  background: transparent !important;
+  color: #F7F3E8 !important;
+  border-bottom: 1px solid rgba(216,180,90,.10) !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) tbody tr:hover,
+.kavio-dashboard-page > main > section > section:last-child tbody tr:hover {
+  background: rgba(216,180,90,.08) !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) tbody tr:hover td,
+.kavio-dashboard-page > main > section > section:last-child tbody tr:hover td {
+  background: transparent !important;
+}
+
+/* Keep the full Monitoring SPK container distinct from its surrounding page background. */
 .kavio-dashboard-page > main > section > section:last-child {
   background: #0D2948 !important;
   border-color: rgba(216,180,90,.40) !important;
 }
 
-.kavio-dashboard-page > main > section > section:last-child > div:first-child {
-  background: #102A56 !important;
-  border-bottom-color: rgba(216,180,90,.24) !important;
-}
-
-.kavio-dashboard-page > main > section > section:last-child table {
-  background: #173452 !important;
-}
-
-.kavio-dashboard-page > main > section > section:last-child th {
-  background: #08213D !important;
-  color: #F0D48A !important;
-}
-
-.kavio-dashboard-page > main > section > section:last-child td {
-  color: #F7F3E8 !important;
-  background: transparent !important;
-}
-
-.kavio-dashboard-page > main > section > section:last-child tbody tr:hover td {
-  background: rgba(216,180,90,.07) !important;
+/* Make empty states match the dark dashboard instead of the global table surface. */
+.kavio-dashboard-page > main > section > section:nth-of-type(3) [style*="text-align"],
+.kavio-dashboard-page > main > section > section:last-child [style*="text-align"] {
+  color: #DCCB9C !important;
 }
 
 @media (max-width: 900px) {
