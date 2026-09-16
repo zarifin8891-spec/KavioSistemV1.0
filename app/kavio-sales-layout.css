@@ -2,6 +2,7 @@
 
 .sales-page > section {
   padding-top: 0 !important;
+  position: relative !important;
 }
 
 /* Keep the module header compact and remove the duplicate section label. */
@@ -29,6 +30,24 @@
   display: none !important;
 }
 
+/* Add Sales button is part of the list toolbar visually. */
+.sales-page > section > div:first-child > div:last-child {
+  position: static !important;
+}
+
+.sales-page > section > div:first-child > div:last-child > a {
+  position: absolute !important;
+  top: 27px !important;
+  right: 0 !important;
+  z-index: 10 !important;
+  margin: 0 !important;
+}
+
+/* The list is the primary Sales view; summary cards stay out of the way. */
+.sales-page > section > div:nth-child(2) {
+  display: none !important;
+}
+
 /* The active count is already repeated in the table footer, so remove the header copy. */
 .sales-page > section > section:last-child > div:first-child {
   display: none !important;
@@ -48,8 +67,23 @@
   margin-top: 18px !important;
 }
 
+/* Place the button inside the same horizontal band as Status / Type / Search. */
+.sales-page > section > section:last-child {
+  position: relative !important;
+}
+
+.sales-page > section > section:last-child::before {
+  content: '';
+  display: block;
+}
+
 @media (max-width: 900px) {
   .sales-page h1::after {
     font-size: 26px;
+  }
+
+  .sales-page > section > div:first-child > div:last-child > a {
+    top: 24px !important;
+    right: 0 !important;
   }
 }
