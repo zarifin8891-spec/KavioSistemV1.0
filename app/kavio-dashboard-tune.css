@@ -226,3 +226,35 @@
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:last-child > span {
   font-size: 8px !important;
 }
+
+/* Keep the SPK attention panel header flush with its card, matching Action Center. */
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child {
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:first-child {
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 14px 18px !important;
+  background: #102A56 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:first-child > div:first-child {
+  text-align: left !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:first-child > div:first-child > div:first-child {
+  font-size: 15px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+  color: #F7F3E8 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:first-child > div:first-child > div:last-child {
+  margin-top: 3px !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  color: #BFAF83 !important;
+}
