@@ -1,5 +1,17 @@
 /* SPK Perlu Perhatian — balanced scale, aligned with Monitoring SPK. */
 
+/* Remove the outer 4px inset applied by the dashboard tuning layer so this panel header aligns exactly with Action Center. */
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child {
+  padding: 0 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:first-child {
+  padding: 14px 18px !important;
+  margin: 0 !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+}
+
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) {
   padding: 0 18px 8px !important;
 }
