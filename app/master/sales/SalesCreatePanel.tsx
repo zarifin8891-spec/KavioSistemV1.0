@@ -12,12 +12,11 @@ export default function SalesCreatePanel({
   kavlings,
   tipeMap,
   banks,
-  notaries,
 }: {
   kavlings: Kavling[];
   tipeMap: Tipe[];
   banks: Bank[];
-  notaries: Notaris[];
+  notaries?: Notaris[];
 }) {
   const [open, setOpen] = useState(false);
   const [payment, setPayment] = useState('KPR');
@@ -36,7 +35,7 @@ export default function SalesCreatePanel({
           <div className="sales-create-head">
             <div>
               <h2>INPUT SALES BARU</h2>
-              <p>ISI DATA PENJUALAN, PEMBAYARAN, DAN TARGET AKAD.</p>
+              <p>DATA AWAL TRANSAKSI PENJUALAN.</p>
             </div>
           </div>
 
@@ -89,7 +88,9 @@ export default function SalesCreatePanel({
               BANK KPR {isKpr ? <span className="sales-required">*</span> : null}
               <select name="id_bank" required={isKpr} defaultValue="">
                 <option value="">{isKpr ? 'PILIH BANK KPR' : 'TIDAK DIISI UNTUK CASH'}</option>
-                {banks.map((row) => <option key={row.id_bank} value={row.id_bank}>{row.nama_bank}</option>)}
+                {banks.map((row) => (
+                  <option key={row.id_bank} value={row.id_bank}>{row.nama_bank}</option>
+                ))}
               </select>
             </label>
 
@@ -103,7 +104,7 @@ export default function SalesCreatePanel({
               <input name="target_akad" type="date" />
             </label>
 
-            <div className="sales-create-foot">
+            <div className="sales-create-foot sales-full">
               <span>{isKpr ? 'BANK KPR WAJIB DIISI.' : 'PEMBAYARAN CASH TIDAK MEMERLUKAN BANK.'}</span>
               <button type="submit" disabled={!kavlings.length}>SIMPAN SALES</button>
             </div>
