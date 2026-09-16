@@ -1,0 +1,86 @@
+/* Dashboard finishing pass — layout only, no data or business-rule changes. */
+
+/* 1) Remove the PROJECT HEALTH caption so the score becomes the focal point. */
+.kavio-dashboard-page > main > section > section:nth-of-type(1) > div:first-child > div:first-child {
+  display: none !important;
+}
+
+/* 2) Compact the health panel to reclaim vertical space. */
+.kavio-dashboard-page > main > section > section:nth-of-type(1) {
+  min-height: 0 !important;
+  margin-bottom: 14px !important;
+  border-radius: 16px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(1) > div {
+  min-height: 0 !important;
+  padding: 14px 18px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(1) > div:first-child > div:nth-child(2) {
+  margin-top: 0 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(1) > div:first-child {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(1) .healthTitle {
+  line-height: 1 !important;
+}
+
+/* 3) Compact KPI cards while keeping the same four-column rhythm. */
+.kavio-dashboard-page > main > section > section:nth-of-type(2) {
+  gap: 12px !important;
+  margin-bottom: 14px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(2) > div {
+  padding: 14px 16px !important;
+  min-height: 0 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(2) > div > div:nth-child(2) {
+  margin-top: 3px !important;
+  line-height: 1 !important;
+}
+
+/* 4) Tighten the attention list so rows read as a clean executive list. */
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child {
+  padding: 4px 20px 10px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow {
+  padding: 10px 0 !important;
+  gap: 14px !important;
+  min-height: 0 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow:last-child {
+  border-bottom: 0 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow > div:first-child {
+  flex: 0 0 72px !important;
+  width: 72px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthRow > div:nth-child(2) {
+  padding-right: 8px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child .healthMetrics {
+  min-width: 76px !important;
+}
+
+@media (max-width: 900px) {
+  .kavio-dashboard-page > main > section > section:nth-of-type(1) > div {
+    padding: 12px 14px !important;
+  }
+
+  .kavio-dashboard-page > main > section > section:nth-of-type(2) > div {
+    padding: 13px 14px !important;
+  }
+}
