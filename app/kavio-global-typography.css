@@ -1,0 +1,64 @@
+/* Global typography standard — KAVIO */
+html, body, button, input, select, textarea, table, th, td, a, label {
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif !important;
+}
+
+/* All page/banner headings use uppercase presentation. */
+.kavio-brand strong,
+.kavio-topbar,
+.kavio-content > main > header,
+.kavio-page-title,
+.kavio-page-title h1,
+.kavio-page-title p,
+.sales-page > section > div:first-child h1,
+.sales-page > section > div:first-child p,
+.spk-heading,
+.spk-heading h1,
+.spk-heading p,
+.spk-card-head,
+.kavio-dashboard-page h1,
+.kavio-dashboard-page h2,
+.kavio-dashboard-page h3,
+.kavio-dashboard-page p {
+  text-transform: uppercase !important;
+}
+
+/* Preserve readable mixed-case data values in tables/forms. */
+input, select, textarea, td, .kavio-sidebar-user, .kavio-search span {
+  text-transform: none !important;
+}
+
+/* Sales header: keep the title compact and uppercase. */
+.sales-page > section > div:first-child h1::after {
+  text-transform: uppercase !important;
+}
+
+/* Keep the existing Add Sales control functional, but place it on the filter row. */
+.sales-page > section > div:first-child > div:last-child > a {
+  position: absolute !important;
+  right: 18px !important;
+  top: 166px !important;
+  z-index: 12 !important;
+}
+
+.sales-page > section > div:first-child {
+  position: static !important;
+}
+
+.sales-page > section > section:last-child > div:nth-child(2) {
+  padding-right: 190px !important;
+  min-height: 62px !important;
+  align-items: center !important;
+}
+
+@media (max-width: 900px) {
+  .sales-page > section > div:first-child > div:last-child > a {
+    position: static !important;
+    margin-left: auto !important;
+  }
+
+  .sales-page > section > section:last-child > div:nth-child(2) {
+    padding-right: 13px !important;
+    min-height: 0 !important;
+  }
+}
