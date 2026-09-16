@@ -11,10 +11,26 @@ const sections = [
   { title: 'OPERASIONAL', items: [['Sales', '/master/sales'], ['SPK / Pekerjaan', '/master/spk'], ['Progress', '/progress']] },
 ] as const;
 
+const pageHeader = (pathname: string) => {
+  if (pathname.startsWith('/master/sales')) return ['Sales Management', 'Kelola data konsumen, status penjualan, dan status pembayaran.'];
+  if (pathname.startsWith('/master/spk/detail/')) return ['SPK Control Sheet', 'Kontrol pekerjaan, progress, target penyelesaian, dan Curva-S.'];
+  if (pathname.startsWith('/master/spk')) return ['Construction Management', 'Kelola SPK, tim pelaksana, target penyelesaian, dan siklus pembangunan kavling.'];
+  if (pathname.startsWith('/progress')) return ['Progress Monitoring', 'Pantau progress pembangunan berdasarkan SPK aktif.'];
+  if (pathname.startsWith('/master/template-progress')) return ['Template Progress', 'Kelola bobot standar progress berdasarkan tipe rumah.'];
+  if (pathname.startsWith('/master/tipe-rumah')) return ['Master Tipe Rumah', 'Kelola referensi tipe rumah dan spesifikasi luas.'];
+  if (pathname.startsWith('/master/kategori-pekerjaan')) return ['Master Kategori Pekerjaan', 'Kelola kategori pekerjaan dan bobot pembangunan.'];
+  if (pathname.startsWith('/master/kavling')) return ['Master Kavling', 'Kelola inventory kavling dan lifecycle pembangunan.'];
+  if (pathname.startsWith('/master/kantor-pelaksana')) return ['Master Kantor Pelaksana', 'Kelola kantor atau pelaksana pekerjaan proyek.'];
+  if (pathname.startsWith('/master/mandor')) return ['Master Mandor', 'Kelola mandor dan relasinya dengan kantor pelaksana.'];
+  if (pathname.startsWith('/master')) return ['Master Data', 'Pusat referensi data utama proyek KAVIO.'];
+  return ['Dashboard Monitoring', 'Kesehatan proyek, risiko, dan tindakan prioritas.'];
+};
+
 export default function KavioShell({ children, active }: { children: React.ReactNode; active?: string }) {
   const pathname = usePathname();
   const [userEmail, setUserEmail] = useState('');
   const [today, setToday] = useState('');
+  const [title, subtitle] = pageHeader(pathname);
   const effectiveActive = pathname.startsWith('/master/sales')
     ? '/master/sales'
     : pathname.startsWith('/master/spk')
@@ -74,11 +90,17 @@ export default function KavioShell({ children, active }: { children: React.React
       </aside>
       <div className="kavio-main">
         <header className="kavio-topbar">
-          <div className="kavio-search">⌕ <span>Cari kavling, SPK, konsumen...</span></div>
+          <div className="kavio-page-banner" aria-label={title}>
+            <div className="kavio-banner-geometry" aria-hidden="true" />
+            <div className="kavio-page-banner-text">
+              <h1>{title}</h1>
+              <p>{subtitle}</p>
+            </div>
+          </div>
         </header>
         <div className="kavio-content">{children}</div>
       </div>
-      <style>{`
+      <style jsx global>{`
         .kavio-shell{display:flex;min-height:100vh;}
         .kavio-sidebar{width:216px !important;flex:0 0 216px !important;padding:14px 8px !important;display:flex !important;flex-direction:column !important;}
         .kavio-brand{gap:9px !important;padding:4px 6px 18px !important;}
@@ -97,13 +119,39 @@ export default function KavioShell({ children, active }: { children: React.React
         .kavio-sidebar-user-main strong{display:block !important;color:#F7F3E8 !important;font-size:10px !important;font-weight:800 !important;line-height:1.25 !important;max-width:185px !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;}
         .kavio-sidebar-user-main small{display:block !important;color:#DCCB9C !important;font-size:9px !important;line-height:1.2 !important;}
         .kavio-sidebar-date{margin-top:7px !important;color:#F0D48A !important;font-size:9px !important;}
-        .kavio-topbar{min-height:64px !important;display:flex !important;align-items:center !important;}
-        .kavio-topbar .kavio-search{display:flex !important;align-items:center !important;width:min(800px,70%) !important;margin-right:0 !important;}
+        .kavio-topbar{height:126px !important;min-height:126px !important;padding:12px 28px !important;background:transparent !important;border-bottom:0 !important;display:flex !important;align-items:stretch !important;}
+        .kavio-page-banner{position:relative;isolation:isolate;overflow:hidden;width:100%;min-height:102px;border-radius:16px;border:1px solid rgba(216,180,90,.18);background:
+          radial-gradient(circle at 57% 52%, rgba(240,212,138,.13), transparent 16%),
+          linear-gradient(120deg,#091C34 0%,#102E4A 44%,#0A2440 72%,#071B31 100%);
+          box-shadow:0 14px 30px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.045);}
+        .kavio-page-banner-text{position:relative;z-index:2;padding:14px 36px 13px;display:flex;flex-direction:column;justify-content:center;height:100%;max-width:74%;}
+        .kavio-page-banner h1{margin:0 0 1px !important;color:#F7F3E8 !important;font-size:31px !important;line-height:1.03 !important;font-weight:900 !important;letter-spacing:.2px !important;}
+        .kavio-page-banner p{margin:0 !important;color:#E7DDC5 !important;font-size:13px !important;line-height:1.25 !important;}
+        .kavio-banner-geometry{position:absolute;inset:0;z-index:1;opacity:.8;background:
+          linear-gradient(28deg,transparent 0 36%,rgba(154,184,208,.12) 36.1%,transparent 36.5%),
+          linear-gradient(154deg,transparent 0 44%,rgba(154,184,208,.10) 44.1%,transparent 44.45%),
+          linear-gradient(72deg,transparent 0 56%,rgba(240,212,138,.12) 56.1%,transparent 56.4%),
+          linear-gradient(124deg,transparent 0 70%,rgba(154,184,208,.10) 70.1%,transparent 70.45%),
+          radial-gradient(circle at 68% 28%,rgba(255,255,255,.09) 0 1.5px,transparent 2px),
+          radial-gradient(circle at 82% 68%,rgba(255,255,255,.06) 0 2px,transparent 2.5px);}
+        .kavio-banner-geometry::before,.kavio-banner-geometry::after{content:"";position:absolute;inset:-25%;background:linear-gradient(137deg,transparent 47.8%,rgba(190,210,225,.10) 48%,transparent 48.25%);transform:rotate(-3deg);}
+        .kavio-banner-geometry::after{transform:rotate(11deg);opacity:.65;}
+        .kavio-content{padding:0 28px 28px !important;}
+        .kavio-content > main > header{display:none !important;}
+        .kavio-content > main > section:first-of-type{padding-top:0 !important;}
+        .sales-page > section > div:first-child,.kavio-page-title,.spk-heading,.kavio-dashboard-page > main > section > div:first-child{display:none !important;}
+        .kavio-dashboard-page > main > section{padding-top:0 !important;}
         @media (max-width:900px){
           .kavio-sidebar{width:76px !important;flex-basis:76px !important;padding:12px 8px !important;}
           .kavio-brand{padding-left:0 !important;padding-right:0 !important;}
           .kavio-brand-mark{width:40px !important;height:40px !important;flex-basis:40px;}
           .kavio-brand > span:last-child,.kavio-nav-item > span:last-child,.kavio-sidebar-footer{display:none !important;}
+          .kavio-topbar{height:112px !important;min-height:112px !important;padding:10px 12px !important;}
+          .kavio-page-banner{min-height:92px;border-radius:14px;}
+          .kavio-page-banner-text{padding:12px 18px;max-width:96%;}
+          .kavio-page-banner h1{font-size:24px !important;}
+          .kavio-page-banner p{font-size:11px !important;}
+          .kavio-content{padding:0 12px 20px !important;}
         }
       `}</style>
     </div>
