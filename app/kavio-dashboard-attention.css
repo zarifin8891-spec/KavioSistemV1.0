@@ -1,98 +1,108 @@
-/* SPK Perlu Perhatian — align the detail list with Monitoring SPK typography. */
+/* SPK Perlu Perhatian — balanced scale, aligned with Monitoring SPK. */
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) {
   padding: 0 18px 8px !important;
 }
 
-/* First row carries the column labels so the compact list reads like the Monitoring table. */
-.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child {
-  position: relative !important;
-  padding: 32px 0 10px !important;
+/* Compact table-like header and rows without shrinking the content too far. */
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div {
+  display: grid !important;
+  grid-template-columns: 64px minmax(0, 1fr) 82px !important;
+  align-items: center !important;
   gap: 12px !important;
+  min-height: 52px !important;
+  padding: 8px 0 !important;
+  border-bottom: 1px solid rgba(216,180,90,.12) !important;
 }
 
-.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child > div:first-child,
-.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child > div:nth-child(2),
-.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child > div:last-child {
+/* Column headings sit above the first data row. */
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child {
   position: relative !important;
+  padding-top: 30px !important;
+  padding-bottom: 8px !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child > div {
+  position: relative !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child > div:first-child::before,
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child > div:nth-child(2)::before,
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child > div:last-child::before {
+  position: absolute;
+  top: -24px;
+  color: #F0D48A;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 800;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child > div:first-child::before {
   content: 'Health';
-  position: absolute;
-  top: -27px;
   left: 0;
-  color: #F0D48A;
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child > div:nth-child(2)::before {
   content: 'Kavling';
-  position: absolute;
-  top: -27px;
   left: 0;
-  color: #F0D48A;
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child > div:last-child::before {
   content: 'Progress';
-  position: absolute;
-  top: -27px;
-  left: 0;
-  color: #F0D48A;
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1;
+  right: 0;
 }
 
-/* Match Monitoring SPK row typography and proportions. */
+/* Match the readable middle scale of Monitoring SPK, but keep the panel compact. */
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:first-child {
-  width: 64px !important;
-  min-width: 64px !important;
-  flex: 0 0 64px !important;
-  padding: 7px 6px !important;
+  width: 60px !important;
+  min-width: 60px !important;
+  flex: 0 0 60px !important;
+  padding: 6px 5px !important;
   border-radius: 10px !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:first-child > span {
-  font-size: 18px !important;
+  font-size: 16px !important;
   line-height: 1.05 !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:first-child > small {
-  font-size: 10px !important;
-  line-height: 1.1 !important;
+  font-size: 9px !important;
+  line-height: 1.05 !important;
+}
+
+.kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:nth-child(2) {
+  min-width: 0 !important;
+  padding-right: 2px !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:nth-child(2) > a {
   font-size: 13px !important;
-  font-weight: 900 !important;
   line-height: 1.15 !important;
+  font-weight: 900 !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:nth-child(2) > div {
-  margin-top: 3px !important;
+  margin-top: 2px !important;
   font-size: 10px !important;
   line-height: 1.2 !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:last-child {
-  min-width: 76px !important;
-  font-size: 11px !important;
-  line-height: 1.2 !important;
+  min-width: 82px !important;
+  font-size: 10px !important;
+  line-height: 1.15 !important;
+  text-align: right !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:last-child > strong {
-  font-size: 13px !important;
+  font-size: 12px !important;
+  line-height: 1.1 !important;
 }
 
 .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:last-child > span {
   font-size: 10px !important;
+  line-height: 1.1 !important;
 }
 
 @media (max-width: 900px) {
@@ -101,13 +111,14 @@
     padding-right: 14px !important;
   }
 
-  .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div:first-child {
-    padding-top: 30px !important;
+  .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div {
+    grid-template-columns: 58px minmax(0, 1fr) 72px !important;
+    gap: 9px !important;
   }
 
   .kavio-dashboard-page > main > section > section:nth-of-type(3) > div:first-child > div:nth-child(2) > div > div:first-child {
-    width: 60px !important;
-    min-width: 60px !important;
-    flex-basis: 60px !important;
+    width: 56px !important;
+    min-width: 56px !important;
+    flex-basis: 56px !important;
   }
 }
