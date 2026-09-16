@@ -8,6 +8,8 @@ const masterLinks = [
   { href: '/master/kantor-pelaksana', title: 'Kantor Pelaksana', desc: 'Kantor/pelaksana yang menangani pekerjaan.', icon: '▥' },
   { href: '/master/mandor', title: 'Mandor', desc: 'Mandor dan relasinya dengan kantor pelaksana.', icon: '♙' },
   { href: '/master/template-progress', title: 'Template Progress', desc: 'Template bobot progress standar berdasarkan tipe rumah.', icon: '◔' },
+  { href: '/master/bank', title: 'Bank', desc: 'Master bank untuk pembiayaan KPR Sales.', icon: '▤' },
+  { href: '/master/notaris', title: 'Notaris', desc: 'Master notaris untuk proses akad Sales.', icon: '✎' },
 ];
 
 export default async function MasterPage() {
@@ -28,7 +30,7 @@ export default async function MasterPage() {
           <div><div className="kavio-card-title">Urutan kerja yang disarankan</div><div className="kavio-card-note">Bangun referensi sebelum transaksi operasional.</div></div>
           <span className="kavio-status">MASTER</span>
         </div>
-        <div style={{ padding: '14px 18px', color: 'var(--kavio-gold-300)', fontWeight: 800, fontSize: 13 }}>Tipe Rumah → Kategori Pekerjaan → Kavling → Kantor Pelaksana → Mandor → Template Progress</div>
+        <div style={{ padding: '14px 18px', color: 'var(--kavio-gold-300)', fontWeight: 800, fontSize: 13 }}>Tipe Rumah → Kategori Pekerjaan → Kavling → Kantor Pelaksana → Mandor → Template Progress → Bank → Notaris</div>
       </section>
 
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 15 }}>
