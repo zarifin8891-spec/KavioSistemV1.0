@@ -7,32 +7,36 @@ html, body, button, input, select, textarea, table, th, td, a, label {
   font-family: "Arial Narrow", Arial, Helvetica, sans-serif !important;
 }
 
-/* KAVIO page headers are presented in uppercase consistently. */
+/* All KAVIO page/banner headers use uppercase presentation. */
 .kavio-brand strong,
 .kavio-topbar,
 .kavio-content > main > header,
 .kavio-page-title,
 .kavio-page-title h1,
 .kavio-page-title p,
+.kavio-page-title div,
 .spk-heading,
 .spk-heading h1,
 .spk-heading p,
+.spk-heading div,
 .spk-card-head b,
 .spk-card-head span,
 .sales-page h1,
 .sales-page > section > div:first-child p,
+.sales-page > section > div:first-child div,
 .kavio-dashboard-page h1,
 .kavio-dashboard-page h2,
-.kavio-dashboard-page h3 {
+.kavio-dashboard-page h3,
+.kavio-dashboard-page > main > section > div:first-child p {
   text-transform: uppercase !important;
 }
 
-/* Keep entered data readable in its original form. */
+/* Keep entered/business data readable in its source form. */
 input, select, textarea, td, .kavio-sidebar-user, .kavio-search span {
   text-transform: none !important;
 }
 
-/* SALES — keep the existing functional anchor and visually place it beside filters. */
+/* SALES — reuse the existing functional Add Sales link and place it in the filter row area. */
 .sales-page > section {
   position: relative !important;
 }
@@ -40,7 +44,7 @@ input, select, textarea, td, .kavio-sidebar-user, .kavio-search span {
 .sales-page > section > div:first-child > div:last-child > a {
   position: absolute !important;
   right: 18px !important;
-  top: 0 !important;
+  top: 128px !important;
   z-index: 20 !important;
 }
 
@@ -48,7 +52,6 @@ input, select, textarea, td, .kavio-sidebar-user, .kavio-search span {
   padding-right: 190px !important;
   min-height: 62px !important;
   align-items: center !important;
-  position: relative !important;
 }
 
 @media (max-width: 900px) {
