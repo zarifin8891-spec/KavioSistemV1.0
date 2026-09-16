@@ -1,0 +1,55 @@
+/* Sales layout refinement — presentation only. */
+
+.sales-page > section {
+  padding-top: 0 !important;
+}
+
+/* Keep the module header compact and remove the duplicate section label. */
+.sales-page > section > div:first-child > div:first-child > div:first-child {
+  display: none !important;
+}
+
+.sales-page h1 {
+  font-size: 0 !important;
+  line-height: 1 !important;
+  margin: 0 0 4px !important;
+}
+
+.sales-page h1::after {
+  content: 'Sales Management';
+  display: block;
+  color: #F7F3E8;
+  font-size: 30px;
+  line-height: 1.08;
+  font-weight: 900;
+}
+
+/* Logged-in user now lives in the sidebar. */
+.sales-page > section > div:first-child > div:last-child > span:first-child {
+  display: none !important;
+}
+
+/* The active count is already repeated in the table footer, so remove the header copy. */
+.sales-page > section > section:last-child > div:first-child {
+  display: none !important;
+}
+
+/* Add Sales opens the existing form via the URL fragment. */
+.sales-page #input-sales {
+  display: none !important;
+  margin-top: 16px !important;
+}
+
+.sales-page #input-sales:target {
+  display: block !important;
+}
+
+.sales-page #input-sales:target + section {
+  margin-top: 18px !important;
+}
+
+@media (max-width: 900px) {
+  .sales-page h1::after {
+    font-size: 26px;
+  }
+}
