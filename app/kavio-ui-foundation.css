@@ -1,0 +1,113 @@
+:root {
+  --kavio-font: "Arial Narrow", Arial, Helvetica, sans-serif;
+  --kavio-bg: #04182F;
+  --kavio-panel: #08213D;
+  --kavio-panel-2: #0D2948;
+  --kavio-panel-3: #173452;
+  --kavio-slate: #314A68;
+  --kavio-gold: #D8B45A;
+  --kavio-champagne: #F0D48A;
+  --kavio-gold-dark: #A98235;
+  --kavio-ivory: #F7F3E8;
+  --kavio-muted: #C9BC99;
+  --kavio-line: rgba(216,180,90,.28);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body, button, input, select, textarea, table, th, td, a, label {
+  font-family: var(--kavio-font) !important;
+}
+body { margin: 0; }
+
+/* One global shell */
+.kavio-shell { min-height: 100vh; display: flex; background: linear-gradient(135deg,var(--kavio-bg) 0%,#061D36 54%,var(--kavio-panel) 100%); color: var(--kavio-ivory); }
+.kavio-sidebar { width: 216px !important; flex: 0 0 216px !important; padding: 14px 9px !important; background: linear-gradient(180deg,#061B35 0%,var(--kavio-panel) 55%,#061A32 100%) !important; border-right: 1px solid var(--kavio-line) !important; }
+.kavio-brand { padding: 4px 7px 17px !important; gap: 9px !important; border-bottom: 1px solid var(--kavio-line) !important; }
+.kavio-brand-mark { width: 42px !important; height: 42px !important; flex: 0 0 42px; font-size: 22px !important; font-weight: 400 !important; }
+.kavio-brand strong { font-size: 25px !important; line-height: 1 !important; letter-spacing: 1.8px !important; font-weight: 400 !important; }
+.kavio-brand small { font-size: 6.5px !important; letter-spacing: .2px !important; white-space: nowrap !important; }
+.kavio-nav { margin-top: 14px !important; gap: 7px !important; }
+.kavio-nav-section { gap: 4px !important; }
+.kavio-nav-section + .kavio-nav-section { padding-top: 10px !important; border-top: 1px solid rgba(216,180,90,.16) !important; }
+.kavio-nav-section-title { padding: 2px 10px 2px !important; color: var(--kavio-muted) !important; font-size: 8px !important; letter-spacing: 1.3px !important; font-weight: 400 !important; }
+.kavio-nav-item { gap: 10px !important; padding: 10px 10px !important; border-radius: 8px !important; color: #E5E0D4 !important; font-size: 12.5px !important; font-weight: 400 !important; border: 1px solid transparent !important; }
+.kavio-nav-item:hover { background: rgba(216,180,90,.08) !important; border-color: rgba(216,180,90,.18) !important; color: var(--kavio-champagne) !important; }
+.kavio-nav-item.is-active { color: #172B43 !important; background: linear-gradient(90deg,var(--kavio-champagne),var(--kavio-gold)) !important; border-color: rgba(255,235,170,.55) !important; }
+.kavio-nav-icon { width: 18px !important; font-size: 16px !important; font-weight: 400 !important; }
+.kavio-sidebar-footer { padding: 12px 6px 2px !important; color: var(--kavio-gold) !important; font-size: 7.5px !important; line-height: 1.45 !important; }
+.kavio-sidebar-user { margin-top: 12px !important; padding-top: 11px !important; border-top: 1px solid rgba(216,180,90,.22) !important; }
+.kavio-sidebar-user-main strong { font-weight: 400 !important; }
+.kavio-topbar { height: 126px !important; min-height: 126px !important; padding: 12px 28px !important; background: transparent !important; border: 0 !important; }
+.kavio-page-banner { position: relative !important; width: 100%; min-height: 102px; overflow: hidden; isolation: isolate; border-radius: 15px; border: 1px solid rgba(216,180,90,.18); background: linear-gradient(120deg,#091C34 0%,#102E4A 44%,#0A2440 72%,#071B31 100%); box-shadow: 0 14px 30px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.045); }
+.kavio-page-banner-text { position: relative; z-index: 2; height: 100%; max-width: 80%; padding: 14px 36px; display: flex; flex-direction: column; justify-content: center; }
+.kavio-page-banner h1 { margin: 0 0 2px !important; color: var(--kavio-ivory) !important; font-size: 30px !important; line-height: 1.03 !important; letter-spacing: 1px !important; font-weight: 400 !important; text-transform: uppercase !important; }
+.kavio-page-banner p { margin: 0 !important; color: #E7DDC5 !important; font-size: 12px !important; line-height: 1.35 !important; text-transform: uppercase !important; }
+.kavio-banner-geometry { position: absolute; inset: 0; z-index: 1; opacity: .82; background: linear-gradient(28deg,transparent 0 36%,rgba(154,184,208,.12) 36.1%,transparent 36.5%),linear-gradient(154deg,transparent 0 44%,rgba(154,184,208,.10) 44.1%,transparent 44.45%),linear-gradient(72deg,transparent 0 56%,rgba(240,212,138,.12) 56.1%,transparent 56.4%),linear-gradient(124deg,transparent 0 70%,rgba(154,184,208,.10) 70.1%,transparent 70.45%); }
+.kavio-content { width: 100% !important; max-width: 1500px !important; margin: 0 auto !important; padding: 0 28px 28px !important; }
+.kavio-content > main > header { display: none !important; }
+
+/* Standard component vocabulary */
+.kavio-panel { background: linear-gradient(180deg,rgba(18,49,80,.98),rgba(7,30,55,.98)); border: 1px solid var(--kavio-line); border-radius: 14px; box-shadow: 0 10px 26px rgba(0,0,0,.16); overflow: hidden; }
+.kavio-panel-head { padding: 14px 17px; border-bottom: 1px solid rgba(216,180,90,.16); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.kavio-panel-title { margin: 0; color: var(--kavio-ivory); font-size: 14px; line-height: 1.2; font-weight: 400; text-transform: uppercase; }
+.kavio-panel-note { margin-top: 3px; color: var(--kavio-muted); font-size: 10px; }
+.kavio-panel-body { padding: 16px; }
+.kavio-form { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
+.kavio-field { display: flex; flex-direction: column; gap: 6px; color: #DCCB9C; font-size: 11px; font-weight: 400; }
+.kavio-field input, .kavio-field select, .kavio-field textarea { width: 100%; min-height: 38px; padding: 9px 10px; border: 1px solid rgba(232,204,122,.42) !important; border-radius: 8px; background: linear-gradient(180deg,#344C69,#293F5B) !important; color: var(--kavio-ivory) !important; outline: none; font-size: 12px; }
+.kavio-field input:focus, .kavio-field select:focus, .kavio-field textarea:focus { border-color: var(--kavio-champagne) !important; box-shadow: 0 0 0 2px rgba(240,212,138,.08); }
+.kavio-actions { grid-column: 1 / -1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+.kavio-button, button.kavio-button { min-height: 36px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--kavio-gold) !important; background: linear-gradient(180deg,var(--kavio-champagne),var(--kavio-gold)) !important; color: #10213A !important; font-size: 11px; font-weight: 400 !important; cursor: pointer; }
+.kavio-button.secondary, button.kavio-button.secondary { background: transparent !important; color: var(--kavio-champagne) !important; border-color: var(--kavio-gold-dark) !important; }
+.kavio-button:disabled { opacity: .45; cursor: not-allowed; }
+.kavio-table-wrap { overflow-x: auto; }
+.kavio-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.kavio-table th { padding: 10px 12px; text-align: left; background: #102E4D; color: var(--kavio-champagne); border-bottom: 1px solid var(--kavio-gold-dark); font-weight: 400; white-space: nowrap; text-transform: uppercase; }
+.kavio-table td { padding: 10px 12px; color: #F3EFE5; border-bottom: 1px solid rgba(216,180,90,.12); white-space: nowrap; }
+.kavio-table tbody tr:nth-child(even) { background: rgba(255,255,255,.015); }
+.kavio-table tbody tr:hover { background: rgba(216,180,90,.055); }
+.kavio-badge { display: inline-flex; align-items: center; min-height: 24px; padding: 4px 8px; border: 1px solid var(--kavio-gold-dark); border-radius: 999px; background: rgba(216,180,90,.08); color: var(--kavio-champagne); font-size: 9px; font-weight: 400; text-transform: uppercase; }
+.kavio-alert { padding: 10px 12px; border-radius: 9px; margin-bottom: 12px; font-size: 11px; }
+.kavio-alert.error { background: rgba(248,113,113,.08); border: 1px solid #B91C1C; color: #FCA5A5; }
+.kavio-alert.success { background: rgba(134,239,172,.08); border: 1px solid #15803D; color: #BBF7D0; }
+.kavio-empty { padding: 28px !important; text-align: center; color: var(--kavio-muted) !important; }
+.kavio-kpi-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; }
+.kavio-kpi { position: relative; min-height: 112px; padding: 15px 16px; background: linear-gradient(145deg,#173452,#08213D 72%); border: 1px solid rgba(216,180,90,.34); border-radius: 14px; box-shadow: 0 10px 22px rgba(0,0,0,.16); }
+.kavio-kpi::before { content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background: linear-gradient(180deg,var(--kavio-champagne),var(--kavio-gold-dark)); border-radius:14px 0 0 14px; }
+.kavio-kpi-label { color: var(--kavio-muted); font-size: 9px; letter-spacing: .9px; text-transform: uppercase; font-weight: 400; }
+.kavio-kpi-value { margin-top: 7px; color: var(--kavio-ivory); font-size: 28px; line-height: 1; font-weight: 700; }
+.kavio-kpi-trend { margin-top: 8px; color: var(--kavio-champagne); font-size: 9px; }
+
+/* Legacy/simple module classes are brought to the same foundation */
+.master-simple-page, .sales-page, .spk-page { width: 100%; color: var(--kavio-ivory); }
+.simple-head, .spk-heading { margin: 0 0 16px !important; }
+.simple-head h1, .spk-heading h1, .sales-page h1 { font-weight: 400 !important; text-transform: uppercase !important; }
+.simple-head p, .spk-heading p, .sales-title p { text-transform: uppercase !important; }
+.simple-card, .sales-module-card, .spk-card { border-color: var(--kavio-line) !important; box-shadow: 0 10px 26px rgba(0,0,0,.16) !important; }
+.simple-grid, .spk-form, .sales-create-grid { gap: 12px !important; }
+.simple-grid label, .spk-field, .sales-create-grid label { font-weight: 400 !important; }
+.simple-grid input, .simple-grid textarea, .simple-grid select, .spk-field input, .spk-field select, .sales-create-grid input, .sales-create-grid select { font-weight: 400 !important; }
+.simple-card h2, .spk-card-head b, .sales-create-head h2 { font-weight: 400 !important; text-transform: uppercase !important; }
+.simple-table th, .spk-table th, .sales-table th { font-weight: 400 !important; }
+.simple-outline, .spk-detail, .spk-mini, .spk-primary, .sales-add-button, .sales-create-foot button, .detailButton { font-weight: 400 !important; }
+
+@media (max-width:1100px) {
+  .kavio-form { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .kavio-kpi-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:900px) {
+  .kavio-sidebar { width: 76px !important; flex-basis: 76px !important; }
+  .kavio-brand { justify-content: center; padding-left: 0 !important; padding-right: 0 !important; }
+  .kavio-brand > span:last-child, .kavio-nav-section-title, .kavio-nav-item > span:last-child, .kavio-sidebar-footer { display: none !important; }
+  .kavio-topbar { height: 112px !important; min-height: 112px !important; padding: 10px 12px !important; }
+  .kavio-page-banner { min-height: 92px; border-radius: 13px; }
+  .kavio-page-banner-text { max-width: 98%; padding: 12px 18px; }
+  .kavio-page-banner h1 { font-size: 24px !important; }
+  .kavio-page-banner p { font-size: 10px !important; }
+  .kavio-content { padding: 0 12px 20px !important; }
+  .kavio-kpi-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:650px) {
+  .kavio-form { grid-template-columns: 1fr; }
+  .kavio-kpi-grid { grid-template-columns: 1fr; }
+}
