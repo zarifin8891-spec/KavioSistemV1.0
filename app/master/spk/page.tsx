@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { activateSpk, createSpk, deactivateSpk } from './actions';
-import WeightConfigurator from './WeightConfigurator';
+import { activateSpk, deactivateSpk } from './actions';
+import SpkCreatePanel from './SpkCreatePanel';
 import { createClient } from '../../../lib/supabase/server';
 
 type SearchParams = Promise<{ error?: string; success?: string }>;
@@ -48,13 +48,8 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
 
   return (
     <main className="spk-page">
-      <div className="spk-heading">
-        <div><div className="spk-eyebrow">5. SPK / PEKERJAAN</div><h1>Construction Management</h1><p>Kelola Surat Perintah Kerja, tim pelaksana, target penyelesaian, dan siklus pembangunan kavling.</p></div>
-        <Link href="/progress" className="spk-secondary">Lihat Progress</Link>
-      </div>
-
-      {pageError && <div className="spk-alert error">{pageError}</div>}
-      {params.success && <div className="spk-alert success">{params.success}</div>}
+      {pageError && <div className="kavio-alert error">{pageError}</div>}
+      {params.success && <div className="kavio-alert success">{params.success}</div>}
 
       <div className="spk-stats">
         <div className="spk-stat"><span>SPK AKTIF</span><strong>{aktif}</strong><small>Pekerjaan berjalan</small></div>
@@ -63,27 +58,40 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
         <div className="spk-stat"><span>SIAP SPK</span><strong>{kavlingRows.length}</strong><small>Kavling tersedia</small></div>
       </div>
 
-      <section className="spk-card">
-        <div className="spk-card-head"><div><b>Buat SPK Baru</b><span>SPK menjadi aktif setelah konfigurasi bobot progress valid dan diaktifkan.</span></div><span className="spk-tag">WORK ORDER</span></div>
-        <form action={createSpk} className="spk-form">
-          <WeightConfigurator kavlingRows={kavlingRows} kategoriRows={kategoriRows} templateRows={templateRows} />
-          <Field name="tgl_spk" label="Tanggal SPK" type="date" />
-          <Field name="tgl_target_selesai" label="Target Selesai" type="date" />
-          <label className="spk-field"><span>Kantor / Pelaksana</span><select name="id_kantor" required defaultValue=""><option value="" disabled>Pilih kantor</option>{kantorRows.map((item) => <option key={item.id_kantor} value={item.id_kantor}>{item.nama_kantor_pelaksana}</option>)}</select></label>
-          <label className="spk-field"><span>Mandor</span><select name="id_mandor" required defaultValue=""><option value="" disabled>Pilih mandor</option>{mandorRows.map((item) => <option key={item.id_mandor} value={item.id_mandor}>{item.nama_mandor} — {kantorMap.get(item.id_kantor) ?? item.id_kantor}</option>)}</select></label>
-          <div className="spk-form-foot"><span><b>Aturan:</b> Sales tidak wajib. SPK baru hanya untuk kavling AVAILABLE atau BOOKING. Saat aktif, kavling menjadi BUILDING.</span><button type="submit" className="spk-primary" disabled={!kavlingRows.length || !kantorRows.length || !mandorRows.length || !kategoriRows.length}>＋ Simpan SPK sebagai DRAFT</button></div>
-        </form>
+      <section className="kavio-panel spk-list-card">
+        <div className="kavio-panel-head">
+          <div><h2 className="kavio-panel-title">DAFTAR SPK</h2><div className="kavio-panel-note">Histori SPK tersimpan; hanya satu SPK dapat aktif pada satu kavling.</div></div>
+          <div className="spk-toolbar-actions">
+            <span className="kavio-badge">{spkRows.length} DATA</span>
+            <Link href="/progress" className="kavio-button secondary">LIHAT PROGRESS</Link>
+          </div>
+        </div>
+        <div className="kavio-table-wrap">
+          <table className="kavio-table spk-table">
+            <thead><tr><th>KAVLING</th><th>TANGGAL</th><th>TIPE</th><th>PELAKSANA</th><th>MANDOR</th><th>BOBOT</th><th>TARGET</th><th>STATUS</th><th>AKSI</th></tr></thead>
+            <tbody>
+              {spkRows.map((row) => <tr key={row.id_spk}>
+                <td><Link href={`/master/spk/detail/${row.id_spk}`} className="spk-kavling">{row.id_kavling}</Link></td>
+                <td>{row.tgl_spk}</td>
+                <td>{tipeMap.get(row.id_tipe) ?? row.id_tipe}</td>
+                <td>{kantorMap.get(row.id_kantor) ?? row.id_kantor}</td>
+                <td>{mandorMap.get(row.id_mandor) ?? row.id_mandor}</td>
+                <td>{row.jenis_bobot}</td>
+                <td>{row.tgl_target_selesai}</td>
+                <td><span className={`spk-badge ${row.status_spk.toLowerCase()}`}>{row.status_spk}</span></td>
+                <td><div className="spk-actions">
+                  <Link href={`/master/spk/detail/${row.id_spk}`} className="kavio-button secondary">DETAIL</Link>
+                  {row.status_spk === 'DRAFT' && !row.is_active ? <form action={activateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="kavio-button">AKTIFKAN</button></form> : null}
+                  {row.is_active ? <form action={deactivateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="kavio-button secondary">SELESAIKAN</button></form> : null}
+                </div></td>
+              </tr>)}
+              {!spkRows.length && <tr><td colSpan={9} className="kavio-empty">BELUM ADA DATA SPK.</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </section>
 
-      <section className="spk-card spk-list-card">
-        <div className="spk-card-head"><div><b>Daftar SPK</b><span>Histori SPK tersimpan; hanya satu SPK dapat aktif pada satu kavling.</span></div><span className="spk-count">{spkRows.length} data</span></div>
-        <div className="spk-table-wrap"><table className="spk-table"><thead><tr><th>Kavling</th><th>Tanggal</th><th>Tipe</th><th>Pelaksana</th><th>Mandor</th><th>Bobot</th><th>Target</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
-          {spkRows.map((row) => <tr key={row.id_spk}><td><Link href={`/master/spk/detail/${row.id_spk}`} className="spk-kavling">{row.id_kavling}</Link></td><td>{row.tgl_spk}</td><td>{tipeMap.get(row.id_tipe) ?? row.id_tipe}</td><td>{kantorMap.get(row.id_kantor) ?? row.id_kantor}</td><td>{mandorMap.get(row.id_mandor) ?? row.id_mandor}</td><td>{row.jenis_bobot}</td><td>{row.tgl_target_selesai}</td><td><span className={`spk-badge ${row.status_spk.toLowerCase()}`}>{row.status_spk}</span></td><td><div className="spk-actions"><Link href={`/master/spk/detail/${row.id_spk}`} className="spk-detail">Detail</Link>{row.status_spk === 'DRAFT' && !row.is_active ? <form action={activateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="spk-mini primary">Aktifkan</button></form> : row.is_active ? <form action={deactivateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="spk-mini">Selesaikan</button></form> : null}</div></td></tr>)}
-          {!spkRows.length && <tr><td colSpan={9} className="spk-empty">Belum ada data SPK.</td></tr>}
-        </tbody></table></div>
-      </section>
+      <SpkCreatePanel kavlingRows={kavlingRows} kategoriRows={kategoriRows} templateRows={templateRows} kantorRows={kantorRows} mandorRows={mandorRows} />
     </main>
   );
 }
-
-function Field({ name, label, type = 'text' }: { name: string; label: string; type?: string }) { return <label className="spk-field"><span>{label}</span><input name={name} type={type} required /></label>; }
