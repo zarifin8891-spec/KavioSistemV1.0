@@ -1,15 +1,15 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 
 const masterLinks = [
-  { href: '/master/tipe-rumah', title: 'Tipe Rumah', desc: 'Master tipe rumah dan spesifikasi luas.', icon: '⌂' },
-  { href: '/master/kategori-pekerjaan', title: 'Kategori Pekerjaan', desc: 'Kategori dan bobot pekerjaan pembangunan.', icon: '▦' },
-  { href: '/master/kavling', title: 'Kavling', desc: 'Blok, nomor kavling, tipe rumah, dan lifecycle inventory.', icon: '⌗' },
-  { href: '/master/kantor-pelaksana', title: 'Kantor Pelaksana', desc: 'Kantor/pelaksana yang menangani pekerjaan.', icon: '▥' },
-  { href: '/master/mandor', title: 'Mandor', desc: 'Mandor dan relasinya dengan kantor pelaksana.', icon: '♙' },
-  { href: '/master/template-progress', title: 'Template Progress', desc: 'Template bobot progress standar berdasarkan tipe rumah.', icon: '◔' },
-  { href: '/master/bank', title: 'Bank', desc: 'Master bank untuk pembiayaan KPR Sales.', icon: '▤' },
-  { href: '/master/notaris', title: 'Notaris', desc: 'Master notaris untuk proses akad Sales.', icon: '✎' },
+  { href: '/master/tipe-rumah', title: 'Tipe Rumah', desc: 'Kelola referensi tipe rumah dan spesifikasi luas.', icon: '⌂' },
+  { href: '/master/kategori-pekerjaan', title: 'Kategori Pekerjaan', desc: 'Kelola kategori pekerjaan dan bobot pembangunan.', icon: '▦' },
+  { href: '/master/kantor-pelaksana', title: 'Kantor Pelaksana', desc: 'Kelola kantor/pelaksana yang menangani pekerjaan.', icon: '▥' },
+  { href: '/master/mandor', title: 'Mandor', desc: 'Kelola mandor dan relasinya dengan kantor pelaksana.', icon: '♙' },
+  { href: '/master/template-progress', title: 'Template Progress', desc: 'Kelola bobot progress standar berdasarkan tipe rumah.', icon: '◔' },
+  { href: '/master/bank', title: 'Bank', desc: 'Kelola bank untuk pembiayaan KPR Sales.', icon: '▤' },
+  { href: '/master/notaris', title: 'Notaris', desc: 'Kelola notaris untuk proses akad Sales.', icon: '✎' },
 ];
 
 export default async function MasterPage() {
@@ -18,31 +18,29 @@ export default async function MasterPage() {
   if (!user) redirect('/login');
 
   return (
-    <>
-      <div className="kavio-page-title">
-        <div className="kavio-gold" style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.4 }}>MASTER DATA CONTROL</div>
-        <h1>Pusat Master KAVIO</h1>
-        <p>Semua referensi utama proyek dikelola dari satu pintu agar data Sales, SPK, dan Progress tetap konsisten.</p>
-      </div>
-
-      <section className="kavio-card" style={{ marginBottom: 18 }}>
-        <div className="kavio-card-head">
-          <div><div className="kavio-card-title">Urutan kerja yang disarankan</div><div className="kavio-card-note">Bangun referensi sebelum transaksi operasional.</div></div>
-          <span className="kavio-status">MASTER</span>
+    <main className="master-hub">
+      <section className="kavio-panel master-hub-intro-panel">
+        <div className="kavio-panel-head">
+          <div><h2 className="kavio-panel-title">MASTER DATA CONTROL</h2><div className="kavio-panel-note">Semua referensi utama proyek dikelola dari satu pintu agar Sales, SPK, dan Progress tetap konsisten.</div></div>
+          <span className="kavio-badge">MASTER</span>
         </div>
-        <div style={{ padding: '14px 18px', color: 'var(--kavio-gold-300)', fontWeight: 800, fontSize: 13 }}>Tipe Rumah → Kategori Pekerjaan → Kavling → Kantor Pelaksana → Mandor → Template Progress → Bank → Notaris</div>
+        <div className="kavio-panel-body master-workflow">TIPE RUMAH → KATEGORI PEKERJAAN → KAVLING → KANTOR PELAKSANA → MANDOR → TEMPLATE PROGRESS → BANK → NOTARIS</div>
       </section>
 
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 15 }}>
-        {masterLinks.map((item, index) => (
-          <a key={item.href} href={item.href} className="kavio-card" style={{ textDecoration: 'none', padding: 20, display: 'block' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 26, color: 'var(--kavio-gold-300)' }}>{item.icon}</span><span style={{ fontSize: 10, fontWeight: 900, color: 'var(--kavio-gold-700)' }}>{String(index + 1).padStart(2,'0')}</span></div>
-            <div style={{ marginTop: 16, color: 'var(--kavio-ivory)', fontSize: 17, fontWeight: 900 }}>{item.title}</div>
-            <div style={{ marginTop: 7, color: 'var(--kavio-muted)', fontSize: 12, lineHeight: 1.5, minHeight: 38 }}>{item.desc}</div>
-            <div style={{ marginTop: 14, color: 'var(--kavio-gold-300)', fontSize: 11, fontWeight: 900 }}>Buka Master →</div>
-          </a>
+      <section className="master-card-grid">
+        <Link href="/master/kavling" className="master-card master-card-featured">
+          <span className="master-card-icon">⌗</span>
+          <span className="master-card-title">Kavling</span>
+          <span className="master-card-note">Kelola blok, nomor kavling, tipe rumah, dan lifecycle inventory.</span>
+        </Link>
+        {masterLinks.map((item) => (
+          <Link key={item.href} href={item.href} className="master-card">
+            <span className="master-card-icon">{item.icon}</span>
+            <span className="master-card-title">{item.title}</span>
+            <span className="master-card-note">{item.desc}</span>
+          </Link>
         ))}
       </section>
-    </>
+    </main>
   );
 }
