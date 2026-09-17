@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
-import { createProgressUpdate } from './actions';
+import ProgressCreatePanel from './ProgressCreatePanel';
 
 type SearchParams = Promise<{ spk?: string; error?: string; success?: string }>;
 type Spk = { id_spk: string; id_kavling: string; id_tipe: string; tgl_spk: string; tgl_target_selesai: string; status_spk: string; is_active: boolean };
@@ -17,7 +17,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const [{ data: spks }, { data: categories }] = await Promise.all([
+  const [{ data: spks, error: spkError }, { data: categories, error: categoryError }] = await Promise.all([
     supabase.from('spk').select('id_spk,id_kavling,id_tipe,tgl_spk,tgl_target_selesai,status_spk,is_active').eq('is_active', true).order('tgl_target_selesai'),
     supabase.from('master_kategori_pekerjaan').select('id_kategori,nama_kategori,urutan').eq('status_aktif', true).order('urutan'),
   ]);
@@ -30,7 +30,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
   let currentRows: Current[] = [];
   let historyRows: History[] = [];
   let decision: Decision | null = null;
-  let readError = '';
+  let readError = spkError?.message ?? categoryError?.message ?? '';
 
   if (selected) {
     const results = await Promise.all([
@@ -43,7 +43,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
     currentRows = (results[1].data ?? []) as Current[];
     historyRows = (results[2].data ?? []) as History[];
     decision = results[3].data as Decision | null;
-    readError = results.map((r) => r.error?.message).find(Boolean) ?? '';
+    readError = results.map((r) => r.error?.message).find(Boolean) ?? readError;
   }
 
   const categoryMap = new Map(categoryRows.map((row) => [row.id_kategori, row]));
@@ -52,106 +52,63 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
   const expected = Number(decision?.progress_seharusnya ?? 0);
   const gap = Number(decision?.gap_progress ?? actual - expected);
   const pageError = params.error ?? readError;
-  const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <main style={styles.main}>
-      <header style={styles.header}>
-        <div><Link href="/dashboard" style={styles.back}>← Dashboard</Link><div style={styles.brand}>KAVIO</div><div style={styles.title}>Input Progress SPK</div></div>
-        <div style={styles.user}><div>{user.email}</div><form action="/auth/signout" method="post"><button style={styles.logout}>Keluar</button></form></div>
-      </header>
-      <section style={styles.wrap}>
-        <div style={{ marginBottom: 18 }}><div style={styles.eyebrow}>FIELD MONITORING</div><h1 style={styles.h1}>Progress Pembangunan</h1><p style={styles.muted}>Input adalah progress periode. Dashboard, Detail SPK, dan Decision Engine menggunakan sumber keputusan yang sama.</p></div>
-        {pageError && <div style={styles.error}>{pageError}</div>}
-        {params.success && <div style={styles.success}>{params.success}</div>}
+    <main className="progress-page">
+      {pageError && <div className="kavio-alert error">{pageError}</div>}
+      {params.success && <div className="kavio-alert success">{params.success}</div>}
 
-        <section style={styles.card}>
-          <div style={styles.sectionTitle}>Pilih SPK Aktif</div>
-          <form method="get" style={styles.selector}>
-            <select name="spk" defaultValue={selected?.id_spk ?? ''} style={styles.input}><option value="">Pilih SPK</option>{spkRows.map((row) => <option key={row.id_spk} value={row.id_spk}>{row.id_kavling} — target {row.tgl_target_selesai}</option>)}</select>
-            <button type="submit" style={styles.primary}>Tampilkan</button>
-          </form>
+      <section className="kavio-panel">
+        <div className="kavio-panel-head">
+          <div><h2 className="kavio-panel-title">SPK AKTIF</h2><div className="kavio-panel-note">Pilih SPK untuk melihat kendali progress, histori, dan hasil Decision Engine.</div></div>
+          <span className="kavio-badge">{spkRows.length} SPK</span>
+        </div>
+        <form method="get" className="kavio-form">
+          <label className="kavio-field" style={{ gridColumn: 'span 3' }}><span>SPK / KAVLING</span><select name="spk" defaultValue={selected?.id_spk ?? ''}><option value="">PILIH SPK</option>{spkRows.map((row) => <option key={row.id_spk} value={row.id_spk}>{row.id_kavling} — TARGET {row.tgl_target_selesai}</option>)}</select></label>
+          <div className="kavio-actions"><button type="submit" className="kavio-button secondary">TAMPILKAN</button></div>
+        </form>
+      </section>
+
+      {selected && <>
+        <section className="progress-summary">
+          <SummaryCard label="PROGRESS AKTUAL" value={`${(actual * 100).toFixed(1)}%`} />
+          <SummaryCard label="PROGRESS SEHARUSNYA" value={`${(expected * 100).toFixed(1)}%`} />
+          <SummaryCard label="GAP" value={`${gap >= 0 ? '+' : ''}${(gap * 100).toFixed(1)}%`} tone={gap < -0.05 ? 'danger' : gap < 0 ? 'warning' : 'normal'} />
+          <SummaryCard label="SISA HARI" value={decision ? (decision.sisa_hari < 0 ? `LEWAT ${Math.abs(decision.sisa_hari)}` : String(decision.sisa_hari)) : '—'} tone={decision && decision.sisa_hari < 0 ? 'danger' : 'normal'} />
+          <SummaryCard label="HEALTH SCORE" value={decision ? String(decision.health_score) : '—'} />
         </section>
 
-        {selected && <>
-          <section style={{ ...styles.card, marginTop: 16 }}>
-            <div style={styles.sectionTitle}>Ringkasan Kendali</div>
-            <div style={styles.kpis}>
-              <Kpi label="Progress Aktual" value={`${(actual * 100).toFixed(1)}%`} />
-              <Kpi label="Progress Seharusnya" value={`${(expected * 100).toFixed(1)}%`} />
-              <Kpi label="Gap" value={`${gap >= 0 ? '+' : ''}${(gap * 100).toFixed(1)}%`} tone={gap < -0.05 ? 'danger' : gap < 0 ? 'warning' : 'ok'} />
-              <Kpi label="Sisa Hari" value={decision ? (decision.sisa_hari < 0 ? `Lewat ${Math.abs(decision.sisa_hari)}` : String(decision.sisa_hari)) : '—'} tone={decision && decision.sisa_hari < 0 ? 'danger' : undefined} />
-              <Kpi label="Health Score" value={decision ? String(decision.health_score) : '—'} />
-            </div>
-            <div style={styles.decisionBox}><div style={styles.smallLabel}>DECISION ENGINE</div><div style={styles.decisionMain}>{decision?.action_rekomendasi ?? 'Belum tersedia'}</div><div style={styles.decisionMeta}>{decision?.status_operasional ?? '—'} · {decision?.status_ritme ?? '—'} · prioritas {decision?.prioritas_tindakan ?? '—'} · {decision?.health_level ?? '—'}</div></div>
-          </section>
+        <section className="kavio-panel progress-decision-panel">
+          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DECISION ENGINE</h2><div className="kavio-panel-note">Logika keputusan dibaca dari sumber yang sama dengan Dashboard dan Detail SPK.</div></div><span className="kavio-badge">{decision?.health_level ?? 'BELUM TERSEDIA'}</span></div>
+          <div className="kavio-panel-body"><div className="progress-decision"><div className="progress-decision-label">REKOMENDASI TINDAKAN</div><div className="progress-decision-main">{decision?.action_rekomendasi ?? 'Belum tersedia'}</div><div className="progress-decision-meta">{decision?.status_operasional ?? '—'} · {decision?.status_ritme ?? '—'} · PRIORITAS {decision?.prioritas_tindakan ?? '—'} · {decision?.health_description ?? ''}</div></div></div>
+        </section>
 
-          <section style={{ ...styles.card, marginTop: 16 }}>
-            <div style={styles.sectionTitle}>Input Progress Periode</div>
-            <form action={createProgressUpdate} style={styles.form}>
-              <input type="hidden" name="id_spk" value={selected.id_spk} />
-              <label style={styles.label}>Tanggal Update<input type="date" name="tanggal_update" required defaultValue={today} style={styles.input} min={selected.tgl_spk} /></label>
-              <label style={styles.label}>Kategori Pekerjaan<select name="id_kategori" required defaultValue="" style={styles.input}><option value="" disabled>Pilih kategori</option>{configRows.map((c) => <option key={c.id_kategori} value={c.id_kategori}>{categoryMap.get(c.id_kategori)?.urutan ?? ''}. {categoryMap.get(c.id_kategori)?.nama_kategori ?? c.id_kategori} — bobot {(Number(c.bobot_final) * 100).toFixed(2)}%</option>)}</select></label>
-              <label style={styles.label}>Progress Periode (%)<input type="number" name="progress_periode" required min="0" max="100" step="0.01" placeholder="Contoh: 8" style={styles.input} /></label>
-              <label style={styles.label}>Keterangan<input name="keterangan" placeholder="Opsional" style={styles.input} /></label>
-              <div style={styles.note}><strong>Penting:</strong> isi angka periode ini, bukan kumulatif. Akumulasi kategori dihitung otomatis dan dibatasi 100%.</div>
-              <button type="submit" disabled={!configRows.length} style={styles.primary}>+ Simpan Progress Periode</button>
-            </form>
-          </section>
+        <section className="kavio-panel">
+          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PER KATEGORI</h2><div className="kavio-panel-note">Progress periode diakumulasi per kategori kemudian dihitung berbobot.</div></div><Link href={`/master/spk/detail/${selected.id_spk}`} className="kavio-button secondary">CONTROL SHEET</Link></div>
+          <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>KATEGORI</th><th>BOBOT</th><th>AKUMULASI</th><th>BERBOBOT</th><th>UPDATE TERAKHIR</th></tr></thead><tbody>{configRows.map((c) => { const cur = currentRows.find((r) => r.id_kategori === c.id_kategori); return <tr key={c.id_kategori}><td className="progress-category-name">{categoryMap.get(c.id_kategori)?.nama_kategori ?? c.id_kategori}</td><td>{(Number(c.bobot_final) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_akumulasi ?? 0) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_berbobot ?? 0) * 100).toFixed(2)}%</td><td>{cur?.tanggal_update_terakhir ?? 'BELUM ADA'}</td></tr>; })}{!configRows.length && <tr><td colSpan={5} className="kavio-empty">BELUM ADA KONFIGURASI PROGRESS.</td></tr>}</tbody></table></div>
+        </section>
 
-          <section style={{ ...styles.card, marginTop: 16, overflow: 'hidden' }}>
-            <div style={styles.sectionTitle}>Progress per Kategori</div>
-            <div style={{ overflowX: 'auto' }}><table style={styles.table}><thead><tr><Th>Kategori</Th><Th>Bobot</Th><Th>Akumulasi</Th><Th>Berbobot</Th><Th>Update Terakhir</Th></tr></thead><tbody>{configRows.map((c) => { const cur = currentRows.find((r) => r.id_kategori === c.id_kategori); return <tr key={c.id_kategori}><Td strong>{categoryMap.get(c.id_kategori)?.nama_kategori ?? c.id_kategori}</Td><Td>{(Number(c.bobot_final) * 100).toFixed(2)}%</Td><Td>{(Number(cur?.progress_akumulasi ?? 0) * 100).toFixed(2)}%</Td><Td>{(Number(cur?.progress_berbobot ?? 0) * 100).toFixed(2)}%</Td><Td>{cur?.tanggal_update_terakhir ?? 'Belum ada'}</Td></tr>; })}</tbody></table></div>
-          </section>
+        <section className="kavio-panel">
+          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">HISTORI PROGRESS</h2><div className="kavio-panel-note">Seluruh update periode tetap tersimpan.</div></div><span className="kavio-badge">{historyRows.length} UPDATE</span></div>
+          <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>TANGGAL</th><th>KATEGORI</th><th>PROGRESS PERIODE</th><th>KETERANGAN</th></tr></thead><tbody>{historyRows.map((row) => <tr key={row.id_progress}><td>{row.tanggal_update}</td><td>{categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori}</td><td className="progress-highlight">{(Number(row.progress_periode) * 100).toFixed(2)}%</td><td>{row.keterangan || '—'}</td></tr>)}{!historyRows.length && <tr><td colSpan={4} className="kavio-empty">BELUM ADA HISTORI PROGRESS.</td></tr>}</tbody></table></div>
+          <div className="progress-table-foot">UPDATE TERAKHIR: {decision?.tanggal_update_terakhir ?? latestPeriod?.date ?? 'BELUM ADA'} · PERIODE TERAKHIR: {decision ? `${(Number(decision.progress_periode_terakhir) * 100).toFixed(2)}%` : '—'} · KEBUTUHAN / HARI: {decision ? `${(Number(decision.progress_diperlukan_per_hari) * 100).toFixed(2)}%` : '—'}</div>
+        </section>
 
-          <section style={{ ...styles.card, marginTop: 16, overflow: 'hidden' }}>
-            <div style={styles.sectionTitle}>Histori Progress</div>
-            <div style={{ overflowX: 'auto' }}><table style={styles.table}><thead><tr><Th>Tanggal</Th><Th>Kategori</Th><Th>Periode</Th><Th>Keterangan</Th></tr></thead><tbody>{historyRows.map((row) => <tr key={row.id_progress}><Td>{row.tanggal_update}</Td><Td>{categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori}</Td><Td strong>{(Number(row.progress_periode) * 100).toFixed(2)}%</Td><Td>{row.keterangan || '—'}</Td></tr>)}{!historyRows.length && <tr><Td>Belum ada histori progress.</Td><Td></Td><Td></Td><Td></Td></tr>}</tbody></table></div>
-            <div style={styles.historyMeta}>Update terakhir: {decision?.tanggal_update_terakhir ?? latestPeriod?.date ?? 'Belum ada'} · Periode terakhir: {decision ? `${(Number(decision.progress_periode_terakhir) * 100).toFixed(2)}%` : '—'} · Kebutuhan per hari: {decision ? `${(Number(decision.progress_diperlukan_per_hari) * 100).toFixed(2)}%` : '—'}</div>
-          </section>
-        </>}
+        <ProgressCreatePanel idSpk={selected.id_spk} tglSpk={selected.tgl_spk} configs={configRows} categories={categoryRows} />
+      </>}
 
-        {!selected && !spkRows.length && <div style={{ ...styles.card, marginTop: 16, padding: 28, textAlign: 'center' }}>Belum ada SPK aktif.</div>}
-      </section>
+      {!selected && !spkRows.length && <div className="kavio-panel kavio-empty">BELUM ADA SPK AKTIF.</div>}
     </main>
   );
 }
 
-function getLatestPeriod(rows: History[]) { if (!rows.length) return null; const date = rows[0].tanggal_update; const progress = rows.filter((row) => row.tanggal_update === date).reduce((sum, row) => sum + Number(row.progress_periode ?? 0), 0); return { date, progress }; }
-function Kpi({ label, value, tone }: { label: string; value: string; tone?: 'danger' | 'warning' | 'ok' }) { const color = tone === 'danger' ? '#fecaca' : tone === 'warning' ? '#E8CC7A' : tone === 'ok' ? '#86efac' : '#F7F3E8'; return <div style={styles.kpi}><div style={styles.smallLabel}>{label}</div><div style={{ marginTop: 6, fontSize: 23, fontWeight: 900, color }}>{value}</div></div>; }
-function Th({ children }: { children?: React.ReactNode }) { return <th style={styles.th}>{children}</th>; }
-function Td({ children, strong = false }: { children?: React.ReactNode; strong?: boolean }) { return <td style={{ ...styles.td, ...(strong ? { fontWeight: 800 } : {}) }}>{children}</td>; }
+function getLatestPeriod(rows: History[]) {
+  if (!rows.length) return null;
+  const date = rows[0].tanggal_update;
+  const progress = rows.filter((row) => row.tanggal_update === date).reduce((sum, row) => sum + Number(row.progress_periode ?? 0), 0);
+  return { date, progress };
+}
 
-const styles = {
-  main: { minHeight: '100vh', background: '#0B1D3A', color: '#F7F3E8' },
-  header: { background: '#102A56', borderBottom: '1px solid #B8943F', padding: '18px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20 },
-  back: { color: '#DCCB9C', textDecoration: 'none', fontSize: 13 },
-  brand: { marginTop: 8, color: '#E8CC7A', fontWeight: 900, letterSpacing: 1.5, fontSize: 12 },
-  title: { color: '#F7F3E8', fontSize: 21, fontWeight: 800 },
-  user: { textAlign: 'right' as const, color: '#DCCB9C', fontSize: 12 },
-  logout: { border: 0, background: 'transparent', color: '#E8CC7A', fontWeight: 800, cursor: 'pointer', marginTop: 6 },
-  wrap: { maxWidth: 1280, margin: '0 auto', padding: 28 },
-  eyebrow: { color: '#E8CC7A', fontSize: 11, fontWeight: 900, letterSpacing: 1.2 },
-  h1: { margin: '4px 0 6px', fontSize: 30, color: '#F7F3E8' },
-  muted: { margin: 0, color: '#DCCB9C', fontSize: 13 },
-  card: { background: '#162F5B', border: '1px solid #B8943F', borderRadius: 16, boxShadow: '0 10px 28px rgba(0,0,0,.18)' },
-  sectionTitle: { padding: 16, borderBottom: '1px solid rgba(216,180,90,.25)', fontWeight: 900, color: '#F7F3E8' },
-  selector: { padding: 16, display: 'grid', gridTemplateColumns: '1fr auto', gap: 10 },
-  input: { width: '100%', boxSizing: 'border-box' as const, padding: '11px 12px', borderRadius: 10, border: '1px solid #B8943F', background: '#0B1D3A', color: '#F7F3E8', outline: 'none' },
-  primary: { background: 'linear-gradient(180deg,#E8CC7A,#D8B45A)', color: '#0B1D3A', border: 0, borderRadius: 10, padding: '11px 16px', fontWeight: 900, cursor: 'pointer' },
-  kpis: { padding: 16, display: 'grid', gridTemplateColumns: 'repeat(5,minmax(0,1fr))', gap: 12 },
-  kpi: { background: '#102A56', border: '1px solid rgba(216,180,90,.25)', borderRadius: 12, padding: 14 },
-  smallLabel: { color: '#DCCB9C', fontSize: 11, fontWeight: 800, letterSpacing: .5 },
-  decisionBox: { margin: '0 16px 16px', padding: 14, background: '#0B1D3A', border: '1px solid #B8943F', borderRadius: 12 },
-  decisionMain: { marginTop: 5, fontWeight: 900, color: '#E8CC7A' },
-  decisionMeta: { marginTop: 6, color: '#DCCB9C', fontSize: 12 },
-  form: { padding: 16, display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr 1fr', gap: 12, alignItems: 'end' },
-  label: { display: 'grid', gap: 6, color: '#DCCB9C', fontSize: 12, fontWeight: 800 },
-  note: { gridColumn: '1 / -1', padding: 11, background: '#102A56', border: '1px solid rgba(216,180,90,.25)', borderRadius: 10, color: '#DCCB9C', fontSize: 12 },
-  table: { width: '100%', borderCollapse: 'collapse' as const },
-  th: { padding: '12px 14px', textAlign: 'left' as const, color: '#E8CC7A', borderBottom: '1px solid rgba(216,180,90,.25)', whiteSpace: 'nowrap' },
-  td: { padding: '12px 14px', color: '#F7F3E8', borderBottom: '1px solid rgba(216,180,90,.12)' },
-  historyMeta: { padding: 14, color: '#DCCB9C', fontSize: 12 },
-  error: { marginBottom: 12, padding: 12, borderRadius: 10, background: 'rgba(248,113,113,.10)', border: '1px solid #b91c1c', color: '#fecaca' },
-  success: { marginBottom: 12, padding: 12, borderRadius: 10, background: 'rgba(134,239,172,.08)', border: '1px solid #15803d', color: '#bbf7d0' },
-};
+function SummaryCard({ label, value, tone = 'normal' }: { label: string; value: string; tone?: 'danger' | 'warning' | 'normal' }) {
+  return <div className={`progress-summary-card progress-tone-${tone}`}><div className="progress-summary-label">{label}</div><div className="progress-summary-value">{value}</div></div>;
+}
