@@ -17,6 +17,8 @@ export async function createSales(formData: FormData) {
   if (!user) redirect('/login');
   const idKavling = text(formData.get('id_kavling'));
   const namaKonsumen = text(formData.get('nama_konsumen'));
+  const alamatKonsumen = text(formData.get('alamat_konsumen')) || null;
+  const hpKonsumen = text(formData.get('hp_konsumen')) || null;
   const statusSales = text(formData.get('status_sales')) || 'BOOKING';
   const jenisPembayaran = text(formData.get('jenis_pembayaran')) || 'KPR';
   const idBank = text(formData.get('id_bank')) || null;
@@ -33,7 +35,6 @@ export async function createSales(formData: FormData) {
   if (tglBooking && targetAkad && targetAkad < tglBooking) return redirectError('TARGET AKAD TIDAK BOLEH SEBELUM TANGGAL BOOKING');
   if (tglBooking && tglAkad && tglAkad < tglBooking) return redirectError('TANGGAL AKAD TIDAK BOLEH SEBELUM TANGGAL BOOKING');
   if (jenisPembayaran === 'KPR' && !idBank) return redirectError('BANK KPR WAJIB DIPILIH UNTUK PEMBAYARAN KPR');
-  if (jenisPembayaran !== 'KPR') formData.set('id_bank', '');
   if (statusSales === 'AKAD' && (!tglAkad || !idNotaris || !targetAkad)) return redirectError('TARGET AKAD, TANGGAL AKAD, DAN NOTARIS WAJIB DIISI UNTUK STATUS AKAD');
 
   const [{ data: kavling, error: kavlingError }, { data: activeSales, error: salesError }, { data: activeSpk, error: spkError }] = await Promise.all([
@@ -49,6 +50,8 @@ export async function createSales(formData: FormData) {
   const { data: inserted, error: insertError } = await supabase.from('sales').insert({
     id_kavling: idKavling,
     nama_konsumen: namaKonsumen,
+    alamat_konsumen: alamatKonsumen,
+    hp_konsumen: hpKonsumen,
     status_sales: statusSales,
     jenis_pembayaran: jenisPembayaran,
     id_bank: jenisPembayaran === 'KPR' ? idBank : null,
@@ -76,6 +79,8 @@ export async function updateSalesInfo(formData: FormData) {
   const idSales = text(formData.get('id_sales'));
   const statusSales = text(formData.get('status_sales'));
   const jenisPembayaran = text(formData.get('jenis_pembayaran'));
+  const alamatKonsumen = text(formData.get('alamat_konsumen')) || null;
+  const hpKonsumen = text(formData.get('hp_konsumen')) || null;
   const idBank = text(formData.get('id_bank')) || null;
   const idNotaris = text(formData.get('id_notaris')) || null;
   const tglAkad = text(formData.get('tgl_akad')) || null;
@@ -86,7 +91,7 @@ export async function updateSalesInfo(formData: FormData) {
   if (jenisPembayaran === 'KPR' && !idBank) return detailError(idSales, 'BANK KPR WAJIB DIISI');
   if (statusSales === 'AKAD' && (!tglAkad || !idNotaris || !targetAkad)) return detailError(idSales, 'TARGET AKAD, TANGGAL AKAD, DAN NOTARIS WAJIB DIISI');
   if (jenisPembayaran !== 'KPR' && idBank) return detailError(idSales, 'BANK HANYA DIISI UNTUK PEMBAYARAN KPR');
-  const { error } = await supabase.from('sales').update({ status_sales: statusSales, jenis_pembayaran: jenisPembayaran, id_bank: jenisPembayaran === 'KPR' ? idBank : null, id_notaris: statusSales === 'AKAD' ? idNotaris : null, tgl_akad: statusSales === 'AKAD' ? tglAkad : null, target_akad: targetAkad, status_aktif: statusSales !== 'BATAL' }).eq('id_sales', idSales);
+  const { error } = await supabase.from('sales').update({ status_sales: statusSales, jenis_pembayaran: jenisPembayaran, alamat_konsumen: alamatKonsumen, hp_konsumen: hpKonsumen, id_bank: jenisPembayaran === 'KPR' ? idBank : null, id_notaris: statusSales === 'AKAD' ? idNotaris : null, tgl_akad: statusSales === 'AKAD' ? tglAkad : null, target_akad: targetAkad, status_aktif: statusSales !== 'BATAL' }).eq('id_sales', idSales);
   if (error) return detailError(idSales, error.message);
   revalidatePath('/master/sales'); revalidatePath('/master/sales/detail'); revalidatePath('/dashboard');
   redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&success=DATA%20SALES%20DIPERBARUI`);
