@@ -29,27 +29,27 @@ export default function WeightConfigurator({ kavlingRows, kategoriRows, template
 
   return (
     <>
-      <label style={labelStyle}>
-        <span>Kavling</span>
-        <select name="id_kavling" required style={inputStyle} value={selectedKavling} onChange={(event) => setSelectedKavling(event.target.value)}>
-          <option value="" disabled>Pilih kavling</option>
+      <label className="kavio-field">
+        <span>KAVLING</span>
+        <select name="id_kavling" required value={selectedKavling} onChange={(event) => setSelectedKavling(event.target.value)}>
+          <option value="" disabled>PILIH KAVLING</option>
           {kavlingRows.map((item) => <option key={item.id_kavling} value={item.id_kavling}>{item.id_kavling} — {item.id_tipe}</option>)}
         </select>
       </label>
 
-      <label style={labelStyle}>
-        <span>Jenis Bobot</span>
-        <select name="jenis_bobot" required style={inputStyle} value={jenisBobot} onChange={(event) => setJenisBobot(event.target.value as 'STANDAR' | 'CUSTOM')}>
-          <option value="STANDAR">STANDAR — dari template tipe rumah</option>
-          <option value="CUSTOM">CUSTOM — atur sendiri</option>
+      <label className="kavio-field">
+        <span>JENIS BOBOT</span>
+        <select name="jenis_bobot" required value={jenisBobot} onChange={(event) => setJenisBobot(event.target.value as 'STANDAR' | 'CUSTOM')}>
+          <option value="STANDAR">STANDAR — DARI TEMPLATE TIPE RUMAH</option>
+          <option value="CUSTOM">CUSTOM — ATUR SENDIRI</option>
         </select>
       </label>
 
-      <div style={{ gridColumn: '1 / -1', marginTop: 4 }}>
-        <div style={weightHeader}>
+      <div className="kvio-weight-config">
+        <div className="kvio-weight-head">
           <div>
-            <div style={{ fontWeight: 800 }}>Konfigurasi Bobot Progress</div>
-            <div style={{ color: '#64748b', fontSize: 12, marginTop: 3 }}>
+            <div className="kvio-weight-title">KONFIGURASI BOBOT PROGRESS</div>
+            <div className="kvio-weight-note">
               {selectedKavling
                 ? jenisBobot === 'STANDAR'
                   ? `Template untuk ${selectedKavling} (${selectedType}). Bobot akan disnapshot saat SPK dibuat.`
@@ -57,25 +57,25 @@ export default function WeightConfigurator({ kavlingRows, kategoriRows, template
                 : 'Pilih kavling terlebih dahulu. Bobot standar mengikuti tipe rumah kavling yang dipilih.'}
             </div>
           </div>
-          <div style={noteBadge}>
-            {jenisBobot === 'STANDAR' ? `Template ${standardTotal.toFixed(2)}%` : 'Total wajib 100%'}
+          <div className={`kavio-badge ${jenisBobot === 'CUSTOM' ? 'kavio-badge-warning' : ''}`}>
+            {jenisBobot === 'STANDAR' ? `TEMPLATE ${standardTotal.toFixed(2)}%` : 'TOTAL WAJIB 100%'}
           </div>
         </div>
 
-        <div style={tableWrap}>
-          <table style={table}>
-            <thead><tr><th style={th}>Urut</th><th style={th}>Kategori</th><th style={th}>Bobot Standar</th><th style={th}>Bobot Custom (%)</th></tr></thead>
+        <div className="kavio-table-wrap">
+          <table className="kavio-table">
+            <thead><tr><th>URUT</th><th>KATEGORI</th><th>BOBOT STANDAR</th><th>BOBOT CUSTOM (%)</th></tr></thead>
             <tbody>
               {kategoriRows.map((item) => {
                 const standard = templateMap.get(item.id_kategori) ?? 0;
                 return <tr key={item.id_kategori}>
-                  <td style={td}>{item.urutan}</td>
-                  <td style={tdStrong}>{item.nama_kategori}</td>
-                  <td style={td}>{standard.toFixed(2)}%</td>
-                  <td style={td}><input name={`bobot_${item.id_kategori}`} type="number" min="0" max="100" step="0.01" defaultValue="0" style={smallInput} disabled={jenisBobot !== 'CUSTOM'} /></td>
+                  <td>{item.urutan}</td>
+                  <td>{item.nama_kategori}</td>
+                  <td>{standard.toFixed(2)}%</td>
+                  <td><input className="kavio-weight-input" name={`bobot_${item.id_kategori}`} type="number" min="0" max="100" step="0.01" defaultValue="0" disabled={jenisBobot !== 'CUSTOM'} /></td>
                 </tr>;
               })}
-              {!kategoriRows.length && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', padding: 30 }}>Belum ada kategori pekerjaan aktif.</td></tr>}
+              {!kategoriRows.length && <tr><td colSpan={4} className="kavio-empty">BELUM ADA KATEGORI PEKERJAAN AKTIF.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -83,14 +83,3 @@ export default function WeightConfigurator({ kavlingRows, kategoriRows, template
     </>
   );
 }
-
-const labelStyle = { display: 'flex', flexDirection: 'column' as const, gap: 7, fontSize: 12, fontWeight: 700, color: '#475569' };
-const inputStyle = { width: '100%', boxSizing: 'border-box' as const, border: '1px solid #cbd5e1', borderRadius: 9, padding: '10px 11px', fontSize: 14, background: '#fff', color: '#0f172a' };
-const smallInput = { ...inputStyle, maxWidth: 150 };
-const tableWrap = { border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', marginTop: 12 };
-const table = { width: '100%', borderCollapse: 'collapse' as const };
-const th = { padding: '12px 14px', borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' as const };
-const td = { padding: '13px 14px', borderBottom: '1px solid #f1f5f9' };
-const tdStrong = { ...td, fontWeight: 800 };
-const weightHeader = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' as const };
-const noteBadge = { background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', padding: '6px 10px', borderRadius: 999, fontSize: 11, fontWeight: 800 };
