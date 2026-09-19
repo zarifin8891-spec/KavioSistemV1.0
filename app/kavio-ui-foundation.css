@@ -118,3 +118,29 @@ body { margin: 0; }
 .kavio-command-icon { width:17px; height:17px; display:grid; place-items:center; border:1px solid rgba(16,33,58,.28); border-radius:5px; font-size:13px; line-height:1; }
 .kavio-create-wrap { margin-top:12px; }
 .kavio-create-wrap > .kavio-command-button { justify-self:end; }
+
+/* KAVIO PAGE COMMAND */
+.kavio-page-command { position:absolute; top:50%; right:22px; transform:translateY(-50%); z-index:3; display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:34px; padding:7px 12px; border:1px solid rgba(240,212,138,.58); border-radius:8px; background:rgba(4,24,47,.52); color:var(--kavio-champagne); text-decoration:none; font-size:10px; letter-spacing:.3px; text-transform:uppercase; }
+.kavio-page-command:hover { background:rgba(240,212,138,.10); border-color:var(--kavio-champagne); color:var(--kavio-ivory); }
+.kavio-page-banner-text { padding-right:150px; }
+
+/* KAVIO FORM FOUNDATION */
+.kavio-create-panel .kavio-panel-body { display:grid !important; grid-template-columns:repeat(4,minmax(0,1fr)) !important; gap:14px !important; align-items:start !important; }
+.kavio-create-panel .kavio-field { display:flex !important; flex-direction:column !important; align-items:stretch !important; gap:6px !important; min-width:0 !important; margin:0 !important; }
+.kavio-create-panel .kavio-field > span { display:block !important; margin:0 !important; color:var(--kavio-muted) !important; font-size:9px !important; line-height:1.2 !important; letter-spacing:.35px !important; text-transform:uppercase !important; }
+.kavio-create-panel .kavio-field input,
+.kavio-create-panel .kavio-field select,
+.kavio-create-panel .kavio-field textarea { display:block !important; width:100% !important; min-width:0 !important; min-height:36px !important; height:auto !important; }
+.kavio-create-panel .kavio-actions { grid-column:1 / -1 !important; display:flex !important; justify-content:flex-end !important; align-items:center !important; padding-top:2px !important; }
+.kavio-create-panel .kavio-actions .kavio-button { min-width:120px; }
+.master-simple-page .kavio-create-wrap { display:grid; gap:10px; }
+.master-simple-page .kavio-create-panel { margin-top:2px; }
+
+@media (max-width:900px) {
+  .kavio-create-panel .kavio-panel-body { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+}
+@media (max-width:650px) {
+  .kavio-create-panel .kavio-panel-body { grid-template-columns:1fr !important; }
+  .kavio-page-command { right:12px; }
+  .kavio-page-banner-text { padding-right:120px; }
+}
