@@ -125,10 +125,14 @@ export default function KavioShell({ children, active }: { children: React.React
               <h1>{title}</h1>
               <p>{subtitle}</p>
             </div>
-            {pathname.startsWith('/master/') && !pathname.startsWith('/master/spk') && !pathname.startsWith('/master/sales/detail') && (
-              <Link href="/master" className="kavio-command-button kavio-page-command" aria-label="Kembali ke Master Data">
+            {pathname.startsWith('/master/') && !pathname.startsWith('/master/spk') && pathname !== '/master/sales' && (
+              <Link
+                href={pathname.startsWith('/master/sales/detail') ? '/master/sales' : '/master'}
+                className="kavio-command-button kavio-page-command"
+                aria-label={pathname.startsWith('/master/sales/detail') ? 'Kembali ke Sales Management' : 'Kembali ke Master Data'}
+              >
                 <span className="kavio-command-icon" aria-hidden="true">←</span>
-                <span>Kembali</span>
+                <span>{pathname.startsWith('/master/sales/detail') ? 'Kembali ke Sales' : 'Kembali'}</span>
               </Link>
             )}
           </div>
