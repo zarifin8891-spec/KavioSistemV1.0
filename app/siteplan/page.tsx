@@ -32,6 +32,11 @@ export default async function SiteplanPage() {
       : Promise.resolve({ data: [] }),
   ]);
 
+  const { data: savedMappings } = await supabase
+    .from('siteplan_kavling_mapping')
+    .select('id_kavling,polygon,label')
+    .in('id_kavling', ids);
+
   const spkIds = (spks ?? []).map((row) => row.id_spk);
   const { data: progressUpdates } = spkIds.length
     ? await supabase
@@ -48,6 +53,7 @@ export default async function SiteplanPage() {
         sales={sales ?? []}
         spks={spks ?? []}
         progressUpdates={progressUpdates ?? []}
+        savedMappings={(savedMappings ?? []) as { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null }[]}
       />
     </KavioShell>
   );
