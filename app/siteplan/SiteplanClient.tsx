@@ -86,6 +86,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   const [mappingMode, setMappingMode] = useState(false);
   const [mappingPoints, setMappingPoints] = useState<[number, number][]>([]);
   const [mappingNotice, setMappingNotice] = useState('');
+  const [zoom, setZoom] = useState(1);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const savedMap = useMemo(() => Object.fromEntries(savedMappings.map((row) => [row.id_kavling, row])), [savedMappings]);
   const activeMap = useMemo(() => ({ ...SITEPLAN_MAP, ...savedMap }), [savedMap]);
@@ -198,7 +199,14 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
 
       <section className="siteplan-layout">
         <div className="siteplan-canvas kavio-panel">
-          <div className="siteplan-stage">
+          <div className="siteplan-viewport">
+            <div className="siteplan-zoom-controls">
+              <button type="button" className="kavio-button secondary" onClick={() => setZoom((value) => Math.min(3, Number((value + 0.25).toFixed(2))))}>+</button>
+              <span>{Math.round(zoom * 100)}%</span>
+              <button type="button" className="kavio-button secondary" onClick={() => setZoom((value) => Math.max(1, Number((value - 0.25).toFixed(2))))}>−</button>
+              <button type="button" className="kavio-button secondary" onClick={() => setZoom(1)}>RESET</button>
+            </div>
+            <div className="siteplan-stage" style={{ width: `${zoom * 100}%` }}>
             <img src={SITEPLAN_IMAGE} alt="Siteplan Cibodas" className="siteplan-image" />
             <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''}`} viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
               {rows.map((row) => {
@@ -217,12 +225,13 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                     onKeyDown={(event) => handlePolygonKey(event, row.id_kavling)}
                   >
                     <polygon points={polygonPoints(map.polygon)} />
-                    <text x={map.label[0]} y={map.label[1]} textAnchor="middle">{row.id_kavling}</text>
+                    {map.label && <text x={map.label[0]} y={map.label[1]} textAnchor="middle">{row.id_kavling}</text>}
                     {mappingMode && (selectedId === row.id_kavling ? mappingPoints : map.polygon).map(([x, y], pointIndex) => <circle key={pointIndex} cx={x} cy={y} r="7" className="siteplan-map-point" />)}
                   </g>
                 );
               })}
             </svg>
+            </div>
           </div>
         </div>
 
