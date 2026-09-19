@@ -24,8 +24,8 @@ export default function SalesCreatePanel({
 
   return (
     <div className="sales-create-wrap">
-      <button type="button" className="kavio-button" onClick={() => setOpen((value) => !value)}>
-        {open ? '× TUTUP FORM' : '+ TAMBAH SALES'}
+      <button type="button" className="kavio-command-button" onClick={() => setOpen((value) => !value)}>
+        <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span><span>{open ? 'Tutup Form' : 'Tambah Sales'}</span>
       </button>
 
       {open && (
