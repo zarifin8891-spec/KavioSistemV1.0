@@ -4,7 +4,6 @@ import './kavio-dashboard-overrides.css';
 import './kavio-dashboard-tune.css';
 import './kavio-dashboard-attention.css';
 import './kavio-sales-layout.css';
-import './kavio-typography.css';
 import './kavio-sales-module.css';
 import './kavio-ui-foundation.css';
 import './kavio-ui-components.css';
