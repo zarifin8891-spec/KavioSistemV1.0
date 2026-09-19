@@ -81,6 +81,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
   const unmappedRows = useMemo(() => kavlings.filter((row) => !SITEPLAN_MAP[row.id_kavling]), [kavlings]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('ALL');
+  const [mappingMode, setMappingMode] = useState(false);
   const selected = selectedId ? rows.find((row) => row.id_kavling === selectedId) ?? null : null;
 
   const selectedSale = selected ? sales.find((row) => row.id_kavling === selected.id_kavling) : null;
@@ -116,6 +117,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
           <h2 className="kavio-panel-title">SITEPLAN INTERAKTIF</h2>
           <div className="kavio-panel-note">Mapping polygon aktual terhubung ke Sales, SPK, dan Progress berdasarkan id_kavling.</div>
         </div>
+        <div className="siteplan-toolbar-actions"><button type="button" className={`kavio-button ${mappingMode ? 'primary' : 'secondary'}`} onClick={() => setMappingMode((value) => !value)}>{mappingMode ? 'KELUAR MAPPING MODE' : 'MAPPING MODE'}</button></div>
         <div className="siteplan-legend">
           {STATUS_LIST.map((status) => (
             <button key={status} type="button" className={`siteplan-legend-item status-${status.toLowerCase()} ${filter === status ? 'is-active' : ''}`} onClick={() => setFilter(filter === status ? 'ALL' : status)}>
@@ -161,6 +163,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
                   >
                     <polygon points={polygonPoints(map.polygon)} />
                     <text x={map.label[0]} y={map.label[1]} textAnchor="middle">{row.id_kavling}</text>
+                    {mappingMode && map.polygon.map(([x, y], pointIndex) => <circle key={pointIndex} cx={x} cy={y} r="7" className="siteplan-map-point" />)}
                   </g>
                 );
               })}
@@ -177,7 +180,15 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
             {selected && <span className={`siteplan-status status-${statusClass(selected.status_kavling)}`}>{selected.status_kavling || 'AVAILABLE'}</span>}
           </div>
 
-          {selected ? (
+          {mappingMode ? (
+            <div className="siteplan-mapping-panel">
+              <div className="siteplan-related-title">CALIBRATION / MAPPING</div>
+              <p>Pilih kavling untuk inspeksi. Titik polygon saat ini ditampilkan sebagai referensi; tahap berikutnya akan membuat titik yang dapat diedit dan disimpan langsung dari Siteplan.</p>
+              <div className="siteplan-mapping-selected">KAVLING: <strong>{selected?.id_kavling || '—'}</strong></div>
+              <div className="siteplan-mapping-coords">{selected ? SITEPLAN_MAP[selected.id_kavling].polygon.map(([x, y], i) => <span key={i}>P{i + 1}: {x}, {y}</span>) : <span>Pilih polygon pada gambar.</span>}</div>
+              <button type="button" className="kavio-button secondary" onClick={() => setSelectedId(null)}>RESET SELEKSI</button>
+            </div>
+          ) : selected ? (
             <>
               <div className="siteplan-detail-body">
                 <div className="siteplan-kpi"><span>KAVLING</span><strong>{selected.id_kavling}</strong></div>
