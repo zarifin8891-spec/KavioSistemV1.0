@@ -40,16 +40,16 @@ export default function KavioShell({ children, active }: { children: React.React
   const effectiveActive = pathname.startsWith('/siteplan')
     ? '/siteplan'
     : pathname.startsWith('/master/sales')
-      ? '/master/sales'
-      : pathname.startsWith('/master/spk')
-        ? '/master/spk'
-        : pathname.startsWith('/master/kavling')
-          ? '/master/kavling'
-          : pathname.startsWith('/progress')
-            ? '/progress'
-            : pathname.startsWith('/dashboard')
-              ? '/dashboard'
-              : active;
+    ? '/master/sales'
+    : pathname.startsWith('/master/spk')
+      ? '/master/spk'
+      : pathname.startsWith('/master/kavling')
+        ? '/master/kavling'
+        : pathname.startsWith('/progress')
+          ? '/progress'
+          : pathname.startsWith('/dashboard')
+            ? '/dashboard'
+            : active;
 
   useEffect(() => {
     let mounted = true;
@@ -57,7 +57,11 @@ export default function KavioShell({ children, active }: { children: React.React
     supabase.auth.getUser().then(({ data }) => {
       if (mounted) setUserEmail(data.user?.email ?? '');
     });
-    setToday(new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date()));
+    setToday(new Intl.DateTimeFormat('id-ID', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date()));
     return () => { mounted = false; };
   }, []);
 
@@ -68,12 +72,17 @@ export default function KavioShell({ children, active }: { children: React.React
           <span className="kavio-brand-mark">K</span>
           <span><strong>KAVIO</strong><small>KONTROL PROYEK, NILAI LEBIH BESAR</small></span>
         </Link>
+
         <nav className="kavio-nav" aria-label="Navigasi KAVIO">
           {sections.map((section) => (
             <div key={section.title} className="kavio-nav-section">
               <div className="kavio-nav-section-title">{section.title}</div>
               {section.items.map(([label, href]) => (
-                <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
+                <Link
+                  key={href}
+                  href={href}
+                  className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}
+                >
                   <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
                   <span>{label}</span>
                 </Link>
@@ -81,17 +90,22 @@ export default function KavioShell({ children, active }: { children: React.React
             </div>
           ))}
         </nav>
+
         <div className="kavio-sidebar-footer">
           <div>SATU DATA<br />SATU KENDALI<br />SATU HASIL</div>
           <div className="kavio-sidebar-user">
             <div className="kavio-sidebar-user-main">
               <span className="kavio-sidebar-user-dot" aria-hidden="true">●</span>
-              <span><strong>{userEmail || 'Admin'}</strong><small>Direktur</small></span>
+              <span>
+                <strong>{userEmail || 'Admin'}</strong>
+                <small>Direktur</small>
+              </span>
             </div>
             <div className="kavio-sidebar-date">{today || 'Memuat tanggal...'}</div>
           </div>
         </div>
       </aside>
+
       <div className="kavio-main">
         <header className="kavio-topbar">
           <div className="kavio-page-banner" aria-label={title}>
