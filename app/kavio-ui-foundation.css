@@ -340,3 +340,44 @@ select option:hover {
 .spk-detail-snapshot-panel .spk-detail-section-head{padding:12px}.spk-detail-snapshot-panel .kavio-table-wrap{border-top:1px solid rgba(216,180,90,.08)}.spk-detail-snapshot-panel .kavio-table-wrap table{margin:0!important}.spk-detail-page .kavio-table-wrap{background:transparent!important}
 @media(max-width:900px){.spk-detail-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.spk-detail-health-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.spk-detail-info-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:650px){.spk-detail-kpi-grid,.spk-detail-health-grid,.spk-detail-info-grid{grid-template-columns:1fr!important}.spk-detail-actions{width:100%;justify-content:flex-end}}
+
+/* Global KAVIO data-table surface */
+/* All application data tables share the same dark KAVIO surface. */
+.kavio-table,
+.simple-table,
+.sales-table {
+  background:transparent !important;
+  color:var(--kavio-ivory) !important;
+}
+.kavio-table tbody,
+.simple-table tbody,
+.sales-table tbody {
+  background:transparent !important;
+}
+.kavio-table tbody tr,
+.simple-table tbody tr,
+.sales-table tbody tr {
+  background:rgba(4,24,47,.16) !important;
+}
+.kavio-table tbody tr:nth-child(even),
+.simple-table tbody tr:nth-child(even),
+.sales-table tbody tr:nth-child(even) {
+  background:rgba(255,255,255,.018) !important;
+}
+.kavio-table tbody tr:hover,
+.simple-table tbody tr:hover,
+.sales-table tbody tr:hover {
+  background:rgba(216,180,90,.055) !important;
+}
+.kavio-table td,
+.simple-table td,
+.sales-table td {
+  background:transparent !important;
+  color:var(--kavio-ivory) !important;
+}
+.kavio-table th,
+.simple-table th,
+.sales-table th {
+  background:#102E4D !important;
+  color:var(--kavio-champagne) !important;
+}
