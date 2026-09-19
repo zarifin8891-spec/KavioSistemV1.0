@@ -196,3 +196,43 @@ body { margin: 0; }
   .progress-selector-field { max-width:none; }
   .progress-selector-button { justify-self:end; }
 }
+
+/* Progress compact layout */
+/* Compact SPK selector: label, field and command share one dense row. */
+.progress-selector-form { grid-template-columns:minmax(0,1fr) auto !important; gap:8px !important; align-items:end !important; padding:8px 14px 9px !important; }
+.progress-selector-field { grid-column:auto !important; max-width:none !important; gap:4px !important; }
+.progress-selector-field > span { font-size:8px !important; line-height:1 !important; min-height:10px !important; }
+.progress-selector-field select { height:34px !important; min-height:34px !important; padding:6px 9px !important; }
+.progress-selector-button { height:34px !important; min-height:34px !important; padding:0 12px !important; align-self:end !important; }
+.progress-selector-form + * { margin-top:0 !important; }
+
+/* Two-column progress data fit: keep each table inside its half without horizontal scrolling. */
+.progress-data-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; align-items:start; }
+.progress-data-grid > .kavio-panel { min-width:0; }
+.progress-data-grid .kavio-panel-head { padding:10px 12px; gap:8px; }
+.progress-data-grid .kavio-panel-title { font-size:12px; }
+.progress-data-grid .kavio-panel-note { font-size:9px; }
+.progress-data-grid .progress-table { min-width:0 !important; width:100%; table-layout:fixed; font-size:9.5px; }
+.progress-data-grid .progress-table th { padding:5px 6px; font-size:7.5px; }
+.progress-data-grid .progress-table td { padding:5px 6px; font-size:9.5px; white-space:normal; overflow-wrap:anywhere; }
+.progress-data-grid .progress-table th:not(:first-child),
+.progress-data-grid .progress-table td:not(:first-child) { text-align:center; }
+.progress-data-grid .progress-table td:first-child { text-align:left; }
+.progress-data-grid .progress-table td:nth-child(2),
+.progress-data-grid .progress-table td:nth-child(3),
+.progress-data-grid .progress-table td:nth-child(4) { white-space:nowrap; }
+.progress-data-grid .progress-table-foot { padding:7px 10px !important; font-size:8px !important; line-height:1.35; }
+
+/* Progress command belongs under the right-hand History panel. */
+.progress-data-grid > .progress-create-wrap { grid-column:2; grid-row:2; width:100%; margin-top:0; }
+.progress-data-grid > .progress-create-wrap > .kavio-command-button { justify-self:start; }
+
+@media (max-width:900px) {
+  .progress-data-grid { grid-template-columns:1fr; }
+  .progress-data-grid > .progress-create-wrap { grid-column:1; grid-row:auto; }
+}
+@media (max-width:650px) {
+  .progress-selector-form { grid-template-columns:1fr !important; padding:8px 12px 10px !important; }
+  .progress-selector-button { justify-self:end; }
+  .progress-data-grid .progress-table { table-layout:auto; }
+}
