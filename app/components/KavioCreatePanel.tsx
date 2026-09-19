@@ -21,8 +21,9 @@ export default function KavioCreatePanel({
 
   return (
     <div className="kavio-create-wrap">
-      <button type="button" className="kavio-button" onClick={() => setOpen((value) => !value)}>
-        {open ? closeLabel : buttonLabel}
+      <button type="button" className="kavio-command-button" onClick={() => setOpen((value) => !value)}>
+        <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span>
+        <span>{open ? closeLabel : buttonLabel.replace(/^\+\s*/, '')}</span>
       </button>
       {open && (
         <section className="kavio-panel kavio-create-panel">
