@@ -63,9 +63,9 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
           <div><h2 className="kavio-panel-title">SPK AKTIF</h2><div className="kavio-panel-note">Pilih SPK untuk melihat kendali progress, histori, dan hasil Decision Engine.</div></div>
           <span className="kavio-badge">{spkRows.length} SPK</span>
         </div>
-        <form method="get" className="kavio-form">
-          <label className="kavio-field" style={{ gridColumn: 'span 3' }}><span>SPK / KAVLING</span><select name="spk" defaultValue={selected?.id_spk ?? ''}><option value="">PILIH SPK</option>{spkRows.map((row) => <option key={row.id_spk} value={row.id_spk}>{row.id_kavling} — TARGET {row.tgl_target_selesai}</option>)}</select></label>
-          <div className="kavio-actions"><button type="submit" className="kavio-button secondary">TAMPILKAN</button></div>
+        <form method="get" className="kavio-form progress-selector-form">
+          <label className="kavio-field progress-selector-field"><span>SPK / KAVLING</span><select name="spk" defaultValue={selected?.id_spk ?? ''}><option value="">PILIH SPK</option>{spkRows.map((row) => <option key={row.id_spk} value={row.id_spk}>{row.id_kavling} — TARGET {row.tgl_target_selesai}</option>)}</select></label>
+          <button type="submit" className="kavio-button progress-selector-button">TAMPILKAN</button>
         </form>
       </section>
 
@@ -83,7 +83,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
           <div className="kavio-panel-body"><div className="progress-decision"><div className="progress-decision-label">REKOMENDASI TINDAKAN</div><div className="progress-decision-main">{decision?.action_rekomendasi ?? 'Belum tersedia'}</div><div className="progress-decision-meta">{decision?.status_operasional ?? '—'} · {decision?.status_ritme ?? '—'} · PRIORITAS {decision?.prioritas_tindakan ?? '—'} · {decision?.health_description ?? ''}</div></div></div>
         </section>
 
-        <section className="kavio-panel">
+        <section className="progress-data-grid"><section className="kavio-panel">
           <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PER KATEGORI</h2><div className="kavio-panel-note">Progress periode diakumulasi per kategori kemudian dihitung berbobot.</div></div><Link href={`/master/spk/detail/${selected.id_spk}`} className="kavio-button secondary">CONTROL SHEET</Link></div>
           <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>KATEGORI</th><th>BOBOT</th><th>AKUMULASI</th><th>BERBOBOT</th><th>UPDATE TERAKHIR</th></tr></thead><tbody>{configRows.map((c) => { const cur = currentRows.find((r) => r.id_kategori === c.id_kategori); return <tr key={c.id_kategori}><td className="progress-category-name">{categoryMap.get(c.id_kategori)?.nama_kategori ?? c.id_kategori}</td><td>{(Number(c.bobot_final) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_akumulasi ?? 0) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_berbobot ?? 0) * 100).toFixed(2)}%</td><td>{cur?.tanggal_update_terakhir ?? 'BELUM ADA'}</td></tr>; })}{!configRows.length && <tr><td colSpan={5} className="kavio-empty">BELUM ADA KONFIGURASI PROGRESS.</td></tr>}</tbody></table></div>
         </section>
@@ -92,6 +92,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
           <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">HISTORI PROGRESS</h2><div className="kavio-panel-note">Seluruh update periode tetap tersimpan.</div></div><span className="kavio-badge">{historyRows.length} UPDATE</span></div>
           <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>TANGGAL</th><th>KATEGORI</th><th>PROGRESS PERIODE</th><th>KETERANGAN</th></tr></thead><tbody>{historyRows.map((row) => <tr key={row.id_progress}><td>{row.tanggal_update}</td><td>{categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori}</td><td className="progress-highlight">{(Number(row.progress_periode) * 100).toFixed(2)}%</td><td>{row.keterangan || '—'}</td></tr>)}{!historyRows.length && <tr><td colSpan={4} className="kavio-empty">BELUM ADA HISTORI PROGRESS.</td></tr>}</tbody></table></div>
           <div className="progress-table-foot">UPDATE TERAKHIR: {decision?.tanggal_update_terakhir ?? latestPeriod?.date ?? 'BELUM ADA'} · PERIODE TERAKHIR: {decision ? `${(Number(decision.progress_periode_terakhir) * 100).toFixed(2)}%` : '—'} · KEBUTUHAN / HARI: {decision ? `${(Number(decision.progress_diperlukan_per_hari) * 100).toFixed(2)}%` : '—'}</div>
+        </section>
         </section>
 
         <ProgressCreatePanel idSpk={selected.id_spk} tglSpk={selected.tgl_spk} configs={configRows} categories={categoryRows} />
