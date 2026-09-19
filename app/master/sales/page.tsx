@@ -5,7 +5,7 @@ import { deactivateSales } from './actions';
 import SalesCreatePanel from './SalesCreatePanel';
 
 type SearchParams = Promise<{ error?: string; success?: string }>;
-type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string; status_aktif: boolean; harga_jual: number | string | null };
+type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string; status_aktif: boolean; harga_jual: number | string };
 type Tipe = { id_tipe: string; nama_tipe: string };
 type Bank = { id_bank: string; nama_bank: string };
 type Notaris = { id_notaris: string; nama_notaris: string };
