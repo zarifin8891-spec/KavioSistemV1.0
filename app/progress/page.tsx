@@ -84,7 +84,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
         </section>
 
         <section className="progress-data-grid"><section className="kavio-panel">
-          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PER KATEGORI</h2><div className="kavio-panel-note">Progress periode diakumulasi per kategori kemudian dihitung berbobot.</div></div><Link href={`/master/spk/detail/${selected.id_spk}`} className="kavio-button secondary">CONTROL SHEET</Link></div>
+          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PER KATEGORI</h2><div className="kavio-panel-note">Progress periode diakumulasi per kategori kemudian dihitung berbobot.</div></div><Link href={`/master/spk/detail/${selected.id_spk}?from=progress`} className="kavio-button secondary">CONTROL SHEET</Link></div>
           <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>KATEGORI</th><th>BOBOT</th><th>AKUMULASI</th><th>BERBOBOT</th><th>UPDATE TERAKHIR</th></tr></thead><tbody>{configRows.map((c) => { const cur = currentRows.find((r) => r.id_kategori === c.id_kategori); return <tr key={c.id_kategori}><td className="progress-category-name">{categoryMap.get(c.id_kategori)?.nama_kategori ?? c.id_kategori}</td><td>{(Number(c.bobot_final) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_akumulasi ?? 0) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_berbobot ?? 0) * 100).toFixed(2)}%</td><td>{cur?.tanggal_update_terakhir ?? 'BELUM ADA'}</td></tr>; })}{!configRows.length && <tr><td colSpan={5} className="kavio-empty">BELUM ADA KONFIGURASI PROGRESS.</td></tr>}</tbody></table></div>
         </section>
 
