@@ -106,6 +106,15 @@ body { margin: 0; }
 .kavio-page-banner-text { padding-right:150px; }
 
 .kavio-detail-shell { min-width:0; }
+
+/* Master Data landing: page banner already supplies the page identity. */
+.master-hub { display:grid; gap:14px; }
+.master-card-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+.master-card { min-height:142px; padding:20px 18px 18px; }
+.master-card-icon { top:16px; left:16px; }
+.master-card-title { font-size:14px; }
+.master-card-note { font-size:9.5px; }
+
 .master-simple-page,.sales-page,.spk-page { width:100%; color:var(--kavio-ivory); }
 .sales-page .sales-title,.sales-page .sales-page-header,.master-simple-page .simple-head,.spk-page .spk-heading { display:none !important; }
 .kavio-content .sales-title,.kavio-content .simple-head,.kavio-content .spk-heading { display:none !important; }
@@ -123,6 +132,9 @@ body { margin: 0; }
 .sales-contact-note span { border-left:2px solid var(--kavio-gold-dark); padding-left:9px; }
 .sales-create-panel .kavio-actions,.sales-create-grid .kavio-actions,.kvio-spk-form .kavio-actions { grid-column:1 / -1 !important; justify-content:flex-end !important; padding-top:2px !important; }
 
+@media (max-width:1100px) {
+  .master-card-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
 @media (max-width:900px) {
   .kavio-form,.kavio-create-panel .kavio-panel-body,.kavio-create-panel form.kavio-form,
   .kavio-form.sales-create-grid,.kavio-form.kvio-spk-form { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
@@ -130,6 +142,7 @@ body { margin: 0; }
   .kavio-page-banner-text { padding-right:120px; }
 }
 @media (max-width:650px) {
+  .master-card-grid { grid-template-columns:1fr; }
   .kavio-form,.kavio-create-panel .kavio-panel-body,.kavio-create-panel form.kavio-form,
   .kavio-form.sales-create-grid,.kavio-form.kvio-spk-form { grid-template-columns:1fr !important; }
   .sales-span-2 { grid-column:span 1 !important; }
