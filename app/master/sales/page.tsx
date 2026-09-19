@@ -62,8 +62,6 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
           <input aria-label="Cari konsumen" placeholder="CARI NAMA KONSUMEN..." />
         </div>
 
-        <div className="sales-list-toolbar"><SalesCreatePanel kavlings={saleable} tipeMap={types} banks={banks} notaries={notaries} /></div>
-
         <div className="kavio-table-wrap">
           <table className="kavio-table sales-table">
             <thead><tr><th>NO</th><th>TANGGAL</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>HP</th><th>TIPE</th><th>HARGA</th><th>JENIS BAYAR</th><th>BANK</th><th>STATUS</th><th>AKSI</th></tr></thead>
@@ -84,6 +82,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
         </div>
         <div className="sales-table-foot"><span>MENAMPILKAN {sales.length} DATA</span><span>SALES AKTIF: {active.length}</span></div>
       </section>
+      <SalesCreatePanel kavlings={saleable} tipeMap={types} banks={banks} notaries={notaries} />
     </section>
   </main>;
 }
