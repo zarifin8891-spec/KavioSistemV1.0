@@ -261,7 +261,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                 <button type="button" className="kavio-button secondary" onClick={finishPolygon} disabled={mappingPoints.length < 3}>SELESAI POLYGON</button>
                 <button type="button" className="kavio-button secondary" onClick={undoMappingPoint} disabled={!mappingPoints.length}>UNDO</button>
                 <button type="button" className="kavio-button secondary" onClick={resetMapping} disabled={!mappingPoints.length}>MULAI ULANG</button>
-                <button type="button" className="kavio-button primary" onClick={saveMapping} disabled={!selectedId || mappingPoints.length < 3}>SIMPAN MAPPING</button>
+                <button type="button" className="kavio-button primary" onClick={saveMapping} disabled={!selectedId || mappingPoints.length < 3 || !polygonFinished}>SIMPAN MAPPING</button>
                 <button type="button" className="kavio-button secondary" onClick={exportMapping} disabled={!selectedId || mappingPoints.length < 3}>SALIN DATA</button>
               </div>
               <div className="siteplan-mapping-selected">TITIK: <strong>{mappingPoints.length}</strong> · Minimal 3 titik. {polygonFinished ? 'Polygon siap disimpan.' : 'Tambahkan titik mengikuti batas kavling.'}</div>
