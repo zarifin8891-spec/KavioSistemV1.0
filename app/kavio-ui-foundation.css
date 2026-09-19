@@ -144,3 +144,10 @@ body { margin: 0; }
   .kavio-page-command { right:12px; }
   .kavio-page-banner-text { padding-right:120px; }
 }
+
+/* KAVIO HEADER DEDUPLICATION */
+.kavio-content > main > .simple-head,
+.kavio-content > main > .spk-heading,
+.kavio-content > main > .sales-title,
+.kavio-content > main > header.simple-head,
+.kavio-content > main > header.spk-heading { display:none !important; }
