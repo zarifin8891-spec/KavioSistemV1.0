@@ -14,55 +14,56 @@ export const SITEPLAN_VIEWBOX = {
 export const SITEPLAN_MAP: Record<string, SiteplanLotMap> = {
   'A-01': {
     id_kavling: 'A-01',
-    polygon: [[1570,645],[1600,650],[1595,700],[1565,695]],
-    label: [1582, 676],
+    polygon: [[1523,671],[1548,677],[1539,713],[1515,706]],
+    label: [1531, 693],
   },
   'A-02': {
     id_kavling: 'A-02',
-    polygon: [[1535,640],[1570,645],[1565,695],[1530,690]],
-    label: [1548, 672],
+    polygon: [[1499,665],[1523,671],[1515,706],[1490,701]],
+    label: [1507, 685],
   },
   'A-03': {
     id_kavling: 'A-03',
-    polygon: [[1505,636],[1535,640],[1530,690],[1500,686]],
-    label: [1517, 668],
+    polygon: [[1473,659],[1499,665],[1490,701],[1466,696]],
+    label: [1482, 679],
   },
   'A-04': {
     id_kavling: 'A-04',
-    polygon: [[1475,632],[1505,636],[1500,686],[1470,682]],
-    label: [1487, 664],
+    polygon: [[1449,653],[1473,659],[1466,696],[1442,690]],
+    label: [1460, 673],
   },
   'A-05': {
     id_kavling: 'A-05',
-    polygon: [[1440,628],[1475,632],[1470,682],[1438,678]],
-    label: [1455, 660],
+    polygon: [[1424,647],[1449,653],[1442,690],[1418,684]],
+    label: [1435, 668],
   },
   'B-01': {
     id_kavling: 'B-01',
-    polygon: [[1003,925],[1055,936],[1049,985],[996,973]],
-    label: [1025,958],
+    polygon: [[1023,848],[1074,860],[1063,907],[1009,893]],
+    label: [1042, 880],
   },
   'B-02': {
     id_kavling: 'B-02',
-    polygon: [[1010,881],[1062,892],[1055,936],[1003,925]],
-    label: [1032,910],
+    polygon: [[1011,803],[1064,814],[1055,858],[998,846]],
+    label: [1030, 829],
   },
   'B-03': {
     id_kavling: 'B-03',
-    polygon: [[1017,837],[1069,847],[1062,892],[1010,881]],
-    label: [1038,866],
+    polygon: [[1003,762],[1057,773],[1047,816],[991,805]],
+    label: [1022, 788],
   },
   'B-04': {
     id_kavling: 'B-04',
-    polygon: [[1024,792],[1077,803],[1069,847],[1017,837]],
-    label: [1045,820],
+    polygon: [[995,722],[1049,733],[1040,775],[984,764]],
+    label: [1014, 748],
   },
   'B-05': {
     id_kavling: 'B-05',
-    polygon: [[1029,749],[1085,759],[1077,803],[1024,792]],
-    label: [1051,777],
+    polygon: [[987,684],[1041,694],[1032,737],[976,726]],
+    label: [1008, 711],
   },
 };
 
-// Coordinates are calibrated against the labeled Cibodas Siteplan supplied for KAVIO.
-// Future lots should be added here from the same source; do not infer positions from DB ordering.
+// Calibrated against the labeled Cibodas Siteplan supplied for KAVIO.
+// Coordinates use the original 1672 x 990 image coordinate system.
+// Additional lots should be traced from the source Siteplan, not inferred from DB ordering.
