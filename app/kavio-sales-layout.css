@@ -1,7 +1,7 @@
 /* Sales module — clean stable layout. */
 .sales-page { width: 100%; }
 .sales-page > .sales-content { max-width: 1500px; margin: 0 auto; padding: 0 0 30px; }
-.sales-page .sales-title { margin-bottom: 18px; }
+.sales-page .sales-title { display:none; margin-bottom:18px; }
 .sales-page .sales-title h1 { margin: 0; color: #F7F3E8; font-size: 32px; font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; }
 .sales-page .sales-title p { margin: 3px 0 0; color: #C9BC99; font-size: 12px; font-weight: 700; text-transform: uppercase; }
 .sales-page .sales-module-card { position: relative; background: linear-gradient(180deg,#123150,#081F39); border: 1px solid rgba(216,180,90,.34); border-radius: 14px; box-shadow: 0 10px 28px rgba(0,0,0,.18); overflow: hidden; }
