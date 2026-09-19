@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '../../../../lib/supabase/server';
 
-type Params = Promise<{ id: string }>;
+type Params = Promise<{ id: string }>; type SearchParams = Promise<{ from?: string | string[] }>; 
 type Spk = { id_spk: string; id_kavling: string; id_tipe: string; id_kantor: string; id_mandor: string; jenis_bobot: string; tgl_spk: string; tgl_target_selesai: string; status_spk: string; is_active: boolean };
 type Current = { id_kategori: string; progress_akumulasi: number | string; bobot_final: number | string; progress_berbobot: number | string; tanggal_update_terakhir: string | null };
 type Category = { id_kategori: string; nama_kategori: string; urutan: number };
@@ -13,8 +13,12 @@ type PaceStatus = 'DI DEPAN' | 'SESUAI RITME' | 'TERTINGGAL';
 type ActionPriority = 'TINGGI' | 'SEDANG' | 'NORMAL';
 type HealthLevel = 'SEHAT' | 'WASPADA' | 'KRITIS';
 
-export default async function SpkDetailPage({ params }: { params: Params }) {
+export default async function SpkDetailPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   const { id } = await params;
+  const query = await searchParams;
+  const fromProgress = query.from === 'progress' || (Array.isArray(query.from) && query.from.includes('progress'));
+  const returnHref = fromProgress ? '/progress' : '/master/spk';
+  const returnLabel = fromProgress ? 'Kembali ke Progress' : 'Kembali ke SPK';
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -62,7 +66,7 @@ export default async function SpkDetailPage({ params }: { params: Params }) {
       <section className="spk-detail-content">
         <div className="spk-detail-identity">
           <div><div className="spk-detail-eyebrow">SPK CONTROL SHEET</div><h2 className="spk-detail-kavling">{spk.id_kavling}</h2><p className="spk-detail-subtitle">SPK {spk.id_spk.slice(0, 8)} · Tipe {spk.id_tipe}</p></div>
-          <div className="spk-detail-actions"><Link href={`/progress?spk=${spk.id_spk}`} className="kavio-command-button">Input Progress</Link><Link href="/master/spk" className="kavio-command-button secondary">Kembali ke SPK</Link></div>
+          <div className="spk-detail-actions"><Link href={`/progress?spk=${spk.id_spk}`} className="kavio-command-button">Input Progress</Link><Link href={returnHref} className="kavio-command-button secondary">{returnLabel}</Link></div>
         </div>
         <section className="spk-detail-kpi-grid"><Metric label="Progress Akumulasi" value={`${actualPct.toFixed(1)}%`} /><Metric label="Progress Periode Terakhir" value={latestPeriodLabel(latestPeriod)} /><Metric label="Target Selesai" value={spk.tgl_target_selesai} /><Metric label="Sisa Hari" value={daysRemaining < 0 ? `Lewat ${Math.abs(daysRemaining)} hari` : `${daysRemaining} hari`} danger={daysRemaining < 0} warning={daysRemaining >= 0 && daysRemaining <= 7} /></section>
         <section className="spk-detail-health-panel"><div className="spk-detail-health-grid"><div><div style={mutedLabel}>HEALTH SCORE</div><div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 7 }}><div style={healthCircle(healthLevel)}>{healthScore}</div><div><div style={{ fontWeight: 900, fontSize: 18 }}>{healthLevel}</div><div style={{ marginTop: 3, color: '#64748b', fontSize: 12, lineHeight: 1.4 }}>{decision?.health_description ?? 'Kondisi dipantau oleh Decision Engine.'}</div></div></div></div><Info label="Status Operasional" value="" extra={<StatusBadge status={status} />} /><Info label="Posisi Ritme" value="" extra={<PaceBadge status={paceStatus} />} /><Info label="Gap terhadap Jadwal" value={`${gap >= 0 ? '+' : ''}${(gap * 100).toFixed(1)}%`} tone={gap < -0.05 ? 'danger' : gap < 0 ? 'warning' : 'success'} /><Info label="Prioritas Tindakan" value="" extra={<PriorityBadge priority={actionPriority} />} /></div><div style={{ marginTop: 16, padding: '13px 15px', borderRadius: 12, background: '#102A56', border: '1px solid #B8943F', color: '#F7F3E8' }}><div style={{ fontSize: 11, letterSpacing: 1.1, color: '#DCCB9C', fontWeight: 800 }}>REKOMENDASI DECISION ENGINE</div><div style={{ marginTop: 5, fontWeight: 900 }}>{action}</div></div></section>
