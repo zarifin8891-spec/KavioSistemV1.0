@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { activateSpk, deactivateSpk } from './actions';
 import SpkCreatePanel from './SpkCreatePanel';
 import { createClient } from '../../../lib/supabase/server';
+import { formatKavioDate } from '../../lib/date-format';
 
 type SearchParams = Promise<{ error?: string; success?: string }>;
 type Kavling = { id_kavling: string; blok: string; no_kavling: string; id_tipe: string; status_kavling: string };
@@ -72,12 +73,12 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
             <tbody>
               {spkRows.map((row) => <tr key={row.id_spk}>
                 <td><Link href={`/master/spk/detail/${row.id_spk}`} className="spk-kavling">{row.id_kavling}</Link></td>
-                <td>{row.tgl_spk}</td>
+                <td>{formatKavioDate(row.tgl_spk)}</td>
                 <td>{tipeMap.get(row.id_tipe) ?? row.id_tipe}</td>
                 <td>{kantorMap.get(row.id_kantor) ?? row.id_kantor}</td>
                 <td>{mandorMap.get(row.id_mandor) ?? row.id_mandor}</td>
                 <td>{row.jenis_bobot}</td>
-                <td>{row.tgl_target_selesai}</td>
+                <td>{formatKavioDate(row.tgl_target_selesai)}</td>
                 <td><span className={`spk-badge ${row.status_spk.toLowerCase()}`}>{row.status_spk}</span></td>
                 <td><div className="spk-actions">
                   <Link href={`/master/spk/detail/${row.id_spk}`} className="kavio-button secondary">DETAIL</Link>
