@@ -24,10 +24,17 @@ export async function createKavling(formData: FormData) {
   const blok = text(formData.get('blok'));
   const noKavling = text(formData.get('no_kavling'));
   const idTipe = text(formData.get('id_tipe'));
+  const luasTanahStandar = Number(formData.get('luas_tanah_standar') ?? 0);
+  const luasTanahReal = Number(formData.get('luas_tanah_real') ?? 0);
+  const hargaStandar = Number(formData.get('harga_standar') ?? 0);
+  const hargaTanahMeter = Number(formData.get('harga_tanah_meter') ?? 0);
   const statusKavling = (text(formData.get('status_kavling')) || 'AVAILABLE') as KavlingStatus;
 
   if (!idKavling || !blok || !noKavling || !idTipe) errorRedirect('Data wajib belum lengkap');
   if (!VALID_STATUS.includes(statusKavling)) errorRedirect('Status kavling tidak valid');
+  if (![luasTanahStandar, luasTanahReal, hargaStandar, hargaTanahMeter].every(Number.isFinite)) errorRedirect('Data luas tanah atau harga tidak valid');
+  if (luasTanahStandar < 0 || luasTanahReal < luasTanahStandar) errorRedirect('Luas tanah real harus lebih besar atau sama dengan luas tanah standar');
+  if (hargaStandar < 0 || hargaTanahMeter < 0) errorRedirect('Harga tidak boleh negatif');
   if (statusKavling === 'READY_STOCK') errorRedirect('READY_STOCK ditetapkan otomatis setelah SPK selesai');
 
   const [{ data: tipe, error: tipeError }, { data: existing, error: existingError }] = await Promise.all([
@@ -46,6 +53,10 @@ export async function createKavling(formData: FormData) {
     id_tipe: idTipe,
     status_kavling: statusKavling,
     status_aktif: true,
+    luas_tanah_standar: luasTanahStandar,
+    luas_tanah_real: luasTanahReal,
+    harga_standar: hargaStandar,
+    harga_tanah_meter: hargaTanahMeter,
   });
 
   if (error) errorRedirect(error.message);
