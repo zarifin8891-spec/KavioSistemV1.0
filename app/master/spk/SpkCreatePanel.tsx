@@ -27,8 +27,8 @@ export default function SpkCreatePanel({
 
   return (
     <div className="kavio-create-wrap">
-      <button type="button" className="kavio-button" onClick={() => setOpen((value) => !value)}>
-        {open ? '× TUTUP FORM' : '+ TAMBAH SPK'}
+      <button type="button" className="kavio-command-button" onClick={() => setOpen((value) => !value)}>
+        <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span><span>{open ? 'Tutup Form' : 'Tambah SPK'}</span>
       </button>
 
       {open && (
