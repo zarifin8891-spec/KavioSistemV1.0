@@ -95,13 +95,14 @@ body { margin: 0; }
 .kavio-alert.success { background:rgba(134,239,172,.08); border:1px solid #15803D; color:#BBF7D0; }
 .kavio-empty { padding:24px !important; text-align:center; color:var(--kavio-muted) !important; }
 
-.kavio-command-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:51px; padding:0 22px; border:1px solid var(--kavio-gold) !important; border-radius:10px; background:linear-gradient(180deg,#F3D889 0%,#DDB653 100%) !important; color:#08213D !important; box-shadow:0 6px 18px rgba(216,180,90,.14); font-size:14px; font-weight:700 !important; letter-spacing:.1px; text-transform:none; cursor:pointer; text-decoration:none; transition:filter .12s ease,transform .12s ease; }
+.kavio-command-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:34px; height:34px; padding:0 12px; border:1px solid var(--kavio-gold) !important; border-radius:8px; background:linear-gradient(180deg,#F3D889 0%,#DDB653 100%) !important; color:#08213D !important; box-shadow:0 4px 12px rgba(216,180,90,.10); font-size:10px; font-weight:400 !important; letter-spacing:.1px; text-transform:none; cursor:pointer; text-decoration:none; transition:filter .12s ease,transform .12s ease; }
 .kavio-command-button:hover { filter:brightness(1.04); transform:translateY(-1px); }
 .kavio-command-button:disabled { opacity:.45; cursor:not-allowed; transform:none; }
-.kavio-command-icon { width:18px; height:18px; display:grid; place-items:center; font-size:18px; line-height:1; font-weight:700; }
+.kavio-command-icon { width:15px; height:15px; display:grid; place-items:center; font-size:14px; line-height:1; font-weight:400; }
 
-.kavio-page-command { position:absolute; top:50%; right:22px; transform:translateY(-50%); min-height:43px; padding:0 18px; font-size:11px; border-radius:9px; }
+.kavio-page-command { position:absolute; top:50%; right:18px; z-index:5; transform:translateY(-50%); min-height:34px; height:34px; padding:0 12px; font-size:10px; border-radius:8px; pointer-events:auto; }
 .kavio-page-command:hover { transform:translateY(-51%); }
+.kavio-page-banner .kavio-page-command { pointer-events:auto; }
 .kavio-page-banner-text { padding-right:150px; }
 
 .kavio-detail-shell { min-width:0; }
@@ -132,7 +133,7 @@ body { margin: 0; }
   .kavio-form,.kavio-create-panel .kavio-panel-body,.kavio-create-panel form.kavio-form,
   .kavio-form.sales-create-grid,.kavio-form.kvio-spk-form { grid-template-columns:1fr !important; }
   .sales-span-2 { grid-column:span 1 !important; }
-  .kavio-command-button { min-height:46px; padding:0 17px; font-size:12px; }
+  .kavio-command-button { min-height:34px; height:34px; padding:0 12px; font-size:10px; }
   .kavio-page-command { position:static; transform:none; margin:8px 12px 12px auto; }
   .kavio-page-banner-text { padding-right:18px; }
   .kavio-page-banner:has(.kavio-page-command) { display:flex; flex-wrap:wrap; }
