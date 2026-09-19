@@ -16,6 +16,7 @@ const navItems = [
 ] as const;
 
 const utilityItems = ['Laporan', 'Pengaturan'] as const;
+
 const pageHeader = (pathname: string) => {
   if (pathname.startsWith('/siteplan')) return ['Siteplan Interaktif', 'Peta operasional proyek dan lifecycle setiap kavling.'];
   if (pathname.startsWith('/master/sales/detail')) return ['Sales Detail', 'Detail konsumen, akad, bank KPR, dan histori proses KPR.'];
@@ -23,7 +24,7 @@ const pageHeader = (pathname: string) => {
   if (pathname.startsWith('/master/spk/detail/')) return ['SPK Control Sheet', 'Kontrol pekerjaan, progress, target penyelesaian, dan Curva-S.'];
   if (pathname.startsWith('/master/spk')) return ['Construction Management', 'Kelola SPK, tim pelaksana, target penyelesaian, dan siklus pembangunan kavling.'];
   if (pathname.startsWith('/progress')) return ['Progress Monitoring', 'Pantau progress pembangunan berdasarkan SPK aktif.'];
-  if (pathname.startsWith('/master/template-progress')) return ['Template Progress', 'Kelola bobot standar progress berdasarkan tipe rumah.'];
+  if (pathname.startsWith('/master/template-progress')) return ['Template Progress', 'Kelola bobot progress standar berdasarkan tipe rumah.'];
   if (pathname.startsWith('/master/tipe-rumah')) return ['Master Tipe Rumah', 'Kelola referensi tipe rumah dan spesifikasi luas.'];
   if (pathname.startsWith('/master/kategori-pekerjaan')) return ['Master Kategori Pekerjaan', 'Kelola kategori pekerjaan dan bobot pembangunan.'];
   if (pathname.startsWith('/master/kavling')) return ['Master Kavling', 'Kelola inventory kavling dan lifecycle pembangunan.'];
@@ -42,25 +43,15 @@ export default function KavioShell({ children, active }: { children: React.React
   const [today, setToday] = useState('');
   const [title, subtitle] = pageHeader(pathname);
 
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
-  const effectiveActive = pathname.startsWith('/siteplan')
-    ? '/siteplan'
-    : pathname.startsWith('/master/sales')
-    ? '/master/sales'
-    : pathname.startsWith('/master/spk')
-      ? '/master/spk'
-      : pathname.startsWith('/master/kavling')
-        ? '/master/kavling'
-        : pathname.startsWith('/progress')
-          ? '/progress'
-          : pathname.startsWith('/dashboard')
-            ? '/dashboard'
-            : active;
+  const effectiveActive =
+    pathname.startsWith('/siteplan') ? '/siteplan' :
+    pathname.startsWith('/master/sales') ? '/master/sales' :
+    pathname.startsWith('/master/spk') ? '/master/spk' :
+    pathname.startsWith('/master/kavling') ? '/master/kavling' :
+    pathname.startsWith('/progress') ? '/progress' :
+    pathname.startsWith('/dashboard') ? '/dashboard' :
+    pathname === '/master' || pathname.startsWith('/master/') ? '/master' :
+    active;
 
   useEffect(() => {
     let mounted = true;
@@ -76,6 +67,12 @@ export default function KavioShell({ children, active }: { children: React.React
     return () => { mounted = false; };
   }, []);
 
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
   return (
     <div className="kavio-shell">
       <aside className="kavio-sidebar">
@@ -85,17 +82,32 @@ export default function KavioShell({ children, active }: { children: React.React
 
         <div className="kavio-sidebar-account">
           <div className="kavio-sidebar-account-label">USER LOGIN</div>
-          <div className="kavio-sidebar-account-label">{userEmail || 'ADMIN'}</div>
-          <div className="kavio-sidebar-account-label">DIREKTUR</div>
-          <div className="kavio-sidebar-account-label">{today || 'MEMUAT TANGGAL...'}</div>
+          <div className="kavio-sidebar-account-value">{userEmail || 'ADMIN'}</div>
+          <div className="kavio-sidebar-account-label">ROLE</div>
+          <div className="kavio-sidebar-account-value">DIREKTUR</div>
+          <div className="kavio-sidebar-account-label">TANGGAL</div>
+          <div className="kavio-sidebar-account-value">{today || 'MEMUAT...'}</div>
         </div>
+
         <nav className="kavio-nav" aria-label="Navigasi KAVIO">
           <div className="kavio-nav-list">
             {navItems.map(([label, href]) => (
               <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
                 <span>{label}</span>
               </Link>
-          <div className="kavio-sidebar-footer">
+            ))}
+            {utilityItems.map((label) => (
+              <span key={label} className="kavio-nav-item is-disabled" aria-disabled="true">
+                <span>{label}</span>
+              </span>
+            ))}
+            <button type="button" className="kavio-nav-item kavio-nav-logout" onClick={handleLogout}>
+              <span>KELUAR</span>
+            </button>
+          </div>
+        </nav>
+
+        <div className="kavio-sidebar-footer">
           <div>SATU DATA<br />SATU KENDALI<br />SATU HASIL</div>
         </div>
       </aside>
@@ -108,7 +120,12 @@ export default function KavioShell({ children, active }: { children: React.React
               <h1>{title}</h1>
               <p>{subtitle}</p>
             </div>
-            {pathname.startsWith('/master/') && <Link href="/master" className="kavio-command-button kavio-page-command" aria-label="Kembali ke Master Data"><span className="kavio-command-icon" aria-hidden="true">←</span><span>Kembali</span></Link>}
+            {pathname.startsWith('/master/') && (
+              <Link href="/master" className="kavio-command-button kavio-page-command" aria-label="Kembali ke Master Data">
+                <span className="kavio-command-icon" aria-hidden="true">←</span>
+                <span>Kembali</span>
+              </Link>
+            )}
           </div>
         </header>
         <div className="kavio-content">{children}</div>
@@ -116,4 +133,3 @@ export default function KavioShell({ children, active }: { children: React.React
     </div>
   );
 }
-
