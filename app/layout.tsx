@@ -3,7 +3,6 @@ import './kavio-theme.css';
 import './kavio-dashboard.css';
 import './kavio-sales-layout.css';
 import './kavio-sales-module.css';
-import './kavio-ui-foundation.css';
 import './kavio-ui-components.css';
 
 export const metadata: Metadata = {
