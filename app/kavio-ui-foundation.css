@@ -100,14 +100,22 @@ body { margin: 0; }
 
 .kavio-table-wrap { width:100%; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; }
 .kavio-table { width:100%; min-width:760px; border-collapse:separate; border-spacing:0; table-layout:auto; font-size:10.5px; }
-.kavio-table th { height:37px; padding:8px 10px; text-align:left; vertical-align:middle; background:#102E4D; color:var(--kavio-champagne); border-bottom:1px solid var(--kavio-gold-dark); font-size:8.5px; line-height:1.2; font-weight:400; letter-spacing:.45px; white-space:nowrap; text-transform:uppercase; }
-.kavio-table td { min-height:39px; padding:7px 10px; color:#F3EFE5; border-bottom:1px solid rgba(216,180,90,.10); font-size:10.5px; line-height:1.3; vertical-align:middle; white-space:nowrap; }
+.kavio-table th { height:33px; padding:6px 8px; text-align:left; vertical-align:middle; background:#102E4D; color:var(--kavio-champagne); border-bottom:1px solid var(--kavio-gold-dark); font-size:8.5px; line-height:1.2; font-weight:400; letter-spacing:.45px; white-space:nowrap; text-transform:uppercase; }
+.kavio-table td { min-height:34px; padding:5px 8px; color:#F3EFE5; border-bottom:1px solid rgba(216,180,90,.10); font-size:10.5px; line-height:1.3; vertical-align:middle; white-space:nowrap; }
 .kavio-table tbody tr { background:rgba(4,24,47,.16); transition:background .14s ease; }
 .kavio-table tbody tr:nth-child(even) { background:rgba(255,255,255,.018); }
 .kavio-table tbody tr:hover { background:rgba(216,180,90,.055); }
 .kavio-table tbody tr:last-child td { border-bottom:0; }
-.kavio-table th:first-child,.kavio-table td:first-child { padding-left:12px; }
-.kavio-table th:last-child,.kavio-table td:last-child { padding-right:12px; }
+.kavio-table th:first-child,.kavio-table td:first-child { padding-left:10px; }
+.kavio-table th:last-child,.kavio-table td:last-child { padding-right:10px; }
+.kavio-table th:last-child,.kavio-table td:last-child { width:1%; white-space:nowrap; }
+.kavio-table td .kavio-button,
+.kavio-table td .kavio-command-button,
+.kavio-table td button,
+.kavio-table td a.kavio-button,
+.kavio-table td a.kavio-command-button { min-height:27px !important; height:27px !important; padding:0 8px !important; gap:4px !important; border-radius:6px !important; font-size:8px !important; line-height:1 !important; box-shadow:none !important; }
+.kavio-table td .kavio-command-icon { width:12px !important; height:12px !important; font-size:11px !important; }
+.kavio-table td .kavio-badge { min-height:20px; padding:3px 7px; font-size:8px; }
 .kavio-table .kavio-empty { white-space:normal; }
 
 .kavio-badge { display:inline-flex; align-items:center; min-height:24px; padding:4px 8px; border:1px solid var(--kavio-gold-dark); border-radius:999px; background:rgba(216,180,90,.08); color:var(--kavio-champagne); font-size:9px; font-weight:400; text-transform:uppercase; }
