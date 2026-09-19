@@ -266,3 +266,37 @@ body { margin: 0; }
 .progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(4),
 .progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(4) { width:26%; }
 .progress-data-grid .progress-table-foot { white-space:normal; overflow-wrap:anywhere; }
+
+/* Global native select treatment */
+/* Use the KAVIO dark palette for native select controls and their option menus. */
+.kavio-field select,
+select.kavio-select,
+.kavio-form select,
+.kavio-panel select {
+  color-scheme: dark;
+}
+.kavio-field select option,
+.kavio-form select option,
+select option {
+  background:#173452;
+  color:#F7F3E8;
+}
+.kavio-field select option:checked,
+.kavio-form select option:checked,
+select option:checked {
+  background:#314A68;
+  color:#F7F3E8;
+}
+.kavio-field select option:hover,
+.kavio-form select option:hover,
+select option:hover {
+  background:#102E4D;
+  color:#F0D48A;
+}
+
+/* Command under the right-hand History panel. */
+.progress-data-grid > .progress-create-wrap > .kavio-command-button {
+  display:flex;
+  width:max-content;
+  margin-left:auto;
+}
