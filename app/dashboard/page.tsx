@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
+import { formatKavioDate } from '../lib/date-format';
 
 type OperationalStatus = 'BERJALAN' | 'PERHATIAN' | 'LEWAT TARGET' | 'SELESAI';
 type PaceStatus = 'DI DEPAN' | 'SESUAI RITME' | 'TERTINGGAL';
@@ -196,7 +197,7 @@ export default async function DashboardPage() {
                       </div>
                     </td>
                     <td>{Number(row.gap_progress) >= 0 ? '+' : ''}{(Number(row.gap_progress) * 100).toFixed(1)}%</td>
-                    <td>{row.tanggal_update_terakhir ?? 'BELUM ADA'}</td>
+                    <td>{row.tanggal_update_terakhir ? formatKavioDate(row.tanggal_update_terakhir) : 'BELUM ADA'}</td>
                     <td>{row.progress_diperlukan_per_hari == null ? '—' : (Number(row.progress_diperlukan_per_hari) * 100).toFixed(2) + '%'}</td>
                     <td><span className="kavio-badge">{row.status_operasional}</span><div className="kavio-dashboard-mini"><span>{row.status_ritme}</span></div></td>
                   </tr>
