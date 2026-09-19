@@ -96,8 +96,6 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
   const selectedProgress = selectedSpk
     ? progressUpdates.filter((row) => row.id_spk === selectedSpk.id_spk).sort((a, b) => String(b.tanggal_update || '').localeCompare(String(a.tanggal_update || '')))[0]
     : null;
-  const progressValue = selectedProgress?.progress_periode != null ? Math.max(0, Math.min(1, Number(selectedProgress.progress_periode))) : null;
-  const progressPercent = progressValue == null ? null : Math.round(progressValue * 100);
 
   const visibleRows = useMemo(
     () => rows.map((row, index) => ({ row, index })).filter(({ row }) => filter === 'ALL' || row.status_kavling === filter),
@@ -192,21 +190,14 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
               <div className="siteplan-related">
                 <div className="siteplan-related-title">SPK & PROGRESS</div>
                 {selectedSpk ? (
-                  <div className="siteplan-related-stack">
-                    <div className="siteplan-related-grid">
-                      <div><span>SPK</span><strong>{selectedSpk.id_spk}</strong></div>
-                      <div><span>STATUS SPK</span><strong>{selectedSpk.status_spk || '—'}</strong></div>
-                      <div><span>TARGET SELESAI</span><strong>{formatDate(selectedSpk.tgl_target_selesai)}</strong></div>
-                      <div><span>PROGRESS TERAKHIR</span><strong>{progressPercent != null ? `${progressPercent}%` : '—'}</strong></div>
-                    </div>
-                    {progressPercent != null ? (
-                      <div className="siteplan-progress">
-                        <div className="siteplan-progress-track"><span style={{ width: `${progressPercent}%` }} /></div>
-                        <small>Update {formatDate(selectedProgress?.tanggal_update)}{selectedProgress?.keterangan ? ` · ${selectedProgress.keterangan}` : ''}</small>
-                      </div>
-                    ) : null}
+                  <div className="siteplan-related-grid">
+                    <div><span>SPK</span><strong>{selectedSpk.id_spk}</strong></div>
+                    <div><span>STATUS SPK</span><strong>{selectedSpk.status_spk || '—'}</strong></div>
+                    <div><span>TARGET SELESAI</span><strong>{formatDate(selectedSpk.tgl_target_selesai)}</strong></div>
+                    <div><span>PROGRESS TERAKHIR</span><strong>{selectedProgress?.progress_periode != null ? `${selectedProgress.progress_periode}%` : '—'}</strong></div>
                   </div>
-                ) : <div className="siteplan-related-empty">Belum ada SPK aktif untuk kavling ini.</div>              </div>
+                ) : <div className="siteplan-related-empty">Belum ada SPK aktif untuk kavling ini.</div>}
+              </div>
             </>
           ) : (
             <div className="siteplan-empty">Belum ada kavling dipilih.</div>
