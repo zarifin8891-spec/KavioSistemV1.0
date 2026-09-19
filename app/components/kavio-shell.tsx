@@ -1,17 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
+import { KAVIO_LOGO_DATA_URI } from './kavio-sidebar-logo';
 
-const sections = [
-  { title: 'UTAMA', items: [['Beranda', '/dashboard']] },
-  { title: 'MASTER DATA', items: [['Master Data', '/master']] },
-  { title: 'KAVLING', items: [['Siteplan', '/siteplan'], ['Kavling', '/master/kavling']] },
-  { title: 'OPERASIONAL', items: [['Sales', '/master/sales'], ['SPK / Pekerjaan', '/master/spk'], ['Progress', '/progress']] },
+const navItems = [
+  ['Beranda', '/dashboard'],
+  ['Master Data', '/master'],
+  ['Kavling', '/master/kavling'],
+  ['Sales', '/master/sales'],
+  ['SPK', '/master/spk'],
+  ['Progress', '/progress'],
 ] as const;
 
+const utilityItems = ['Laporan', 'Pengaturan'] as const;
 const pageHeader = (pathname: string) => {
   if (pathname.startsWith('/siteplan')) return ['Siteplan Interaktif', 'Peta operasional proyek dan lifecycle setiap kavling.'];
   if (pathname.startsWith('/master/sales/detail')) return ['Sales Detail', 'Detail konsumen, akad, bank KPR, dan histori proses KPR.'];
@@ -33,9 +37,16 @@ const pageHeader = (pathname: string) => {
 
 export default function KavioShell({ children, active }: { children: React.ReactNode; active?: string }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [userEmail, setUserEmail] = useState('');
   const [today, setToday] = useState('');
   const [title, subtitle] = pageHeader(pathname);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   const effectiveActive = pathname.startsWith('/siteplan')
     ? '/siteplan'
@@ -68,41 +79,24 @@ export default function KavioShell({ children, active }: { children: React.React
   return (
     <div className="kavio-shell">
       <aside className="kavio-sidebar">
-        <Link href="/dashboard" className="kavio-brand">
-          <span className="kavio-brand-mark">K</span>
-          <span><strong>KAVIO</strong><small>KONTROL PROYEK, NILAI LEBIH BESAR</small></span>
+        <Link href="/dashboard" className="kavio-brand" aria-label="KAVIO">
+          <img src={KAVIO_LOGO_DATA_URI} alt="KAVIO" className="kavio-brand-logo" />
         </Link>
 
+        <div className="kavio-sidebar-account">
+          <div className="kavio-sidebar-account-label">USER LOGIN</div>
+          <div className="kavio-sidebar-account-label">{userEmail || 'ADMIN'}</div>
+          <div className="kavio-sidebar-account-label">DIREKTUR</div>
+          <div className="kavio-sidebar-account-label">{today || 'MEMUAT TANGGAL...'}</div>
+        </div>
         <nav className="kavio-nav" aria-label="Navigasi KAVIO">
-          {sections.map((section) => (
-            <div key={section.title} className="kavio-nav-section">
-              <div className="kavio-nav-section-title">{section.title}</div>
-              {section.items.map(([label, href]) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}
-                >
-                  <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
-                  <span>{label}</span>
-                </Link>
-              ))}
-            </div>
-          ))}
-        </nav>
-
-        <div className="kavio-sidebar-footer">
+          <div className="kavio-nav-list">
+            {navItems.map(([label, href]) => (
+              <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
+                <span>{label}</span>
+              </Link>
+          <div className="kavio-sidebar-footer">
           <div>SATU DATA<br />SATU KENDALI<br />SATU HASIL</div>
-          <div className="kavio-sidebar-user">
-            <div className="kavio-sidebar-user-main">
-              <span className="kavio-sidebar-user-dot" aria-hidden="true">●</span>
-              <span>
-                <strong>{userEmail || 'Admin'}</strong>
-                <small>Direktur</small>
-              </span>
-            </div>
-            <div className="kavio-sidebar-date">{today || 'Memuat tanggal...'}</div>
-          </div>
         </div>
       </aside>
 
@@ -123,15 +117,3 @@ export default function KavioShell({ children, active }: { children: React.React
   );
 }
 
-function icon(label: string) {
-  const map: Record<string, string> = {
-    Beranda: '⌂',
-    'Master Data': '▦',
-    Siteplan: '⌗',
-    Kavling: '⌗',
-    Sales: '♙',
-    'SPK / Pekerjaan': '▣',
-    Progress: '◔',
-  };
-  return map[label] ?? '•';
-}
