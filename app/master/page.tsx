@@ -19,20 +19,7 @@ export default async function MasterPage() {
 
   return (
     <main className="master-hub">
-      <section className="kavio-panel master-hub-intro-panel">
-        <div className="kavio-panel-head">
-          <div><h2 className="kavio-panel-title">MASTER DATA CONTROL</h2><div className="kavio-panel-note">Semua referensi utama proyek dikelola dari satu pintu agar Sales, SPK, dan Progress tetap konsisten.</div></div>
-          <span className="kavio-badge">MASTER</span>
-        </div>
-        <div className="kavio-panel-body master-workflow">TIPE RUMAH → KATEGORI PEKERJAAN → KAVLING → KANTOR PELAKSANA → MANDOR → TEMPLATE PROGRESS → BANK → NOTARIS</div>
-      </section>
-
       <section className="master-card-grid">
-        <Link href="/master/kavling" className="master-card master-card-featured">
-          <span className="master-card-icon">⌗</span>
-          <span className="master-card-title">Kavling</span>
-          <span className="master-card-note">Kelola blok, nomor kavling, tipe rumah, dan lifecycle inventory.</span>
-        </Link>
         {masterLinks.map((item) => (
           <Link key={item.href} href={item.href} className="master-card">
             <span className="master-card-icon">{item.icon}</span>
