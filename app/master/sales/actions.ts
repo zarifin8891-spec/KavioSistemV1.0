@@ -23,7 +23,7 @@ export async function createSales(formData: FormData) {
   const jenisPembayaran = text(formData.get('jenis_pembayaran')) || 'KPR';
   const idBank = text(formData.get('id_bank')) || null;
   const idNotaris = text(formData.get('id_notaris')) || null;
-  const hargaJual = money(formData.get('harga_jual'));
+  const hargaJual = null;
   const tglBooking = text(formData.get('tgl_booking')) || null;
   const targetAkad = text(formData.get('target_akad')) || null;
   const tglAkad = text(formData.get('tgl_akad')) || null;
@@ -31,14 +31,14 @@ export async function createSales(formData: FormData) {
   if (!idKavling || !namaKonsumen) return redirectError('KAVLING DAN NAMA KONSUMEN WAJIB DIISI');
   if (!(VALID_STATUS as readonly string[]).includes(statusSales)) return redirectError('STATUS SALES TIDAK VALID');
   if (!(VALID_PAYMENT as readonly string[]).includes(jenisPembayaran)) return redirectError('JENIS PEMBAYARAN TIDAK VALID');
-  if (typeof hargaJual === 'number' && !Number.isFinite(hargaJual)) return redirectError('HARGA JUAL TIDAK VALID');
+
   if (tglBooking && targetAkad && targetAkad < tglBooking) return redirectError('TARGET AKAD TIDAK BOLEH SEBELUM TANGGAL BOOKING');
   if (tglBooking && tglAkad && tglAkad < tglBooking) return redirectError('TANGGAL AKAD TIDAK BOLEH SEBELUM TANGGAL BOOKING');
   if (jenisPembayaran === 'KPR' && !idBank) return redirectError('BANK KPR WAJIB DIPILIH UNTUK PEMBAYARAN KPR');
   if (statusSales === 'AKAD' && (!tglAkad || !idNotaris || !targetAkad)) return redirectError('TARGET AKAD, TANGGAL AKAD, DAN NOTARIS WAJIB DIISI UNTUK STATUS AKAD');
 
   const [{ data: kavling, error: kavlingError }, { data: activeSales, error: salesError }, { data: activeSpk, error: spkError }] = await Promise.all([
-    supabase.from('master_kavling').select('id_kavling,status_kavling,status_aktif').eq('id_kavling', idKavling).maybeSingle(),
+    supabase.from('master_kavling').select('id_kavling,status_kavling,status_aktif,harga_jual').eq('id_kavling', idKavling).maybeSingle(),
     supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('status_aktif', true).maybeSingle(),
     supabase.from('spk').select('id_spk').eq('id_kavling', idKavling).eq('is_active', true).maybeSingle(),
   ]);
@@ -56,7 +56,6 @@ export async function createSales(formData: FormData) {
     jenis_pembayaran: jenisPembayaran,
     id_bank: jenisPembayaran === 'KPR' ? idBank : null,
     id_notaris: statusSales === 'AKAD' ? idNotaris : null,
-    harga_jual: hargaJual,
     tgl_booking: tglBooking,
     target_akad: targetAkad,
     tgl_akad: statusSales === 'AKAD' ? tglAkad : null,
