@@ -192,17 +192,21 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
               <div className="siteplan-related">
                 <div className="siteplan-related-title">SPK & PROGRESS</div>
                 {selectedSpk ? (
-                  <>
-                  <div className="siteplan-related-grid">
-                    <div><span>SPK</span><strong>{selectedSpk.id_spk}</strong></div>
-                    <div><span>STATUS SPK</span><strong>{selectedSpk.status_spk || '—'}</strong></div>
-                    <div><span>TARGET SELESAI</span><strong>{formatDate(selectedSpk.tgl_target_selesai)}</strong></div>
-                    <div><span>PROGRESS TERAKHIR</span><strong>{progressPercent != null ? `${progressPercent}%` : '—'}</strong></div>
+                  <div className="siteplan-related-stack">
+                    <div className="siteplan-related-grid">
+                      <div><span>SPK</span><strong>{selectedSpk.id_spk}</strong></div>
+                      <div><span>STATUS SPK</span><strong>{selectedSpk.status_spk || '—'}</strong></div>
+                      <div><span>TARGET SELESAI</span><strong>{formatDate(selectedSpk.tgl_target_selesai)}</strong></div>
+                      <div><span>PROGRESS TERAKHIR</span><strong>{progressPercent != null ? `${progressPercent}%` : '—'}</strong></div>
+                    </div>
+                    {progressPercent != null ? (
+                      <div className="siteplan-progress">
+                        <div className="siteplan-progress-track"><span style={{ width: `${progressPercent}%` }} /></div>
+                        <small>Update {formatDate(selectedProgress?.tanggal_update)}{selectedProgress?.keterangan ? ` · ${selectedProgress.keterangan}` : ''}</small>
+                      </div>
+                    ) : null}
                   </div>
-                    {progressPercent != null && <div className="siteplan-progress"><div className="siteplan-progress-track"><span style={{ width: `${progressPercent}%` }} /></div><small>Update {formatDate(selectedProgress?.tanggal_update)}{selectedProgress?.keterangan ? ` · ${selectedProgress.keterangan}` : ''}</small></div>}
-                  </>
-                ) : <div className="siteplan-related-empty">Belum ada SPK aktif untuk kavling ini.</div>
-              </div>
+                ) : <div className="siteplan-related-empty">Belum ada SPK aktif untuk kavling ini.</div>              </div>
             </>
           ) : (
             <div className="siteplan-empty">Belum ada kavling dipilih.</div>
