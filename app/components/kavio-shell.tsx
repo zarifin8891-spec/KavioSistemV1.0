@@ -6,16 +6,14 @@ import { useEffect, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { KAVIO_LOGO_DATA_URI } from './kavio-sidebar-logo';
 
-const navItems = [
-  ['Beranda', '/dashboard'],
-  ['Master Data', '/master'],
-  ['Kavling', '/master/kavling'],
-  ['Sales', '/master/sales'],
-  ['SPK', '/master/spk'],
-  ['Progress', '/progress'],
+const sections = [
+  { title: 'UTAMA', items: [['Beranda', '/dashboard']] },
+  { title: 'MASTER DATA', items: [['Master Data', '/master']] },
+  { title: 'KAVLING', items: [['Siteplan', '/siteplan'], ['Kavling', '/master/kavling']] },
+  { title: 'OPERASIONAL', items: [['Sales', '/master/sales'], ['SPK / Pekerjaan', '/master/spk'], ['Progress', '/progress']] },
+  { title: 'LAPORAN', items: [['Laporan', '#']] },
+  { title: 'PENGATURAN', items: [['Pengaturan', '#']] },
 ] as const;
-
-const utilityItems = ['Laporan', 'Pengaturan'] as const;
 
 const pageHeader = (pathname: string) => {
   if (pathname.startsWith('/siteplan')) return ['Siteplan Interaktif', 'Peta operasional proyek dan lifecycle setiap kavling.'];
@@ -80,35 +78,42 @@ export default function KavioShell({ children, active }: { children: React.React
           <img src={KAVIO_LOGO_DATA_URI} alt="KAVIO" className="kavio-brand-logo" />
         </Link>
 
-        <div className="kavio-sidebar-account">
-          <div className="kavio-sidebar-account-label">USER LOGIN</div>
-          <div className="kavio-sidebar-account-value">{userEmail || 'ADMIN'}</div>
-          <div className="kavio-sidebar-account-label">ROLE</div>
-          <div className="kavio-sidebar-account-value">DIREKTUR</div>
-          <div className="kavio-sidebar-account-label">TANGGAL</div>
-          <div className="kavio-sidebar-account-value">{today || 'MEMUAT...'}</div>
-        </div>
-
         <nav className="kavio-nav" aria-label="Navigasi KAVIO">
-          <div className="kavio-nav-list">
-            {navItems.map(([label, href]) => (
-              <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
-                <span>{label}</span>
-              </Link>
-            ))}
-            {utilityItems.map((label) => (
-              <span key={label} className="kavio-nav-item is-disabled" aria-disabled="true">
-                <span>{label}</span>
-              </span>
-            ))}
-            <button type="button" className="kavio-nav-item kavio-nav-logout" onClick={handleLogout}>
-              <span>KELUAR</span>
-            </button>
-          </div>
+          {sections.map((section) => (
+            <div key={section.title} className="kavio-nav-section">
+              <div className="kavio-nav-section-title">{section.title}</div>
+              {section.items.map(([label, href]) => (
+                href === '#' ? (
+                  <span key={label} className="kavio-nav-item is-disabled" aria-disabled="true">
+                    <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
+                    <span>{label}</span>
+                  </span>
+                ) : (
+                  <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
+                    <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
+                    <span>{label}</span>
+                  </Link>
+                )
+              ))}
+            </div>
+          ))}
+          <button type="button" className="kavio-nav-item kavio-nav-logout" onClick={handleLogout}>
+            <span className="kavio-nav-icon" aria-hidden="true">⇥</span>
+            <span>KELUAR</span>
+          </button>
         </nav>
 
         <div className="kavio-sidebar-footer">
-          <div>SATU DATA<br />SATU KENDALI<br />SATU HASIL</div>
+          <div className="kavio-sidebar-user">
+            <div className="kavio-sidebar-user-main">
+              <span className="kavio-sidebar-user-dot" aria-hidden="true">●</span>
+              <span>
+                <strong>{userEmail || 'Admin'}</strong>
+                <small>Direktur</small>
+              </span>
+            </div>
+            <div className="kavio-sidebar-date">{today || 'Memuat tanggal...'}</div>
+          </div>
         </div>
       </aside>
 
@@ -132,4 +137,20 @@ export default function KavioShell({ children, active }: { children: React.React
       </div>
     </div>
   );
+}
+
+function icon(label: string) {
+  const map: Record<string, string> = {
+    Beranda: '⌂',
+    'Master Data': '▦',
+    Siteplan: '⌗',
+    Kavling: '⌗',
+    Sales: '♙',
+    'SPK / Pekerjaan': '▣',
+    SPK: '▣',
+    Progress: '◔',
+    Laporan: '▤',
+    Pengaturan: '⚙',
+  };
+  return map[label] ?? '•';
 }
