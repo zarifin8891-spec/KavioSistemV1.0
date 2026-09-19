@@ -236,3 +236,33 @@ body { margin: 0; }
   .progress-selector-button { justify-self:end; }
   .progress-data-grid .progress-table { table-layout:auto; }
 }
+
+/* Progress table density correction */
+/* Keep progress tables truly compact inside the two-column layout. */
+.progress-data-grid .kavio-table-wrap { overflow-x:hidden; }
+.progress-data-grid .progress-table { width:100% !important; min-width:0 !important; max-width:100% !important; table-layout:fixed !important; }
+.progress-data-grid .progress-table thead tr,
+.progress-data-grid .progress-table tbody tr { height:34px !important; }
+.progress-data-grid .progress-table th,
+.progress-data-grid .progress-table td { height:34px !important; min-height:0 !important; padding:4px 6px !important; line-height:1.2 !important; }
+.progress-data-grid .progress-table th { overflow:hidden; text-overflow:ellipsis; }
+.progress-data-grid .progress-table td { overflow:hidden; text-overflow:ellipsis; }
+.progress-data-grid .progress-table th:nth-child(1),
+.progress-data-grid .progress-table td:nth-child(1) { width:30%; }
+.progress-data-grid .progress-table th:nth-child(2),
+.progress-data-grid .progress-table td:nth-child(2) { width:15%; }
+.progress-data-grid .progress-table th:nth-child(3),
+.progress-data-grid .progress-table td:nth-child(3) { width:18%; }
+.progress-data-grid .progress-table th:nth-child(4),
+.progress-data-grid .progress-table td:nth-child(4) { width:18%; }
+.progress-data-grid .progress-table th:nth-child(5),
+.progress-data-grid .progress-table td:nth-child(5) { width:19%; }
+.progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(1),
+.progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(1) { width:22%; }
+.progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(2),
+.progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(2) { width:32%; }
+.progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(3),
+.progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(3) { width:20%; }
+.progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(4),
+.progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(4) { width:26%; }
+.progress-data-grid .progress-table-foot { white-space:normal; overflow-wrap:anywhere; }
