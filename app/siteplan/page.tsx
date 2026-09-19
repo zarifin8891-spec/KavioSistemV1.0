@@ -12,8 +12,7 @@ export default async function SiteplanPage() {
     .from('master_kavling')
     .select('id_kavling,blok,no_kavling,status_kavling,id_tipe')
     .order('blok')
-    .order('no_kavling')
-    .limit(10);
+    .order('no_kavling');
 
   const ids = (kavlings ?? []).map((row) => row.id_kavling);
 
