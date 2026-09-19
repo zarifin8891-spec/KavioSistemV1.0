@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { deactivateSales } from './actions';
+import { formatKavioDate } from '../../lib/date-format';
 import SalesCreatePanel from './SalesCreatePanel';
 
 type SearchParams = Promise<{ error?: string; success?: string }>;
@@ -68,7 +69,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
             <thead><tr><th>NO</th><th>TANGGAL</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>HP</th><th>TIPE</th><th>HARGA</th><th>JENIS BAYAR</th><th>BANK</th><th>STATUS</th><th>AKSI</th></tr></thead>
             <tbody>{sales.map((row,index)=>{const kavling=kavlings.find(item=>item.id_kavling===row.id_kavling);return <tr key={row.id_sales}>
               <td className="sales-center">{index+1}</td>
-              <td>{row.tgl_booking??'—'}</td>
+              <td>{row.tgl_booking ? formatKavioDate(row.tgl_booking) : '—'}</td>
               <td className="sales-highlight"><Link href={`/master/sales/detail?id=${row.id_sales}`}>{row.id_kavling}</Link></td>
               <td className="sales-highlight">{row.nama_konsumen}</td>
               <td>{row.hp_konsumen??'—'}</td>
