@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
 import { SITEPLAN_IMAGE } from './siteplan-image';
+import { createClient } from '../../lib/supabase/client';
 import { SITEPLAN_MAP, SITEPLAN_VIEWBOX } from './siteplan-map';
 
 type Kavling = {
@@ -49,11 +50,14 @@ type ProgressUpdate = {
   keterangan?: string | null;
 };
 
+type SavedMapping = { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null };
+
 type Props = {
   kavlings: Kavling[];
   sales: Sale[];
   spks: Spk[];
   progressUpdates: ProgressUpdate[];
+  savedMappings: SavedMapping[];
 };
 
 const STATUS_LIST = ['AVAILABLE', 'BOOKING', 'BUILDING', 'READY_STOCK', 'SOLD', 'COMPLETED'] as const;
@@ -76,14 +80,17 @@ function polygonPoints(points: [number, number][]) {
   return points.map(([x, y]) => `${x},${y}`).join(' ');
 }
 
-export default function SiteplanClient({ kavlings, sales, spks, progressUpdates }: Props) {
-  const rows = useMemo(() => kavlings.filter((row) => Boolean(SITEPLAN_MAP[row.id_kavling])), [kavlings]);
-  const unmappedRows = useMemo(() => kavlings.filter((row) => !SITEPLAN_MAP[row.id_kavling]), [kavlings]);
+export default function SiteplanClient({ kavlings, sales, spks, progressUpdates, savedMappings }: Props) {
+  const rows = useMemo(() => kavlings.filter((row) => Boolean(SITEPLAN_MAP[row.id_kavling] || savedMap[row.id_kavling])), [kavlings, savedMap]);
+  const unmappedRows = useMemo(() => kavlings.filter((row) => !activeMap[row.id_kavling]), [kavlings, activeMap]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('ALL');
   const [mappingMode, setMappingMode] = useState(false);
   const [mappingPoints, setMappingPoints] = useState<[number, number][]>([]);
+  const [mappingNotice, setMappingNotice] = useState('');
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const savedMap = useMemo(() => Object.fromEntries(savedMappings.map((row) => [row.id_kavling, row])), [savedMappings]);
+  const activeMap = useMemo(() => ({ ...SITEPLAN_MAP, ...savedMap }), [savedMap]);
   const selected = selectedId ? rows.find((row) => row.id_kavling === selectedId) ?? null : null;
 
   const selectedSale = selected ? sales.find((row) => row.id_kavling === selected.id_kavling) : null;
@@ -117,11 +124,21 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
 
   const loadCurrentMapping = () => {
     if (!selectedId) return;
-    setMappingPoints(SITEPLAN_MAP[selectedId]?.polygon ?? []);
+    setMappingPoints(activeMap[selectedId]?.polygon ?? []);
   };
 
   const undoMappingPoint = () => {
     setMappingPoints((points) => points.slice(0, -1));
+  };
+
+  const saveMapping = async () => {
+    if (!selectedId || mappingPoints.length < 3) return;
+    const label = mappingPoints.reduce((acc, point) => [acc[0] + point[0], acc[1] + point[1]], [0, 0]).map((value) => Math.round(value / mappingPoints.length)) as [number, number];
+    const supabase = createClient();
+    setMappingNotice('Menyimpan...');
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from('siteplan_kavling_mapping').upsert({ id_kavling: selectedId, polygon: mappingPoints, label, updated_by: user?.id ?? null, updated_at: new Date().toISOString() });
+    setMappingNotice(error ? `Gagal menyimpan: ${error.message}` : `Mapping ${selectedId} berhasil disimpan.`);
   };
 
   const exportMapping = async () => {
@@ -185,7 +202,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
             <img src={SITEPLAN_IMAGE} alt="Siteplan Cibodas" className="siteplan-image" />
             <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''}`} viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
               {rows.map((row) => {
-                const map = SITEPLAN_MAP[row.id_kavling];
+                const map = activeMap[row.id_kavling];
                 const status = row.status_kavling || 'AVAILABLE';
                 const hidden = filter !== 'ALL' && status !== filter;
                 const selectedClass = selectedId === row.id_kavling ? 'is-selected' : '';
@@ -228,9 +245,11 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
                 <button type="button" className="kavio-button secondary" onClick={loadCurrentMapping} disabled={!selectedId}>MUAT POLYGON SAAT INI</button>
                 <button type="button" className="kavio-button secondary" onClick={undoMappingPoint} disabled={!mappingPoints.length}>UNDO</button>
                 <button type="button" className="kavio-button secondary" onClick={resetMapping} disabled={!mappingPoints.length}>MULAI ULANG</button>
-                <button type="button" className="kavio-button primary" onClick={exportMapping} disabled={!selectedId || mappingPoints.length < 3}>SALIN MAPPING</button>
+                <button type="button" className="kavio-button primary" onClick={saveMapping} disabled={!selectedId || mappingPoints.length < 3}>SIMPAN MAPPING</button>
+                <button type="button" className="kavio-button secondary" onClick={exportMapping} disabled={!selectedId || mappingPoints.length < 3}>SALIN DATA</button>
               </div>
               <div className="siteplan-mapping-selected">TITIK: <strong>{mappingPoints.length}</strong> · Minimal 3 titik untuk polygon.</div>
+              {mappingNotice && <div className="siteplan-mapping-notice">{mappingNotice}</div>}
             </div>
           ) : selected ? (
             <>
