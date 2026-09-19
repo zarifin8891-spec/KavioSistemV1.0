@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '../../../../lib/supabase/server';
 import { updateSalesInfo } from '../actions';
 import { upsertKprProgress } from '../kpr-actions';
+import { formatKavioDate } from '../../../lib/date-format';
 
 type SearchParams = Promise<{id?:string;error?:string;success?:string}>;
 type Sale={id_sales:string;id_kavling:string;nama_konsumen:string;alamat_konsumen:string|null;hp_konsumen:string|null;status_sales:string;jenis_pembayaran:string;id_bank:string|null;id_notaris:string|null;harga_jual:number|string|null;tgl_booking:string|null;target_akad:string|null;tgl_akad:string|null;status_aktif:boolean};
@@ -33,7 +34,7 @@ export default async function SalesDetailPage({searchParams}:{searchParams:Searc
        <label className="kavio-field"><span>JENIS PEMBAYARAN</span><select name="jenis_pembayaran" defaultValue={s.jenis_pembayaran??''}><option>KPR</option><option>CASH</option><option>CASH_BERTAHAP</option></select></label>
        <label className="kavio-field"><span>BANK KPR</span><select name="id_bank" defaultValue={s.id_bank??''}><option value="">PILIH BANK</option>{br.map(x=><option key={x.id_bank} value={x.id_bank}>{x.nama_bank}</option>)}</select></label>
        <label className="kavio-field"><span>HARGA JUAL</span><input value={s.harga_jual??''} readOnly /></label>
-       <label className="kavio-field"><span>TANGGAL BOOKING</span><input value={s.tgl_booking??''} readOnly /></label>
+       <label className="kavio-field"><span>TANGGAL BOOKING</span><input value={s.tgl_booking ? formatKavioDate(s.tgl_booking) : ''} readOnly /></label>
        <label className="kavio-field"><span>TARGET AKAD</span><input type="date" name="target_akad" defaultValue={s.target_akad??''}/></label>
        <label className="kavio-field"><span>TANGGAL AKAD</span><input type="date" name="tgl_akad" defaultValue={s.tgl_akad??''}/></label>
        <label className="kavio-field"><span>NOTARIS AKAD</span><select name="id_notaris" defaultValue={s.id_notaris??''}><option value="">PILIH NOTARIS</option>{nr.map(x=><option key={x.id_notaris} value={x.id_notaris}>{x.nama_notaris}</option>)}</select></label>
@@ -43,7 +44,7 @@ export default async function SalesDetailPage({searchParams}:{searchParams:Searc
 
    {(s.jenis_pembayaran==='KPR'||s.status_sales==='PROSES_KPR')&&<section className="kavio-panel">
      <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PROSES KPR</h2><div className="kavio-panel-note">Setiap tahap disimpan sebagai histori proses KPR.</div></div><span className="kavio-badge">{kr.length} UPDATE</span></div>
-     <div className="sales-kpr-grid kavio-panel-body">{STAGES.map(([key,label])=>{const row=kprMap.get(key);return <div key={key} className={`sales-kpr-stage ${row?'is-done':''}`}><div className="sales-kpr-stage-title">{label}</div><div className="sales-kpr-stage-date">{row?row.tanggal_update:'BELUM UPDATE'}</div><div className="sales-kpr-stage-note">{row?.keterangan??'—'}</div></div>})}</div>
+     <div className="sales-kpr-grid kavio-panel-body">{STAGES.map(([key,label])=>{const row=kprMap.get(key);return <div key={key} className={`sales-kpr-stage ${row?'is-done':''}`}><div className="sales-kpr-stage-title">{label}</div><div className="sales-kpr-stage-date">{row ? formatKavioDate(row.tanggal_update) : 'BELUM UPDATE'}</div><div className="sales-kpr-stage-note">{row?.keterangan??'—'}</div></div>})}</div>
      <form action={upsertKprProgress} className="kavio-form kavio-panel-body">
        <input type="hidden" name="id_sales" value={s.id_sales}/>
        <label className="kavio-field"><span>TAHAP</span><select name="tahap" defaultValue="KELENGKAPAN_DATA">{STAGES.map(x=><option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>
