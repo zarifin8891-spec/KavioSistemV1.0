@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
+import { formatKavioDate } from '../lib/date-format';
 import { KAVIO_LOGO_DATA_URI } from './kavio-sidebar-logo';
 
 const sections = [
@@ -57,11 +58,7 @@ export default function KavioShell({ children, active }: { children: React.React
     supabase.auth.getUser().then(({ data }) => {
       if (mounted) setUserEmail(data.user?.email ?? '');
     });
-    setToday(new Intl.DateTimeFormat('id-ID', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    }).format(new Date()));
+    setToday(formatKavioDate(new Date()));
     return () => { mounted = false; };
   }, []);
 
