@@ -183,7 +183,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
         <div className="siteplan-canvas kavio-panel">
           <div className="siteplan-stage">
             <img src={SITEPLAN_IMAGE} alt="Siteplan Cibodas" className="siteplan-image" />
-            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''}` viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
+            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''}`} viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
               {rows.map((row) => {
                 const map = SITEPLAN_MAP[row.id_kavling];
                 const status = row.status_kavling || 'AVAILABLE';
