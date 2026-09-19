@@ -4,6 +4,7 @@ import './kavio-dashboard.css';
 import './kavio-sales-layout.css';
 import './kavio-sales-module.css';
 import './kavio-ui-components.css';
+import './siteplan/siteplan.css';
 
 export const metadata: Metadata = {
   title: 'KAVIO Monitor V1.0',
