@@ -81,8 +81,6 @@ function polygonPoints(points: [number, number][]) {
 }
 
 export default function SiteplanClient({ kavlings, sales, spks, progressUpdates, savedMappings }: Props) {
-  const rows = useMemo(() => kavlings.filter((row) => Boolean(SITEPLAN_MAP[row.id_kavling] || savedMap[row.id_kavling])), [kavlings, savedMap]);
-  const unmappedRows = useMemo(() => kavlings.filter((row) => !activeMap[row.id_kavling]), [kavlings, activeMap]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('ALL');
   const [mappingMode, setMappingMode] = useState(false);
@@ -91,6 +89,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   const svgRef = useRef<SVGSVGElement | null>(null);
   const savedMap = useMemo(() => Object.fromEntries(savedMappings.map((row) => [row.id_kavling, row])), [savedMappings]);
   const activeMap = useMemo(() => ({ ...SITEPLAN_MAP, ...savedMap }), [savedMap]);
+  const rows = useMemo(() => kavlings.filter((row) => Boolean(activeMap[row.id_kavling])), [kavlings, activeMap]);
+  const unmappedRows = useMemo(() => kavlings.filter((row) => !activeMap[row.id_kavling]), [kavlings, activeMap]);
   const selected = selectedId ? rows.find((row) => row.id_kavling === selectedId) ?? null : null;
 
   const selectedSale = selected ? sales.find((row) => row.id_kavling === selected.id_kavling) : null;
