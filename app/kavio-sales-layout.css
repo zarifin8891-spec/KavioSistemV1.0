@@ -56,3 +56,6 @@
 /* Sales command alignment */
 .sales-page .sales-create-wrap { display:flex; flex-direction:column; align-items:stretch; }
 .sales-page .sales-create-wrap > .kavio-command-button { align-self:flex-end; margin-left:auto; }
+
+/* Sales create command spacing */
+.sales-page .sales-create-wrap > .kavio-command-button { margin-top:8px; }
