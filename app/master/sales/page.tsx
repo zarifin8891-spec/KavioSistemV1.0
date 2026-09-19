@@ -5,7 +5,7 @@ import { deactivateSales } from './actions';
 import SalesCreatePanel from './SalesCreatePanel';
 
 type SearchParams = Promise<{ error?: string; success?: string }>;
-type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string; status_aktif: boolean };
+type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string; status_aktif: boolean; harga_jual: number | string | null };
 type Tipe = { id_tipe: string; nama_tipe: string };
 type Bank = { id_bank: string; nama_bank: string };
 type Notaris = { id_notaris: string; nama_notaris: string };
@@ -18,7 +18,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
   if (!user) redirect('/login');
 
   const [kavlingRes, tipeRes, bankRes, notarisRes, salesRes] = await Promise.all([
-    supabase.from('master_kavling').select('id_kavling,id_tipe,status_kavling,status_aktif').eq('status_aktif',true).order('id_kavling'),
+    supabase.from('master_kavling').select('id_kavling,id_tipe,status_kavling,status_aktif,harga_jual').eq('status_aktif',true).order('id_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe').eq('status_aktif',true).order('nama_tipe'),
     supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).order('nama_bank'),
     supabase.from('master_notaris').select('id_notaris,nama_notaris').eq('status_aktif',true).order('nama_notaris'),
