@@ -23,7 +23,7 @@ export default async function SalesDetailPage({searchParams}:{searchParams:Searc
  return <main className="master-simple-page sales-detail-page">
    {p.error&&<div className="kavio-alert error">{p.error}</div>}{p.success&&<div className="kavio-alert success">{p.success}</div>}
    <section className="kavio-panel">
-     <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DATA SALES — {s.id_kavling}</h2><div className="kavio-panel-note">Informasi konsumen, status penjualan, pembayaran, dan data akad.</div></div><Link className="kavio-button secondary" href="/master/sales">KEMBALI</Link></div>
+     <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DATA SALES — {s.id_kavling}</h2><div className="kavio-panel-note">Informasi konsumen, status penjualan, pembayaran, dan data akad.</div></div></div>
      <form action={updateSalesInfo} className="kavio-form">
        <input type="hidden" name="id_sales" value={s.id_sales}/>
        <label className="kavio-field"><span>NAMA KONSUMEN</span><input name="nama_konsumen" defaultValue={s.nama_konsumen}/></label>
