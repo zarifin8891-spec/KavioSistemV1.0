@@ -23,8 +23,8 @@ export default function ProgressCreatePanel({
 
   return (
     <div className="progress-create-wrap">
-      <button type="button" className="kavio-button" onClick={() => setOpen((value) => !value)}>
-        {open ? '× TUTUP FORM' : '+ INPUT PROGRESS'}
+      <button type="button" className="kavio-command-button" onClick={() => setOpen((value) => !value)}>
+        <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span><span>{open ? 'Tutup Form' : 'Input Progress'}</span>
       </button>
 
       {open && (
