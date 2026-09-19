@@ -125,7 +125,7 @@ export default function KavioShell({ children, active }: { children: React.React
               <h1>{title}</h1>
               <p>{subtitle}</p>
             </div>
-            {pathname.startsWith('/master/') && !pathname.startsWith('/master/spk') && pathname !== '/master/sales' && (
+            {pathname.startsWith('/master/') && !pathname.startsWith('/master/spk') && pathname !== '/master/sales' && pathname !== '/master/kavling' && (
               <Link
                 href={pathname.startsWith('/master/sales/detail') ? '/master/sales' : '/master'}
                 className="kavio-command-button kavio-page-command"
