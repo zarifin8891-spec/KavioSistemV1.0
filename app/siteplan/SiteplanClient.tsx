@@ -56,13 +56,22 @@ type Props = {
 
 const STATUS_LIST = ['AVAILABLE', 'BOOKING', 'BUILDING', 'READY_STOCK', 'SOLD', 'COMPLETED'] as const;
 
-const areas = [
+const prototypeAreas = [
   { x: 25.5, y: 7.2, w: 8.2, h: 6.3 }, { x: 33.9, y: 8.0, w: 8.0, h: 6.3 },
   { x: 42.0, y: 9.0, w: 8.0, h: 6.3 }, { x: 18.0, y: 18.2, w: 8.0, h: 6.0 },
   { x: 26.1, y: 19.2, w: 8.0, h: 6.0 }, { x: 34.4, y: 20.2, w: 8.0, h: 6.0 },
   { x: 18.2, y: 29.5, w: 8.0, h: 6.0 }, { x: 26.3, y: 30.5, w: 8.0, h: 6.0 },
   { x: 34.5, y: 31.5, w: 8.0, h: 6.0 }, { x: 42.7, y: 32.5, w: 8.0, h: 6.0 },
 ];
+
+// Temporary coordinate layer. These are prototype rectangles only.
+// The production map will replace these with precise kavling polygons from the actual Siteplan.
+const siteplanMap: Record<string, { x: number; y: number; w: number; h: number }> = {
+  'A-01': prototypeAreas[0], 'A-02': prototypeAreas[1], 'A-03': prototypeAreas[2],
+  'A-04': prototypeAreas[3], 'A-05': prototypeAreas[4], 'B-01': prototypeAreas[5],
+  'B-02': prototypeAreas[6], 'B-03': prototypeAreas[7], 'B-04': prototypeAreas[8],
+  'B-05': prototypeAreas[9],
+};
 
 const fallback: Kavling[] = Array.from({ length: 10 }, (_, i) => ({
   id_kavling: `DEMO-${String(i + 1).padStart(2, '0')}`,
@@ -86,7 +95,7 @@ function formatMoney(value?: number | string | null) {
 }
 
 export default function SiteplanClient({ kavlings, sales, spks, progressUpdates }: Props) {
-  const rows = useMemo(() => (kavlings.length ? kavlings.slice(0, areas.length) : fallback), [kavlings]);
+  const rows = useMemo(() => (kavlings.length ? kavlings.filter((row) => siteplanMap[row.id_kavling]) : fallback), [kavlings]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [filter, setFilter] = useState<string>('ALL');
   const selected = selectedIndex == null ? null : rows[selectedIndex];
@@ -138,7 +147,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
           <div className="siteplan-stage">
             <img src={SITEPLAN_IMAGE} alt="Siteplan Cibodas" className="siteplan-image" />
             {rows.map((row, index) => {
-              const area = areas[index];
+              const area = siteplanMap[row.id_kavling];
               const status = row.status_kavling || 'AVAILABLE';
               const hidden = filter !== 'ALL' && status !== filter;
               return (
