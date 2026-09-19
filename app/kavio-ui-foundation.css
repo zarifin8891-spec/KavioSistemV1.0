@@ -381,3 +381,29 @@ select option:hover {
   background:#102E4D !important;
   color:var(--kavio-champagne) !important;
 }
+
+/* Absolute KAVIO table surface normalization */
+.kavio-content table.kavio-table,
+.kavio-content table.simple-table,
+.kavio-content table.sales-table { background:transparent !important; color:var(--kavio-ivory) !important; color-scheme:dark; }
+.kavio-content table.kavio-table thead,
+.kavio-content table.simple-table thead,
+.kavio-content table.sales-table thead { background:#102E4D !important; }
+.kavio-content table.kavio-table tbody,
+.kavio-content table.simple-table tbody,
+.kavio-content table.sales-table tbody { background:var(--kavio-panel) !important; }
+.kavio-content table.kavio-table tbody tr,
+.kavio-content table.simple-table tbody tr,
+.kavio-content table.sales-table tbody tr { background:#0D2948 !important; }
+.kavio-content table.kavio-table tbody tr:nth-child(even),
+.kavio-content table.simple-table tbody tr:nth-child(even),
+.kavio-content table.sales-table tbody tr:nth-child(even) { background:#102E4D !important; }
+.kavio-content table.kavio-table tbody tr:hover,
+.kavio-content table.simple-table tbody tr:hover,
+.kavio-content table.sales-table tbody tr:hover { background:#173452 !important; }
+.kavio-content table.kavio-table tbody td,
+.kavio-content table.simple-table tbody td,
+.kavio-content table.sales-table tbody td { background:transparent !important; color:var(--kavio-ivory) !important; box-shadow:none !important; }
+.kavio-content table.kavio-table thead th,
+.kavio-content table.simple-table thead th,
+.kavio-content table.sales-table thead th { background:#102E4D !important; color:var(--kavio-champagne) !important; }
