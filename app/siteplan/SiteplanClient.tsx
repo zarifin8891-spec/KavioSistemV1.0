@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
 import { SITEPLAN_IMAGE } from './siteplan-image';
 import { createClient } from '../../lib/supabase/client';
+import { formatKavioDate } from '../lib/date-format';
 import { SITEPLAN_MAP, SITEPLAN_VIEWBOX } from './siteplan-map';
 
 type Kavling = {
@@ -66,10 +67,7 @@ function statusClass(status?: string | null) {
   return (status || 'AVAILABLE').toLowerCase();
 }
 
-function formatDate(value?: string | null) {
-  if (!value) return '—';
-  return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
-}
+function formatDate(value?: string | null) { return formatKavioDate(value); }
 
 function formatMoney(value?: number | string | null) {
   if (value == null || value === '') return '—';
