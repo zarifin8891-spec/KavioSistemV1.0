@@ -21,7 +21,7 @@ const areas = [
   { x: 34.5, y: 31.5, w: 8.0, h: 6.0 }, { x: 42.7, y: 32.5, w: 8.0, h: 6.0 },
 ];
 
-const fallback = Array.from({ length: 10 }, (_, i) => ({
+const fallback: Kavling[] = Array.from({ length: 10 }, (_, i) => ({
   id_kavling: `DEMO-${String(i + 1).padStart(2, '0')}`,
   blok: 'DEMO',
   no_kavling: String(i + 1),
