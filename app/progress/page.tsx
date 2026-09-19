@@ -79,7 +79,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
         </section>
 
         <section className="kavio-panel progress-decision-panel">
-          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DECISION ENGINE</h2><div className="kavio-panel-note">Logika keputusan dibaca dari sumber yang sama dengan Dashboard dan Detail SPK.</div></div><span className="kavio-badge">{decision?.health_level ?? 'BELUM TERSEDIA'}</span></div>
+          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DECISION ENGINE</h2></div><span className="kavio-badge">{decision?.health_level ?? 'BELUM TERSEDIA'}</span></div>
           <div className="kavio-panel-body"><div className="progress-decision"><div className="progress-decision-label">REKOMENDASI TINDAKAN</div><div className="progress-decision-main">{decision?.action_rekomendasi ?? 'Belum tersedia'}</div><div className="progress-decision-meta">{decision?.status_operasional ?? '—'} · {decision?.status_ritme ?? '—'} · PRIORITAS {decision?.prioritas_tindakan ?? '—'} · {decision?.health_description ?? ''}</div></div></div>
         </section>
 
