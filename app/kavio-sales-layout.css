@@ -52,3 +52,7 @@
   .sales-page .sales-create-grid { grid-template-columns: 1fr; }
   .sales-page .sales-title h1 { font-size: 26px; }
 }
+
+/* Sales command alignment */
+.sales-page .sales-create-wrap { display:flex; flex-direction:column; align-items:stretch; }
+.sales-page .sales-create-wrap > .kavio-command-button { align-self:flex-end; margin-left:auto; }
