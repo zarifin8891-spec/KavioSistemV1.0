@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { SITEPLAN_IMAGE } from './siteplan-image';
 
@@ -192,6 +193,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
                     <div><span>PEMBAYARAN</span><strong>{selectedSale.jenis_pembayaran || '—'}</strong></div>
                     <div><span>HARGA JUAL</span><strong>{formatMoney(selectedSale.harga_jual)}</strong></div>
                     <div><span>TARGET AKAD</span><strong>{formatDate(selectedSale.target_akad)}</strong></div>
+                    <div className="siteplan-related-actions"><Link href={`/master/sales/detail?id=${selectedSale.id_sales}`} className="kavio-button secondary">DETAIL SALES</Link></div>
                   </div>
                 ) : <div className="siteplan-related-empty">Belum ada data Sales untuk kavling ini.</div>}
               </div>
@@ -204,6 +206,10 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates 
                     <div><span>STATUS SPK</span><strong>{selectedSpk.status_spk || '—'}</strong></div>
                     <div><span>TARGET SELESAI</span><strong>{formatDate(selectedSpk.tgl_target_selesai)}</strong></div>
                     <div><span>PROGRESS TERAKHIR</span><strong>{selectedProgress?.progress_periode != null ? `${selectedProgress.progress_periode}%` : '—'}</strong></div>
+                    <div className="siteplan-related-actions">
+                      <Link href={`/master/spk/detail/${selectedSpk.id_spk}`} className="kavio-button secondary">DETAIL SPK</Link>
+                      <Link href={`/progress?spk=${selectedSpk.id_spk}`} className="kavio-button secondary">PROGRESS</Link>
+                    </div>
                   </div>
                 ) : <div className="siteplan-related-empty">Belum ada SPK aktif untuk kavling ini.</div>}
               </div>
