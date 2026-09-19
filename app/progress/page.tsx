@@ -93,9 +93,9 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
           <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>TANGGAL</th><th>KATEGORI</th><th>PROGRESS PERIODE</th><th>KETERANGAN</th></tr></thead><tbody>{historyRows.map((row) => <tr key={row.id_progress}><td>{row.tanggal_update}</td><td>{categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori}</td><td className="progress-highlight">{(Number(row.progress_periode) * 100).toFixed(2)}%</td><td>{row.keterangan || '—'}</td></tr>)}{!historyRows.length && <tr><td colSpan={4} className="kavio-empty">BELUM ADA HISTORI PROGRESS.</td></tr>}</tbody></table></div>
           <div className="progress-table-foot">UPDATE TERAKHIR: {decision?.tanggal_update_terakhir ?? latestPeriod?.date ?? 'BELUM ADA'} · PERIODE TERAKHIR: {decision ? `${(Number(decision.progress_periode_terakhir) * 100).toFixed(2)}%` : '—'} · KEBUTUHAN / HARI: {decision ? `${(Number(decision.progress_diperlukan_per_hari) * 100).toFixed(2)}%` : '—'}</div>
         </section>
+                <ProgressCreatePanel idSpk={selected.id_spk} tglSpk={selected.tgl_spk} configs={configRows} categories={categoryRows} />
         </section>
 
-        <ProgressCreatePanel idSpk={selected.id_spk} tglSpk={selected.tgl_spk} configs={configRows} categories={categoryRows} />
       </>}
 
       {!selected && !spkRows.length && <div className="kavio-panel kavio-empty">BELUM ADA SPK AKTIF.</div>}
