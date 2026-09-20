@@ -25,11 +25,17 @@ export async function createSales(formData: FormData) {
   const tglBooking = text(formData.get('tgl_booking')) || null;
   const targetAkad = text(formData.get('target_akad')) || null;
   const tglAkad = text(formData.get('tgl_akad')) || null;
+  const biayaPenambahanBangunan = Number(formData.get('biaya_penambahan_bangunan') ?? 0);
+  const biayaNotaris = Number(formData.get('biaya_notaris') ?? 0);
+  const biayaHook = Number(formData.get('biaya_hook') ?? 0);
+  const biayaLainnya = Number(formData.get('biaya_lainnya') ?? 0);
+
 
   if (!idKavling || !namaKonsumen) return redirectError('KAVLING DAN NAMA KONSUMEN WAJIB DIISI');
   if (!(VALID_STATUS as readonly string[]).includes(statusSales)) return redirectError('STATUS SALES TIDAK VALID');
   if (!(VALID_PAYMENT as readonly string[]).includes(jenisPembayaran)) return redirectError('JENIS PEMBAYARAN TIDAK VALID');
 
+  if (![biayaPenambahanBangunan, biayaNotaris, biayaHook, biayaLainnya].every((value) => Number.isFinite(value) && value >= 0)) return redirectError('BIAYA TAMBAHAN TIDAK VALID');
   if (tglBooking && targetAkad && targetAkad < tglBooking) return redirectError('TARGET AKAD TIDAK BOLEH SEBELUM TANGGAL BOOKING');
   if (tglBooking && tglAkad && tglAkad < tglBooking) return redirectError('TANGGAL AKAD TIDAK BOLEH SEBELUM TANGGAL BOOKING');
   if (jenisPembayaran === 'KPR' && !idBank) return redirectError('BANK KPR WAJIB DIPILIH UNTUK PEMBAYARAN KPR');
@@ -65,7 +71,28 @@ export async function createSales(formData: FormData) {
   const { error: kavlingUpdateError } = await supabase.from('master_kavling').update({ status_kavling: nextKavlingStatus }).eq('id_kavling', idKavling);
   if (kavlingUpdateError) { await supabase.from('sales').delete().eq('id_sales', inserted.id_sales); return redirectError(kavlingUpdateError.message); }
 
-  revalidatePath('/master/sales'); revalidatePath('/master/kavling'); revalidatePath('/master/spk'); revalidatePath('/dashboard');
+  const biayaRows = [
+    ['PENAMBAHAN BANGUNAN', biayaPenambahanBangunan],
+    ['NOTARIS', biayaNotaris],
+    ['PEMILIHAN LOKASI HOOK', biayaHook],
+    ['BIAYA LAINNYA', biayaLainnya],
+  ] as const;
+  const biayaToInsert = biayaRows.filter(([, nominal]) => nominal > 0).map(([jenis_biaya, nominal]) => ({
+    id_sales: inserted.id_sales,
+    jenis_biaya,
+    nominal,
+    status_aktif: true,
+  }));
+  if (biayaToInsert.length) {
+    const { error: biayaError } = await supabase.from('sales_biaya_tambahan').insert(biayaToInsert);
+    if (biayaError) {
+      await supabase.from('master_kavling').update({ status_kavling: kavling.status_kavling }).eq('id_kavling', idKavling);
+      await supabase.from('sales').delete().eq('id_sales', inserted.id_sales);
+      return redirectError(biayaError.message);
+    }
+  }
+
+  revalidatePath('/master/sales'); revalidatePath('/master/sales/detail'); revalidatePath('/master/kavling'); revalidatePath('/master/spk'); revalidatePath('/dashboard');
   redirect(`/master/sales?success=${encodeURIComponent('SALES BERHASIL DISIMPAN')}`);
 }
 
