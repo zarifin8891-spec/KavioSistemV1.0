@@ -140,6 +140,61 @@ export async function updateSalesInfo(formData: FormData) {
   redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&success=DATA%20SALES%20DIPERBARUI`);
 }
 
+export async function saveSalesBiaya(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  const idSales = text(formData.get('id_sales'));
+  if (!idSales) return detailError('', 'ID SALES TIDAK VALID');
+
+  const items = [
+    ['PENAMBAHAN BANGUNAN', Number(formData.get('biaya_penambahan_bangunan') ?? 0)],
+    ['NOTARIS', Number(formData.get('biaya_notaris') ?? 0)],
+    ['PEMILIHAN LOKASI HOOK', Number(formData.get('biaya_hook') ?? 0)],
+    ['BIAYA LAINNYA', Number(formData.get('biaya_lainnya') ?? 0)],
+  ] as const;
+
+  if (!items.every(([, nominal]) => Number.isFinite(nominal) && nominal >= 0)) {
+    return detailError(idSales, 'BIAYA TAMBAHAN TIDAK VALID');
+  }
+
+  const { data: sale, error: saleError } = await supabase
+    .from('sales')
+    .select('id_sales')
+    .eq('id_sales', idSales)
+    .maybeSingle();
+
+  if (saleError || !sale) return detailError(idSales, saleError?.message ?? 'DATA SALES TIDAK DITEMUKAN');
+
+  const { error: upsertError } = await supabase
+    .from('sales_biaya_tambahan')
+    .upsert(
+      items
+        .filter(([, nominal]) => nominal > 0)
+        .map(([jenis_biaya, nominal]) => ({ id_sales: idSales, jenis_biaya, nominal, status_aktif: true })),
+      { onConflict: 'id_sales,jenis_biaya' },
+    );
+
+  if (upsertError) return detailError(idSales, upsertError.message);
+
+  const zeroTypes = items.filter(([, nominal]) => nominal === 0).map(([jenis_biaya]) => jenis_biaya);
+  if (zeroTypes.length) {
+    const { error: deleteError } = await supabase
+      .from('sales_biaya_tambahan')
+      .delete()
+      .eq('id_sales', idSales)
+      .in('jenis_biaya', zeroTypes);
+    if (deleteError) return detailError(idSales, deleteError.message);
+  }
+
+  revalidatePath('/master/sales');
+  revalidatePath('/master/sales/detail');
+  revalidatePath('/master/kavling');
+  revalidatePath('/dashboard');
+  redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&success=BIAYA%20SALES%20BERHASIL%20DIPERBARUI`);
+}
+
 export async function deactivateSales(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
