@@ -41,13 +41,15 @@ export async function createSales(formData: FormData) {
   if (jenisPembayaran === 'KPR' && !idBank) return redirectError('BANK KPR WAJIB DIPILIH UNTUK PEMBAYARAN KPR');
   if (statusSales === 'AKAD' && (!tglAkad || !idNotaris || !targetAkad)) return redirectError('TARGET AKAD, TANGGAL AKAD, DAN NOTARIS WAJIB DIISI UNTUK STATUS AKAD');
 
-  const [{ data: kavling, error: kavlingError }, { data: activeSales, error: salesError }, { data: activeSpk, error: spkError }] = await Promise.all([
+  const [{ data: kavling, error: kavlingError }, { data: activeSales, error: salesError }, { data: akadSale, error: akadError }, { data: activeSpk, error: spkError }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling,status_kavling,status_aktif,harga_jual').eq('id_kavling', idKavling).maybeSingle(),
     supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('status_aktif', true).maybeSingle(),
+    supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('status_sales', 'AKAD').limit(1).maybeSingle(),
     supabase.from('spk').select('id_spk').eq('id_kavling', idKavling).eq('is_active', true).maybeSingle(),
   ]);
-  if (kavlingError || salesError || spkError) return redirectError((kavlingError ?? salesError ?? spkError)?.message ?? 'GAGAL MEMBACA RELASI KAVLING');
+  if (kavlingError || salesError || akadError || spkError) return redirectError((kavlingError ?? salesError ?? akadError ?? spkError)?.message ?? 'GAGAL MEMBACA RELASI KAVLING');
   if (!kavling || !kavling.status_aktif) return redirectError('KAVLING TIDAK DITEMUKAN ATAU NONAKTIF');
+  if (akadSale) return redirectError('KAVLING TERSEBUT SUDAH PERNAH AKAD DAN TIDAK DAPAT MEMILIKI SALES BARU');
   if (activeSales) return redirectError('KAVLING TERSEBUT SUDAH MEMILIKI SALES AKTIF');
   if (!(SALEABLE_KAVLING_STATUS as readonly string[]).includes(kavling.status_kavling)) return redirectError(`KAVLING BERSTATUS ${kavling.status_kavling} TIDAK DAPAT DIBUATKAN SALES BARU`);
 
