@@ -33,6 +33,7 @@ export async function createSales(formData: FormData) {
 
   if (!idKavling || !namaKonsumen) return redirectError('KAVLING DAN NAMA KONSUMEN WAJIB DIISI');
   if (!(VALID_STATUS as readonly string[]).includes(statusSales)) return redirectError('STATUS SALES TIDAK VALID');
+  if (statusSales === 'BATAL') return redirectError('SALES BARU TIDAK BOLEH LANGSUNG BERSTATUS BATAL');
   if (!(VALID_PAYMENT as readonly string[]).includes(jenisPembayaran)) return redirectError('JENIS PEMBAYARAN TIDAK VALID');
 
   if (![biayaPenambahanBangunan, biayaNotaris, biayaHook, biayaLainnya].every((value) => Number.isFinite(value) && value >= 0)) return redirectError('BIAYA TAMBAHAN TIDAK VALID');
