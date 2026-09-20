@@ -4,6 +4,7 @@ import { createClient } from '../../../lib/supabase/server';
 import { deactivateSales } from './actions';
 import { formatKavioDate } from '../../lib/date-format';
 import SalesCreatePanel from './SalesCreatePanel';
+import KavioConfirmAction from '../../components/KavioConfirmAction';
 
 type SearchParams = Promise<{ error?: string; success?: string }>;
 type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string; status_aktif: boolean; harga_jual: number | string };
@@ -84,7 +85,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
               <td>{row.jenis_pembayaran??'—'}</td>
               <td>{row.jenis_pembayaran==='KPR'?(bankMap.get(row.id_bank??'')??'—'):'—'}</td>
               <td><span className={`sales-status-badge ${row.status_sales.toLowerCase()}`}>{statusLabel(row.status_sales)}</span></td>
-              <td><div className="sales-actions">{row.status_aktif?<><Link href={`/master/sales/detail?id=${row.id_sales}`} className="kavio-button secondary">DETAIL</Link><form action={deactivateSales}><input type="hidden" name="id_sales" value={row.id_sales}/><button type="submit" className="kavio-button secondary">TUTUP</button></form></>:<span>—</span>}</div></td>
+              <td><div className="sales-actions">{row.status_aktif?<><Link href={`/master/sales/detail?id=${row.id_sales}`} className="kavio-button secondary">DETAIL</Link><KavioConfirmAction action={deactivateSales} hidden={{ id_sales: row.id_sales }} label="TUTUP" confirmMessage={'Konfirmasi: Sales ' + row.nama_konsumen + ' untuk kavling ' + row.id_kavling + ' akan ditutup. Status Sales akan menjadi ' + (row.status_sales === 'AKAD' ? 'AKAD (tidak aktif)' : 'BATAL') + '. Lanjutkan?'} /></>:<span>—</span>}</div></td>
             </tr>})}{!sales.length&&<tr><td colSpan={13} className="kavio-empty">BELUM ADA DATA SALES.</td></tr>}</tbody>
           </table>
         </div>
