@@ -78,7 +78,7 @@ body { margin: 0; }
 .kavio-form { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px 14px; align-items:start; }
 .kavio-field { display:flex; flex-direction:column; align-items:stretch; gap:6px; min-width:0; margin:0; color:var(--kavio-muted); font-size:9px; line-height:1.2; font-weight:400; letter-spacing:.35px; text-transform:uppercase; }
 .kavio-field > span { min-height:12px; }
-.kavio-field input,.kavio-field select,.kavio-field textarea { width:100%; min-width:0; min-height:36px; height:auto; padding:8px 10px; border:1px solid rgba(232,204,122,.42) !important; border-radius:8px; background:linear-gradient(180deg,#344C69,#293F5B) !important; color:var(--kavio-ivory) !important; outline:none; font-size:11px; line-height:1.3; font-weight:400; }
+.kavio-field input,.kavio-field select,.kavio-field textarea { width:100%; min-width:0; min-height:36px; height:auto; padding:8px 10px; border:1px solid rgba(216,180,90,.30) !important; border-radius:8px; background:linear-gradient(180deg,var(--kavio-panel-3),var(--kavio-panel-2)) !important; color:var(--kavio-ivory) !important; outline:none; font-size:11px; line-height:1.3; font-weight:400; }
 .kavio-field input:focus,.kavio-field select:focus,.kavio-field textarea:focus { border-color:var(--kavio-champagne) !important; box-shadow:0 0 0 2px rgba(240,212,138,.08); }
 .kavio-actions { grid-column:1 / -1; display:flex; align-items:center; justify-content:flex-end; gap:8px; padding-top:2px; }
 
@@ -430,3 +430,17 @@ select option:hover {
   .sales-cost-summary{grid-template-columns:1fr}
   .sales-costs-grid{grid-template-columns:1fr}
 }
+
+
+/* Master Kavling: denser inventory table and single-line row actions */
+.kavling-page .kavio-table th { height:30px; padding:4px 6px; font-size:8px; }
+.kavling-page .kavio-table td { min-height:30px; padding:3px 6px; font-size:10px; line-height:1.2; }
+.kavling-page .kavio-table th:first-child,.kavling-page .kavio-table td:first-child { padding-left:8px; }
+.kavling-page .kavio-table th:last-child,.kavling-page .kavio-table td:last-child { padding-right:8px; }
+.kavling-page .kavio-inline-actions { display:flex; align-items:center; justify-content:center; gap:5px; flex-wrap:nowrap; white-space:nowrap; }
+.kavling-page .kavio-inline-actions form { display:flex; align-items:center; margin:0; }
+.kavling-page .kavio-inline-actions .kavio-button { flex:0 0 auto; }
+.kavling-page .kavling-edit-panel .kavio-field input,
+.kavling-page .kavling-edit-panel .kavio-field select { background:linear-gradient(180deg,#213B59,#182F4A) !important; border-color:rgba(240,212,138,.34) !important; }
+.kavling-page .kavio-create-panel .kavio-field input,
+.kavling-page .kavio-create-panel .kavio-field select { background:linear-gradient(180deg,#213B59,#182F4A) !important; border-color:rgba(240,212,138,.34) !important; }
