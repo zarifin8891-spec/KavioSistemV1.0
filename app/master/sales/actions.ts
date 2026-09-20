@@ -7,7 +7,6 @@ const VALID_STATUS = ['BOOKING', 'DP', 'PROSES_KPR', 'AKAD', 'BATAL'] as const;
 const VALID_PAYMENT = ['KPR', 'CASH', 'CASH_BERTAHAP'] as const;
 const SALEABLE_KAVLING_STATUS = ['AVAILABLE', 'BUILDING', 'READY_STOCK'] as const;
 function text(value: FormDataEntryValue | null) { return String(value ?? '').trim(); }
-function money(value: FormDataEntryValue | null) { const raw = text(value); if (!raw) return null; const n = Number(raw); return Number.isFinite(n) && n >= 0 ? n : NaN; }
 function redirectError(message: string) { redirect(`/master/sales?error=${encodeURIComponent(message)}&add=1`); }
 function detailError(idSales: string, message: string) { redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&error=${encodeURIComponent(message)}`); }
 
@@ -23,7 +22,6 @@ export async function createSales(formData: FormData) {
   const jenisPembayaran = text(formData.get('jenis_pembayaran')) || 'KPR';
   const idBank = text(formData.get('id_bank')) || null;
   const idNotaris = text(formData.get('id_notaris')) || null;
-  const hargaJual = null;
   const tglBooking = text(formData.get('tgl_booking')) || null;
   const targetAkad = text(formData.get('target_akad')) || null;
   const tglAkad = text(formData.get('tgl_akad')) || null;
@@ -75,7 +73,9 @@ export async function updateSalesInfo(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+
   const idSales = text(formData.get('id_sales'));
+  const namaKonsumen = text(formData.get('nama_konsumen'));
   const statusSales = text(formData.get('status_sales'));
   const jenisPembayaran = text(formData.get('jenis_pembayaran'));
   const alamatKonsumen = text(formData.get('alamat_konsumen')) || null;
@@ -84,15 +84,32 @@ export async function updateSalesInfo(formData: FormData) {
   const idNotaris = text(formData.get('id_notaris')) || null;
   const tglAkad = text(formData.get('tgl_akad')) || null;
   const targetAkad = text(formData.get('target_akad')) || null;
+
   if (!idSales) return redirect('/master/sales?error=ID%20SALES%20TIDAK%20VALID');
+  if (!namaKonsumen) return detailError(idSales, 'NAMA KONSUMEN WAJIB DIISI');
   if (!(VALID_STATUS as readonly string[]).includes(statusSales)) return detailError(idSales, 'STATUS SALES TIDAK VALID');
   if (!(VALID_PAYMENT as readonly string[]).includes(jenisPembayaran)) return detailError(idSales, 'JENIS PEMBAYARAN TIDAK VALID');
-  if (jenisPembayaran === 'KPR' && !idBank) return detailError(idSales, 'BANK KPR WAJIB DIISI');
-  if (statusSales === 'AKAD' && (!tglAkad || !idNotaris || !targetAkad)) return detailError(idSales, 'TARGET AKAD, TANGGAL AKAD, DAN NOTARIS WAJIB DIISI');
-  if (jenisPembayaran !== 'KPR' && idBank) return detailError(idSales, 'BANK HANYA DIISI UNTUK PEMBAYARAN KPR');
-  const { error } = await supabase.from('sales').update({ status_sales: statusSales, jenis_pembayaran: jenisPembayaran, alamat_konsumen: alamatKonsumen, hp_konsumen: hpKonsumen, id_bank: jenisPembayaran === 'KPR' ? idBank : null, id_notaris: statusSales === 'AKAD' ? idNotaris : null, tgl_akad: statusSales === 'AKAD' ? tglAkad : null, target_akad: targetAkad, status_aktif: statusSales !== 'BATAL' }).eq('id_sales', idSales);
+
+  const { error } = await supabase.rpc('update_sales_atomic', {
+    p_id_sales: idSales,
+    p_nama_konsumen: namaKonsumen,
+    p_alamat_konsumen: alamatKonsumen,
+    p_hp_konsumen: hpKonsumen,
+    p_status_sales: statusSales,
+    p_jenis_pembayaran: jenisPembayaran,
+    p_id_bank: idBank,
+    p_id_notaris: idNotaris,
+    p_tgl_akad: tglAkad || null,
+    p_target_akad: targetAkad || null,
+  });
+
   if (error) return detailError(idSales, error.message);
-  revalidatePath('/master/sales'); revalidatePath('/master/sales/detail'); revalidatePath('/dashboard');
+
+  revalidatePath('/master/sales');
+  revalidatePath('/master/sales/detail');
+  revalidatePath('/master/kavling');
+  revalidatePath('/master/spk');
+  revalidatePath('/dashboard');
   redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&success=DATA%20SALES%20DIPERBARUI`);
 }
 
