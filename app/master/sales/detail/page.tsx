@@ -4,23 +4,25 @@ import { createClient } from '../../../../lib/supabase/server';
 import { updateSalesInfo } from '../actions';
 import { upsertKprProgress } from '../kpr-actions';
 import { formatKavioDate } from '../../../lib/date-format';
+import SalesCostPanel from '../SalesCostPanel';
 
 type SearchParams = Promise<{id?:string;error?:string;success?:string}>;
 type Sale={id_sales:string;id_kavling:string;nama_konsumen:string;alamat_konsumen:string|null;hp_konsumen:string|null;status_sales:string;jenis_pembayaran:string;id_bank:string|null;id_notaris:string|null;harga_jual:number|string|null;tgl_booking:string|null;target_akad:string|null;tgl_akad:string|null;status_aktif:boolean};
-type Bank={id_bank:string;nama_bank:string}; type Notaris={id_notaris:string;nama_notaris:string}; type Kpr={id_progress:string;tahap:string;tanggal_update:string;keterangan:string|null};
+type Bank={id_bank:string;nama_bank:string}; type Notaris={id_notaris:string;nama_notaris:string}; type Kpr={id_progress:string;tahap:string;tanggal_update:string;keterangan:string|null}; type SalesCost={jenis_biaya:string;nominal:number|string};
 const STAGES=[['KELENGKAPAN_DATA','KELENGKAPAN DATA'],['SURVEY_BANK','SURVEY BANK'],['INTERVIEW','INTERVIEW'],['SP3K','SP3K']] as const;
 
 export default async function SalesDetailPage({searchParams}:{searchParams:SearchParams}){
  const p=await searchParams; const id=p.id; if(!id) redirect('/master/sales');
  const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect('/login');
- const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr}] = await Promise.all([
+ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data:costs}] = await Promise.all([
    supabase.from('sales').select('id_sales,id_kavling,nama_konsumen,alamat_konsumen,hp_konsumen,status_sales,jenis_pembayaran,id_bank,id_notaris,harga_jual,tgl_booking,target_akad,tgl_akad,status_aktif').eq('id_sales',id).maybeSingle(),
    supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).order('nama_bank'),
    supabase.from('master_notaris').select('id_notaris,nama_notaris').eq('status_aktif',true).order('nama_notaris'),
    supabase.from('sales_kpr_progress').select('id_progress,tahap,tanggal_update,keterangan').eq('id_sales',id).order('tanggal_update'),
+   supabase.from('sales_biaya_tambahan').select('jenis_biaya,nominal').eq('id_sales',id).eq('status_aktif',true).order('jenis_biaya'),
  ]);
  if(!sale) return <main className="master-simple-page"><div className="kavio-alert error">{p.error??saleError?.message??'DATA SALES TIDAK DITEMUKAN'}</div><Link className="kavio-button secondary" href="/master/sales">KEMBALI KE SALES</Link></main>;
- const s=sale as Sale; const br=(banks??[]) as Bank[]; const nr=(notaries??[]) as Notaris[]; const kr=(kpr??[]) as Kpr[]; const kprMap=new Map(kr.map(x=>[x.tahap,x]));
+ const s=sale as Sale; const br=(banks??[]) as Bank[]; const nr=(notaries??[]) as Notaris[]; const kr=(kpr??[]) as Kpr[]; const cr=(costs??[]) as SalesCost[]; const kprMap=new Map(kr.map(x=>[x.tahap,x]));
  return <main className="master-simple-page sales-detail-page">
    {p.error&&<div className="kavio-alert error">{p.error}</div>}{p.success&&<div className="kavio-alert success">{p.success}</div>}
    <section className="kavio-panel">
@@ -41,6 +43,8 @@ export default async function SalesDetailPage({searchParams}:{searchParams:Searc
        <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN PERUBAHAN</button></div>
      </form>
    </section>
+
+   <SalesCostPanel idSales={s.id_sales} hargaDasar={s.harga_jual} costs={cr} />
 
    {(s.jenis_pembayaran==='KPR'||s.status_sales==='PROSES_KPR')&&<section className="kavio-panel">
      <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PROSES KPR</h2><div className="kavio-panel-note">Setiap tahap disimpan sebagai histori proses KPR.</div></div><span className="kavio-badge">{kr.length} UPDATE</span></div>
