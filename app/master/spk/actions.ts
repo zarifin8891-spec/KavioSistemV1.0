@@ -37,21 +37,22 @@ export async function createSpk(formData: FormData) {
 
   if (tglTargetSelesai < tglSpk) errorRedirect('Tanggal target selesai tidak boleh sebelum tanggal SPK');
 
-  const [{ data: kavling, error: kavlingError }, { data: kantor, error: kantorError }, { data: mandor, error: mandorError }, { data: activeSpk, error: activeSpkError }] = await Promise.all([
+  const [{ data: kavling, error: kavlingError }, { data: kantor, error: kantorError }, { data: mandor, error: mandorError }, { data: existingSpk, error: existingSpkError }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling, id_tipe, status_aktif, status_kavling').eq('id_kavling', idKavling).maybeSingle(),
     supabase.from('master_kantor_pelaksana').select('id_kantor, status_aktif').eq('id_kantor', idKantor).maybeSingle(),
     supabase.from('master_mandor').select('id_mandor, id_kantor, status_aktif').eq('id_mandor', idMandor).maybeSingle(),
-    supabase.from('spk').select('id_spk').eq('id_kavling', idKavling).eq('is_active', true).maybeSingle(),
+    supabase.from('spk').select('id_spk,status_spk,is_active').eq('id_kavling', idKavling).maybeSingle(),
   ]);
 
-  if (kavlingError || kantorError || mandorError || activeSpkError) {
-    errorRedirect((kavlingError ?? kantorError ?? mandorError ?? activeSpkError)?.message ?? 'Gagal membaca data relasi SPK');
+  if (kavlingError || kantorError || mandorError || existingSpkError) {
+    errorRedirect((kavlingError ?? kantorError ?? mandorError ?? existingSpkError)?.message ?? 'Gagal membaca data relasi SPK');
   }
 
   if (!kavling || !kavling.status_aktif) errorRedirect('Kavling tidak ditemukan atau nonaktif');
   if (!kantor || !kantor.status_aktif) errorRedirect('Kantor/pelaksana tidak ditemukan atau nonaktif');
   if (!mandor || !mandor.status_aktif) errorRedirect('Mandor tidak ditemukan atau nonaktif');
-  if (activeSpk) errorRedirect('Kavling tersebut sudah memiliki SPK aktif');
+  if (existingSpk?.is_active) errorRedirect('Kavling tersebut sudah memiliki SPK aktif');
+  if (existingSpk && existingSpk.status_spk !== 'DRAFT') errorRedirect(`Kavling tersebut sudah memiliki SPK dengan status ${existingSpk.status_spk}. Satu kavling hanya boleh memiliki satu SPK.`);
   if (mandor.id_kantor !== idKantor) errorRedirect('Mandor harus berasal dari kantor pelaksana yang dipilih');
   if (!(SPK_READY_STATUSES as readonly string[]).includes(kavling.status_kavling)) {
     errorRedirect(`Kavling berstatus ${kavling.status_kavling} tidak dapat dibuatkan SPK baru`);
@@ -79,6 +80,54 @@ export async function createSpk(formData: FormData) {
   const totalBobot = config.reduce((total, row) => total + row.bobot_final, 0);
   if (Math.abs(totalBobot - 1) > 0.00001) {
     errorRedirect(`Total bobot harus 100%. Saat ini ${(totalBobot * 100).toFixed(2)}%`);
+  }
+
+  if (existingSpk) {
+    const { error: deleteConfigError } = await supabase
+      .from('spk_progress_config')
+      .delete()
+      .eq('id_spk', existingSpk.id_spk);
+
+    if (deleteConfigError) errorRedirect(deleteConfigError.message);
+
+    const { error: configError } = await supabase.from('spk_progress_config').insert(
+      config.map((row) => ({ id_spk: existingSpk.id_spk, id_kategori: row.id_kategori, bobot_final: row.bobot_final })),
+    );
+
+    if (configError) errorRedirect(configError.message);
+
+    const { error: updateError } = await supabase
+      .from('spk')
+      .update({
+        tgl_spk: tglSpk,
+        id_tipe: kavling.id_tipe,
+        jenis_bobot: jenisBobot,
+        id_kantor: idKantor,
+        id_mandor: idMandor,
+        status_spk: 'AKTIF',
+        tgl_target_selesai: tglTargetSelesai,
+        is_active: true,
+      })
+      .eq('id_spk', existingSpk.id_spk)
+      .eq('status_spk', 'DRAFT')
+      .eq('is_active', false);
+
+    if (updateError) errorRedirect(updateError.message);
+
+    const { error: kavlingUpdateError } = await supabase
+      .from('master_kavling')
+      .update({ status_kavling: 'BUILDING' })
+      .eq('id_kavling', idKavling)
+      .eq('status_aktif', true);
+
+    if (kavlingUpdateError) errorRedirect(kavlingUpdateError.message);
+
+    revalidatePath('/master/spk');
+    revalidatePath('/master/kavling');
+    revalidatePath('/master/sales');
+    revalidatePath('/dashboard');
+    revalidatePath(`/master/spk/detail/${existingSpk.id_spk}`);
+    redirect('/master/spk?success=SPK%20DRAFT%20berhasil%20diperbarui%20dan%20diaktifkan');
   }
 
   const { data: spk, error: spkError } = await supabase
