@@ -41,7 +41,8 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
   const active=sales.filter(r=>r.status_aktif);
   const count=(s:string)=>active.filter(r=>r.status_sales===s).length;
   const activeSalesKavlings=new Set(active.map(r=>r.id_kavling));
-  const saleable=kavlings.filter(r=>['AVAILABLE','BUILDING','READY_STOCK'].includes(r.status_kavling)&&!activeSalesKavlings.has(r.id_kavling));
+  const akadSalesKavlings=new Set(sales.filter(r=>r.status_sales==='AKAD').map(r=>r.id_kavling));
+  const saleable=kavlings.filter(r=>['AVAILABLE','BUILDING','READY_STOCK'].includes(r.status_kavling)&&!activeSalesKavlings.has(r.id_kavling)&&!akadSalesKavlings.has(r.id_kavling));
   const error=params.error??kavlingRes.error?.message??tipeRes.error?.message??bankRes.error?.message??notarisRes.error?.message??salesRes.error?.message??priceRes.error?.message;
 
   return <main className="sales-page">
