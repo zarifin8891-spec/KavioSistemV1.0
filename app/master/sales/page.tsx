@@ -10,6 +10,7 @@ type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string; st
 type Tipe = { id_tipe: string; nama_tipe: string };
 type Bank = { id_bank: string; nama_bank: string };
 type Notaris = { id_notaris: string; nama_notaris: string };
+type SalesPrice = { id_sales: string; harga_jual_dasar: number|string|null; total_biaya_tambahan: number|string|null; total_harga: number|string|null };
 type Sales = { id_sales:string; id_kavling:string; nama_konsumen:string; alamat_konsumen:string|null; hp_konsumen:string|null; status_sales:string; jenis_pembayaran:string; id_bank:string|null; id_notaris:string|null; harga_jual:number|string|null; tgl_booking:string|null; target_akad:string|null; tgl_akad:string|null; status_aktif:boolean; created_at:string };
 
 export default async function SalesPage({ searchParams }: { searchParams: SearchParams }) {
@@ -18,12 +19,13 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
   const { data:{user} } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const [kavlingRes, tipeRes, bankRes, notarisRes, salesRes] = await Promise.all([
+  const [kavlingRes, tipeRes, bankRes, notarisRes, salesRes, priceRes] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling,id_tipe,status_kavling,status_aktif,harga_jual').eq('status_aktif',true).order('id_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe').eq('status_aktif',true).order('nama_tipe'),
     supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).order('nama_bank'),
     supabase.from('master_notaris').select('id_notaris,nama_notaris').eq('status_aktif',true).order('nama_notaris'),
     supabase.from('sales').select('id_sales,id_kavling,nama_konsumen,alamat_konsumen,hp_konsumen,status_sales,jenis_pembayaran,id_bank,id_notaris,harga_jual,tgl_booking,target_akad,tgl_akad,status_aktif,created_at').order('created_at',{ascending:false}),
+    supabase.from('v_sales_harga').select('id_sales,harga_jual_dasar,total_biaya_tambahan,total_harga'),
   ]);
 
   const kavlings=(kavlingRes.data??[]) as Kavling[];
@@ -31,13 +33,15 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
   const banks=(bankRes.data??[]) as Bank[];
   const notaries=(notarisRes.data??[]) as Notaris[];
   const sales=(salesRes.data??[]) as Sales[];
+  const salesPrices=(priceRes.data??[]) as SalesPrice[];
+  const priceMap=new Map(salesPrices.map((row)=>[row.id_sales,row]));
   const typeMap=new Map(types.map(r=>[r.id_tipe,r.nama_tipe]));
   const bankMap=new Map(banks.map(r=>[r.id_bank,r.nama_bank]));
   const active=sales.filter(r=>r.status_aktif);
   const count=(s:string)=>active.filter(r=>r.status_sales===s).length;
   const activeSalesKavlings=new Set(active.map(r=>r.id_kavling));
   const saleable=kavlings.filter(r=>['AVAILABLE','BUILDING','READY_STOCK'].includes(r.status_kavling)&&!activeSalesKavlings.has(r.id_kavling));
-  const error=params.error??kavlingRes.error?.message??tipeRes.error?.message??bankRes.error?.message??notarisRes.error?.message??salesRes.error?.message;
+  const error=params.error??kavlingRes.error?.message??tipeRes.error?.message??bankRes.error?.message??notarisRes.error?.message??salesRes.error?.message??priceRes.error?.message;
 
   return <main className="sales-page">
     <section className="sales-content">
@@ -66,7 +70,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
 
         <div className="kavio-table-wrap">
           <table className="kavio-table sales-table">
-            <thead><tr><th>NO</th><th>TANGGAL</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>HP</th><th>TIPE</th><th>HARGA</th><th>JENIS BAYAR</th><th>BANK</th><th>STATUS</th><th>AKSI</th></tr></thead>
+            <thead><tr><th>NO</th><th>TANGGAL</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>HP</th><th>TIPE</th><th>HARGA DASAR</th><th>BIAYA</th><th>TOTAL HARGA</th><th>JENIS BAYAR</th><th>BANK</th><th>STATUS</th><th>AKSI</th></tr></thead>
             <tbody>{sales.map((row,index)=>{const kavling=kavlings.find(item=>item.id_kavling===row.id_kavling);return <tr key={row.id_sales}>
               <td className="sales-center">{index+1}</td>
               <td>{row.tgl_booking ? formatKavioDate(row.tgl_booking) : '—'}</td>
@@ -74,12 +78,14 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
               <td className="sales-highlight">{row.nama_konsumen}</td>
               <td>{row.hp_konsumen??'—'}</td>
               <td>{typeMap.get(kavling?.id_tipe??'')??'—'}</td>
-              <td>{formatCurrency(row.harga_jual)}</td>
+              <td>{formatCurrency(priceMap.get(row.id_sales)?.harga_jual_dasar ?? row.harga_jual)}</td>
+              <td>{formatCurrency(priceMap.get(row.id_sales)?.total_biaya_tambahan ?? 0)}</td>
+              <td>{formatCurrency(priceMap.get(row.id_sales)?.total_harga ?? row.harga_jual)}</td>
               <td>{row.jenis_pembayaran??'—'}</td>
               <td>{row.jenis_pembayaran==='KPR'?(bankMap.get(row.id_bank??'')??'—'):'—'}</td>
               <td><span className={`sales-status-badge ${row.status_sales.toLowerCase()}`}>{statusLabel(row.status_sales)}</span></td>
               <td><div className="sales-actions">{row.status_aktif?<><Link href={`/master/sales/detail?id=${row.id_sales}`} className="kavio-button secondary">DETAIL</Link><form action={deactivateSales}><input type="hidden" name="id_sales" value={row.id_sales}/><button type="submit" className="kavio-button secondary">TUTUP</button></form></>:<span>—</span>}</div></td>
-            </tr>})}{!sales.length&&<tr><td colSpan={11} className="kavio-empty">BELUM ADA DATA SALES.</td></tr>}</tbody>
+            </tr>})}{!sales.length&&<tr><td colSpan={13} className="kavio-empty">BELUM ADA DATA SALES.</td></tr>}</tbody>
           </table>
         </div>
         <div className="sales-table-foot"><span>MENAMPILKAN {sales.length} DATA</span><span>SALES AKTIF: {active.length}</span></div>
