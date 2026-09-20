@@ -407,3 +407,26 @@ select option:hover {
 .kavio-content table.kavio-table thead th,
 .kavio-content table.simple-table thead th,
 .kavio-content table.sales-table thead th { background:#102E4D !important; color:var(--kavio-champagne) !important; }
+
+
+
+/* KAVIO shared edit/cost controls */
+.kavio-inline-actions{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.kavling-edit-panel{margin-top:10px}
+.kavling-edit-panel .kavio-panel-head{align-items:center}
+.sales-cost-panel{margin-top:10px}
+.sales-costs-block{grid-column:1 / -1;padding:12px 14px;border:1px solid rgba(255,255,255,.08);background:rgba(13,29,48,.42);border-radius:8px}
+.sales-costs-title{font-size:12px;font-weight:700;letter-spacing:.8px;margin-bottom:8px}
+.sales-costs-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.sales-costs-note{margin-top:8px;font-size:11px;color:var(--kavio-text-muted,#9daabd)}
+.sales-cost-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.sales-cost-summary>div{display:flex;flex-direction:column;gap:3px;padding:9px 10px;border:1px solid rgba(255,255,255,.08);background:rgba(17,39,63,.5);border-radius:6px}
+.sales-cost-summary span{font-size:10px;letter-spacing:.7px;color:var(--kavio-text-muted,#9daabd)}
+.sales-cost-summary strong{font-size:14px}
+@media (max-width:1100px){
+  .sales-costs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  .sales-cost-summary{grid-template-columns:1fr}
+  .sales-costs-grid{grid-template-columns:1fr}
+}
