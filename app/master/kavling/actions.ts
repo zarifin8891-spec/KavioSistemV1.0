@@ -87,29 +87,21 @@ export async function updateKavling(formData: FormData) {
   if (luasTanahStandar < 0 || luasTanahReal < luasTanahStandar) errorRedirect('Luas tanah real harus lebih besar atau sama dengan luas tanah standar');
   if (hargaStandar < 0 || hargaTanahMeter < 0) errorRedirect('Harga tidak boleh negatif');
 
-  const [{ data: kavling, error: kavlingError }, { data: tipe, error: tipeError }, { data: activeSales, error: salesError }, { data: activeSpk, error: spkError }, { data: anySales, error: anySalesError }, { data: anySpk, error: anySpkError }] = await Promise.all([
+  const [{ data: kavling, error: kavlingError }, { data: tipe, error: tipeError }, { data: anySales, error: anySalesError }, { data: anySpk, error: anySpkError }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling,id_tipe,status_aktif').eq('id_kavling', idKavling).maybeSingle(),
     supabase.from('master_tipe_rumah').select('id_tipe,status_aktif').eq('id_tipe', idTipe).maybeSingle(),
-    supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('status_aktif', true).limit(1),
-    supabase.from('spk').select('id_spk').eq('id_kavling', idKavling).eq('is_active', true).limit(1),
     supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).limit(1),
     supabase.from('spk').select('id_spk').eq('id_kavling', idKavling).limit(1),
   ]);
 
-  if (kavlingError || tipeError || salesError || spkError || anySalesError || anySpkError) {
-    errorRedirect((kavlingError ?? tipeError ?? salesError ?? spkError ?? anySalesError ?? anySpkError)?.message ?? 'Gagal membaca relasi kavling');
+  if (kavlingError || tipeError || anySalesError || anySpkError) {
+    errorRedirect((kavlingError ?? tipeError ?? anySalesError ?? anySpkError)?.message ?? 'Gagal membaca relasi kavling');
   }
   if (!kavling) errorRedirect('Kavling tidak ditemukan');
   if (!kavling.status_aktif) errorRedirect('Kavling nonaktif tidak dapat diedit');
   if (!tipe || !tipe.status_aktif) errorRedirect('Tipe rumah tidak ditemukan atau nonaktif');
   if (kavling.id_tipe !== idTipe && ((anySales ?? []).length > 0 || (anySpk ?? []).length > 0)) {
     errorRedirect('Tipe rumah tidak dapat diubah karena kavling sudah memiliki histori Sales atau SPK');
-  }
-  if ((activeSales ?? []).length > 0 && formData.get('luas_tanah_standar') == null) {
-    errorRedirect('Data kavling tidak lengkap');
-  }
-  if ((activeSpk ?? []).length > 0 && formData.get('id_tipe') == null) {
-    errorRedirect('Data kavling tidak lengkap');
   }
 
   const { error } = await supabase.from('master_kavling').update({
