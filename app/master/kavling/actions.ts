@@ -11,7 +11,7 @@ function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
 }
 
-function errorRedirect(message: string) {
+function errorRedirect(message: string): never {
   redirect(`/master/kavling?error=${encodeURIComponent(message)}`);
 }
 
