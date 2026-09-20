@@ -54,6 +54,17 @@ export default function SalesCreatePanel({
             <label className="kavio-field"><span>BANK KPR {isKpr ? <em className="sales-required">*</em> : null}</span><select name="id_bank" required={isKpr} defaultValue=""><option value="">{isKpr ? 'PILIH BANK KPR' : 'TIDAK DIISI UNTUK CASH'}</option>{banks.map((row) => <option key={row.id_bank} value={row.id_bank}>{row.nama_bank}</option>)}</select></label>
             <label className="kavio-field"><span>HARGA JUAL DASAR</span><input value={selected ? formatRupiah(selected.harga_jual) : 'PILIH KAVLING'} readOnly /></label>
             <label className="kavio-field"><span>TARGET AKAD</span><input name="target_akad" type="date" /></label>
+
+            <div className="sales-costs-block">
+              <div className="sales-costs-title">BIAYA TAMBAHAN</div>
+              <div className="sales-costs-grid">
+                <label className="kavio-field"><span>PENAMBAHAN BANGUNAN</span><input name="biaya_penambahan_bangunan" type="number" min="0" step="1000" defaultValue="0" placeholder="0" /></label>
+                <label className="kavio-field"><span>NOTARIS</span><input name="biaya_notaris" type="number" min="0" step="1000" defaultValue="0" placeholder="0" /></label>
+                <label className="kavio-field"><span>PEMILIHAN LOKASI HOOK</span><input name="biaya_hook" type="number" min="0" step="1000" defaultValue="0" placeholder="0" /></label>
+                <label className="kavio-field"><span>BIAYA LAINNYA</span><input name="biaya_lainnya" type="number" min="0" step="1000" defaultValue="0" placeholder="0" /></label>
+              </div>
+              <div className="sales-costs-note">Total biaya akan ditambahkan ke Harga Jual Dasar menjadi Total Harga Sales.</div>
+            </div>
             <div className="sales-contact-note"><span>{isKpr ? 'BANK KPR WAJIB DIISI.' : 'PEMBAYARAN CASH TIDAK MEMERLUKAN BANK.'}</span></div>
 
             <div className="kavio-actions"><button type="submit" className="kavio-button" disabled={!kavlings.length}>SIMPAN SALES</button></div>
