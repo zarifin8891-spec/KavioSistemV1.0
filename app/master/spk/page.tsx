@@ -54,7 +54,7 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
       {params.success && <div className="kavio-alert success">{params.success}</div>}
 
       <div className="spk-stats">
-        <div className="spk-stat"><span>SPK AKTIF</span><strong>{aktif}</strong><small>Pekerjaan berjalan</small></div>
+        <div className="kavio-kpi spk-stat"><span className="kavio-kpi-label">SPK AKTIF</span><strong className="kavio-kpi-value">{aktif}</strong><small className="kavio-kpi-note">Pekerjaan berjalan</small></div>
         <div className="spk-stat"><span>DRAFT</span><strong>{draft}</strong><small>Menunggu aktivasi</small></div>
         <div className="spk-stat"><span>SELESAI</span><strong>{selesai}</strong><small>Riwayat pekerjaan</small></div>
         <div className="spk-stat"><span>SIAP SPK</span><strong>{kavlingRows.length}</strong><small>Kavling tersedia</small></div>
