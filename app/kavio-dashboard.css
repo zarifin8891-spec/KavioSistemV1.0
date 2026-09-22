@@ -321,3 +321,142 @@
   .kavio-dashboard-list-value { grid-column: 2; text-align: left; }
   .kavio-dashboard-chart-row { grid-template-columns: 90px minmax(0,1fr) 32px; }
 }
+
+
+/* Dashboard density refinement */
+.kavio-dashboard {
+  gap:10px;
+}
+.kavio-dashboard-kpi-grid {
+  gap:9px;
+}
+.kavio-dashboard-kpi {
+  min-height:92px;
+  height:92px;
+  padding:11px 14px 10px 42px;
+  border-radius:11px;
+}
+.kavio-dashboard-kpi-icon {
+  left:11px;
+  top:12px;
+  width:21px;
+  height:21px;
+  font-size:17px;
+}
+.kavio-dashboard-kpi-label {
+  font-size:8px;
+}
+.kavio-dashboard-kpi-value {
+  margin-top:4px;
+  font-size:24px;
+}
+.kavio-dashboard-kpi-note {
+  margin-top:5px;
+  font-size:8px;
+  line-height:1.2;
+}
+.kavio-dashboard-health {
+  grid-template-columns:1.2fr repeat(3,1fr);
+  border-radius:12px;
+}
+.kavio-dashboard-health-main,
+.kavio-dashboard-health-segment {
+  min-height:76px;
+}
+.kavio-dashboard-health-main {
+  padding:11px 14px;
+}
+.kavio-dashboard-health-title {
+  margin-top:2px;
+  font-size:18px;
+}
+.kavio-dashboard-health-meta {
+  margin-top:3px;
+  font-size:8px;
+  line-height:1.25;
+}
+.kavio-dashboard-health-segment {
+  padding:11px 13px;
+}
+.kavio-dashboard-health-track {
+  height:6px;
+  margin-top:7px;
+}
+.kavio-dashboard-health-segment small {
+  margin-top:5px;
+  font-size:8px;
+}
+.kavio-dashboard-grid-2 {
+  gap:10px;
+}
+.kavio-dashboard-panel-head {
+  padding:9px 12px;
+}
+.kavio-dashboard-panel-title {
+  font-size:11px;
+}
+.kavio-dashboard-panel-note {
+  margin-top:2px;
+  font-size:8px;
+}
+.kavio-dashboard-panel-body {
+  padding:8px 12px 10px;
+}
+.kavio-dashboard-list {
+  gap:2px;
+}
+.kavio-dashboard-list-item {
+  grid-template-columns:54px minmax(0,1fr) auto;
+  gap:7px;
+  padding:6px 0;
+}
+.kavio-dashboard-list-main a {
+  font-size:10px;
+}
+.kavio-dashboard-list-main small {
+  margin-top:1px;
+  font-size:8px;
+  line-height:1.2;
+}
+.kavio-dashboard-list-value {
+  font-size:9px;
+}
+.kavio-dashboard-priority {
+  min-width:54px;
+  padding:4px 6px;
+  font-size:7px;
+}
+.kavio-dashboard .kavio-table th {
+  height:28px !important;
+  padding:4px 7px !important;
+  font-size:7.5px !important;
+}
+.kavio-dashboard .kavio-table td {
+  height:29px !important;
+  min-height:29px !important;
+  padding:3px 7px !important;
+  font-size:9px !important;
+  line-height:1.1 !important;
+}
+.kavio-dashboard-status {
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  white-space:nowrap;
+}
+.kavio-dashboard-status > .kavio-badge {
+  min-height:20px !important;
+  height:20px;
+  padding:2px 6px !important;
+  font-size:7px !important;
+}
+.kavio-dashboard-status .kavio-dashboard-mini {
+  display:inline-flex;
+  flex-wrap:nowrap;
+  gap:0;
+}
+.kavio-dashboard-status .kavio-dashboard-mini span {
+  padding:3px 6px;
+  font-size:7px;
+  white-space:nowrap;
+}
