@@ -539,3 +539,38 @@
 .kavio-dashboard-grid-2 .kavio-dashboard-list-main small {
   text-transform: uppercase !important;
 }
+
+
+/* Dashboard KPI & Project Health typography scale — user-approved sizing. */
+.kavio-dashboard-kpi-label {
+  font-size:13px !important;
+}
+.kavio-dashboard-kpi-value {
+  font-size:28px !important;
+}
+.kavio-dashboard-kpi-note {
+  font-size:12px !important;
+}
+.kavio-dashboard-kpi-icon {
+  font-size:20px !important;
+  width:24px;
+  height:24px;
+}
+.kavio-dashboard-health-main > .kavio-panel-note {
+  font-size:13px !important;
+}
+.kavio-dashboard-health-title {
+  font-size:22px !important;
+}
+.kavio-dashboard-health-meta {
+  font-size:10px !important;
+}
+.kavio-dashboard-health-segment-top {
+  font-size:13px !important;
+}
+.kavio-dashboard-health-segment-top strong {
+  font-size:13px !important;
+}
+.kavio-dashboard-health-segment small {
+  font-size:10px !important;
+}
