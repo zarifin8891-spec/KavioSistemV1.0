@@ -1074,3 +1074,66 @@ button.kavio-button,
 @media (max-width:600px) {
   .kavio-kpi-grid { grid-template-columns:1fr; }
 }
+
+
+/* All KPI instances share the Dashboard reference card; grid count stays module-specific. */
+.sales-summary-grid {
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  gap:9px !important;
+}
+.spk-stats {
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:9px !important;
+}
+.progress-summary {
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:9px !important;
+}
+
+/* KPI cards without an icon keep the same visual shell without icon-offset padding. */
+.sales-summary-card,
+.spk-stat,
+.progress-summary-card {
+  padding:11px 14px 10px !important;
+}
+.sales-summary-card::before,
+.spk-stat::before,
+.progress-summary-card::before {
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:4px;
+  background:linear-gradient(180deg,var(--kavio-champagne),var(--kavio-gold-dark));
+}
+.spk-stat > .kavio-kpi-label,
+.progress-summary-card > .kavio-kpi-label {
+  display:block;
+}
+.spk-stat > .kavio-kpi-value,
+.progress-summary-card > .kavio-kpi-value {
+  display:block;
+  margin-top:4px !important;
+}
+.spk-stat > .kavio-kpi-note {
+  display:block;
+  margin-top:5px !important;
+}
+.sales-summary-card > .kavio-kpi-value {
+  margin-top:4px !important;
+}
+@media (max-width:1100px) {
+  .sales-summary-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+  .progress-summary { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+}
+@media (max-width:900px) {
+  .spk-stats { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  .sales-summary-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+}
+@media (max-width:650px) {
+  .sales-summary-grid,
+  .spk-stats,
+  .progress-summary { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+}
