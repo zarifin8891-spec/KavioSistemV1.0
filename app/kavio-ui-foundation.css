@@ -675,3 +675,29 @@ select option:hover {
 @media (max-width:650px) {
   .sales-summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
 }
+
+
+/* Master Data landing: compact card proportion approved. */
+.master-hub {
+  gap:12px;
+}
+.master-card-grid {
+  gap:11px !important;
+}
+.master-card {
+  min-height:120px !important;
+  height:120px !important;
+  padding:17px 16px 15px !important;
+}
+.master-card-icon {
+  top:14px !important;
+  left:14px !important;
+}
+.master-card-title {
+  font-size:16px !important;
+  line-height:1.1 !important;
+}
+.master-card-note {
+  font-size:10px !important;
+  line-height:1.25 !important;
+}
