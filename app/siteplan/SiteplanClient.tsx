@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
-import { SITEPLAN_IMAGE } from './siteplan-image';
 import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
 import { SITEPLAN_MAP, SITEPLAN_VIEWBOX } from './siteplan-map';
@@ -212,7 +211,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
               <button type="button" className="kavio-button secondary" onClick={() => setZoom(1)}>RESET</button>
             </div>
             <div className="siteplan-stage" style={{ width: `${zoom * 100}%`, aspectRatio: `${SITEPLAN_VIEWBOX.width} / ${SITEPLAN_VIEWBOX.height}` }}>
-            <img src={SITEPLAN_IMAGE} alt="Siteplan Cibodas" className="siteplan-image" />
+            <img src="/siteplan/siteplan-clean-source.png" alt="Siteplan terbaru" className="siteplan-image" />
             <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''}`} viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
               {rows.map((row) => {
                 const map = activeMap[row.id_kavling];
