@@ -112,5 +112,5 @@ function getLatestPeriod(rows: History[]) {
 }
 
 function SummaryCard({ label, value, tone = 'normal' }: { label: string; value: string; tone?: 'danger' | 'warning' | 'normal' }) {
-  return <div className={`progress-summary-card progress-tone-${tone}`}><div className="progress-summary-label">{label}</div><div className="progress-summary-value">{value}</div></div>;
+  return <div className={`kavio-kpi progress-summary-card progress-tone-${tone}`}><div className="kavio-kpi-label progress-summary-label">{label}</div><div className="kavio-kpi-value progress-summary-value">{value}</div></div>;
 }
