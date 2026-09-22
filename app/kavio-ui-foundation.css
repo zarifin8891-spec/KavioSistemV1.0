@@ -701,3 +701,74 @@ select option:hover {
   font-size:10px !important;
   line-height:1.25 !important;
 }
+
+
+/* FINAL KAVIO TYPOGRAPHY FOUNDATION
+   Shared component typography. Intentional special layouts (for example Dashboard KPI)
+   keep their explicitly approved sizes in their more-specific component rules. */
+.kavio-panel-title,
+.kavio-dashboard-panel-title,
+.progress-section-head,
+.spk-detail-section-title {
+  font-size:13px !important;
+}
+.kavio-panel-note,
+.kavio-dashboard-panel-note {
+  font-size:9px !important;
+}
+.kavio-field,
+.kavio-create-panel .kavio-field > span,
+.sales-create-grid .kavio-field,
+.kvio-spk-form .kavio-field {
+  font-size:9px !important;
+}
+.kavio-field input,
+.kavio-field select,
+.kavio-field textarea,
+.kavio-create-panel .kavio-field input,
+.kavio-create-panel .kavio-field select,
+.kavio-create-panel .kavio-field textarea {
+  font-size:11px !important;
+}
+.kavio-button,
+button.kavio-button,
+.kavio-command-button {
+  font-size:10px !important;
+}
+.kavio-table,
+.simple-table,
+.sales-table {
+  font-size:11px !important;
+}
+.kavio-table th,
+.simple-table th,
+.sales-table th {
+  font-size:10px !important;
+}
+.kavio-table td,
+.simple-table td,
+.sales-table td {
+  font-size:11px !important;
+}
+.kavio-badge,
+.sales-status-badge,
+.spk-badge,
+.kavio-dashboard-priority {
+  font-size:9px !important;
+}
+.sales-table td .kavio-button,
+.sales-table td .kavio-command-button,
+.sales-table td button,
+.sales-table td a.kavio-button,
+.sales-table td a.kavio-command-button {
+  font-size:9px !important;
+}
+.spk-actions .kavio-button,
+.spk-actions .kavio-command-button,
+.spk-actions button,
+.spk-actions a {
+  font-size:9px !important;
+}
+.kavling-page .kavio-table td .kavio-button {
+  font-size:9px !important;
+}
