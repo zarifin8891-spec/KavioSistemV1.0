@@ -509,3 +509,27 @@
     white-space:normal !important;
   }
 }
+
+
+/* Dashboard attention/action alignment: give the status badge room and a clearer gap before kavling. */
+.kavio-dashboard-grid-2 .kavio-dashboard-list-item {
+  grid-template-columns:72px minmax(0,1fr) auto;
+  gap:10px;
+}
+.kavio-dashboard-grid-2 .kavio-dashboard-priority {
+  min-width:72px !important;
+  width:72px;
+  padding:4px 5px !important;
+  white-space:nowrap !important;
+}
+.kavio-dashboard-grid-2 .kavio-dashboard-list-main {
+  gap:10px !important;
+}
+.kavio-dashboard-grid-2 .kavio-dashboard-list-main a {
+  min-width:46px;
+}
+@media (max-width:900px) {
+  .kavio-dashboard-grid-2 .kavio-dashboard-list-item {
+    grid-template-columns:72px minmax(0,1fr) auto;
+  }
+}
