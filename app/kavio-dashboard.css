@@ -574,3 +574,90 @@
 .kavio-dashboard-health-segment small {
   font-size:10px !important;
 }
+
+
+/* Dashboard SPK Monitoring typography and density — user-approved sizing. */
+.kavio-dashboard > .kavio-dashboard-panel .kavio-dashboard-panel-title {
+  font-size:13px !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-dashboard-panel-note {
+  font-size:10px !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table {
+  table-layout:fixed !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table th {
+  font-size:10px !important;
+  height:30px !important;
+  padding:4px 6px !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td {
+  font-size:11px !important;
+  height:32px !important;
+  min-height:32px !important;
+  padding:4px 6px !important;
+  line-height:1.1 !important;
+  vertical-align:middle !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-dashboard-priority {
+  min-width:72px !important;
+  width:auto !important;
+  padding:4px 7px !important;
+  font-size:9px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-badge {
+  min-height:22px !important;
+  height:22px !important;
+  padding:3px 7px !important;
+  font-size:9px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-dashboard-mini {
+  display:inline-flex !important;
+  flex-wrap:nowrap !important;
+  gap:0 !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-dashboard-mini span {
+  padding:3px 7px !important;
+  font-size:9px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+}
+/* Keep progress percentage and bar on the same line. */
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td:nth-child(3) {
+  white-space:nowrap !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td:nth-child(3) > strong {
+  display:inline-block !important;
+  vertical-align:middle !important;
+  min-width:44px;
+  margin-right:7px;
+  font-size:11px !important;
+  line-height:1 !important;
+  font-weight:400 !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td:nth-child(3) .kavio-dashboard-chart-track {
+  display:inline-block !important;
+  width:calc(100% - 55px) !important;
+  max-width:none !important;
+  height:8px !important;
+  margin:0 !important;
+  vertical-align:middle !important;
+}
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table th:nth-child(1),
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td:nth-child(1) { width:13%; }
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table th:nth-child(2),
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td:nth-child(2) { width:10%; }
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table th:nth-child(3),
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td:nth-child(3) { width:23%; }
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table th:nth-child(4),
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td:nth-child(4) { width:10%; }
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table th:nth-child(5),
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td:nth-child(5) { width:15%; }
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table th:nth-child(6),
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td:nth-child(6) { width:14%; }
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table th:nth-child(7),
+.kavio-dashboard > .kavio-dashboard-panel .kavio-table td:nth-child(7) { width:15%; }
