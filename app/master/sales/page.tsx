@@ -50,7 +50,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
     const matchesQuery = !filterQuery || haystack.includes(filterQuery);
     return matchesStatus && matchesTipe && matchesQuery;
   });
-  const count=(s:string)=>active.filter(r=>r.status_sales===s).length;
+  const count=(s:string)=>sales.filter(r=>r.status_sales===s).length;
   const activeSalesKavlings=new Set(active.map(r=>r.id_kavling));
   const akadSalesKavlings=new Set(sales.filter(r=>r.status_sales==='AKAD').map(r=>r.id_kavling));
   const saleable=kavlings.filter(r=>['AVAILABLE','BUILDING','READY_STOCK'].includes(r.status_kavling)&&!activeSalesKavlings.has(r.id_kavling)&&!akadSalesKavlings.has(r.id_kavling));
@@ -62,7 +62,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
       {params.success&&<div className="kavio-alert success">{params.success}</div>}
 
       <div className="sales-summary-grid">
-        <Summary label="TOTAL AKTIF" value={active.length} />
+        <Summary label="TOTAL SALES" value={sales.length} />
         <Summary label="BOOKING" value={count('BOOKING')} />
         <Summary label="UANG MUKA" value={count('DP')} />
         <Summary label="PROSES KPR" value={count('PROSES_KPR')} />
