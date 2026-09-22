@@ -444,3 +444,61 @@ select option:hover {
 .kavling-page .kavling-edit-panel .kavio-field select { background:linear-gradient(180deg,#213B59,#182F4A) !important; border-color:rgba(240,212,138,.34) !important; }
 .kavling-page .kavio-create-panel .kavio-field input,
 .kavling-page .kavio-create-panel .kavio-field select { background:linear-gradient(180deg,#213B59,#182F4A) !important; border-color:rgba(240,212,138,.34) !important; }
+
+
+/* SPK Control Sheet: keep progress summary and history side-by-side on desktop. */
+.spk-detail-progress-panels {
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
+  gap:11px;
+  align-items:start;
+  margin-top:11px;
+}
+.spk-detail-progress-panels > .spk-detail-snapshot-panel,
+.spk-detail-progress-panels > .spk-detail-data-panel {
+  min-width:0;
+  margin-top:0 !important;
+  height:100%;
+}
+.spk-detail-progress-panels .kavio-table-wrap {
+  overflow-x:hidden;
+}
+.spk-detail-progress-panels .spk-detail-table {
+  min-width:0 !important;
+  width:100% !important;
+  table-layout:fixed;
+}
+.spk-detail-progress-panels .spk-detail-table th,
+.spk-detail-progress-panels .spk-detail-table td {
+  padding:5px 6px !important;
+}
+.spk-detail-progress-panels .spk-detail-table th {
+  font-size:7.5px !important;
+}
+.spk-detail-progress-panels .spk-detail-table td {
+  font-size:9px !important;
+}
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table th:nth-child(1),
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table td:nth-child(1) { width:7%; }
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table th:nth-child(2),
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table td:nth-child(2) { width:27%; }
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table th:nth-child(3),
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table td:nth-child(3) { width:16%; }
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table th:nth-child(4),
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table td:nth-child(4) { width:19%; }
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table th:nth-child(5),
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table td:nth-child(5) { width:15%; }
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table th:nth-child(6),
+.spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table td:nth-child(6) { width:16%; }
+.spk-detail-progress-panels > .spk-detail-data-panel .spk-detail-table th:nth-child(1),
+.spk-detail-progress-panels > .spk-detail-data-panel .spk-detail-table td:nth-child(1) { width:21%; }
+.spk-detail-progress-panels > .spk-detail-data-panel .spk-detail-table th:nth-child(2),
+.spk-detail-progress-panels > .spk-detail-data-panel .spk-detail-table td:nth-child(2) { width:24%; }
+.spk-detail-progress-panels > .spk-detail-data-panel .spk-detail-table th:nth-child(3),
+.spk-detail-progress-panels > .spk-detail-data-panel .spk-detail-table td:nth-child(3) { width:19%; }
+.spk-detail-progress-panels > .spk-detail-data-panel .spk-detail-table th:nth-child(4),
+.spk-detail-progress-panels > .spk-detail-data-panel .spk-detail-table td:nth-child(4) { width:36%; }
+
+@media (max-width:1000px) {
+  .spk-detail-progress-panels { grid-template-columns:1fr; }
+}
