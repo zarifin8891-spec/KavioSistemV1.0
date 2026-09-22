@@ -111,6 +111,6 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
   </main>;
 }
 
-function Summary({label,value}:{label:string;value:number}){return <div className="sales-summary-card"><div className="sales-summary-label">{label}</div><div className="sales-summary-value">{value}</div></div>}
+function Summary({label,value}:{label:string;value:number}){return <div className="kavio-kpi sales-summary-card"><div className="kavio-kpi-label sales-summary-label">{label}</div><div className="kavio-kpi-value sales-summary-value">{value}</div></div>}
 function formatCurrency(value:number|string|null){const n=Number(value);return Number.isFinite(n)&&n>0?new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n):'—'}
 function statusLabel(status:string){return status==='PROSES_KPR'?'PROSES KPR':status==='DP'?'UANG MUKA':status}
