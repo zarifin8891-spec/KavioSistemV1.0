@@ -1138,3 +1138,21 @@ button.kavio-button,
   .spk-stats,
   .progress-summary { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
 }
+
+/* MONITORING SPK KPI typography — same scale as Dashboard KPI. */
+.spk-stat .kavio-kpi-label,
+.spk-stat > span {
+  font-size:var(--kavio-font-kpi-label) !important;
+  line-height:1.1 !important;
+}
+.spk-stat .kavio-kpi-value,
+.spk-stat > strong {
+  font-size:var(--kavio-font-kpi-value) !important;
+  line-height:1 !important;
+  font-weight:700 !important;
+}
+.spk-stat .kavio-kpi-note,
+.spk-stat > small {
+  font-size:var(--kavio-font-kpi-note) !important;
+  line-height:1.2 !important;
+}
