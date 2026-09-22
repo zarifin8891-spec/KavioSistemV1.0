@@ -55,9 +55,9 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
 
       <div className="spk-stats">
         <div className="kavio-kpi spk-stat"><span className="kavio-kpi-label">SPK AKTIF</span><strong className="kavio-kpi-value">{aktif}</strong><small className="kavio-kpi-note">Pekerjaan berjalan</small></div>
-        <div className="spk-stat"><span>DRAFT</span><strong>{draft}</strong><small>Menunggu aktivasi</small></div>
-        <div className="spk-stat"><span>SELESAI</span><strong>{selesai}</strong><small>Riwayat pekerjaan</small></div>
-        <div className="spk-stat"><span>SIAP SPK</span><strong>{kavlingRows.length}</strong><small>Kavling tersedia</small></div>
+        <div className="spk-stat"><span className="kavio-kpi-label">DRAFT</span><strong className="kavio-kpi-value">{draft}</strong><small className="kavio-kpi-note">Menunggu aktivasi</small></div>
+        <div className="spk-stat"><span className="kavio-kpi-label">SELESAI</span><strong className="kavio-kpi-value">{selesai}</strong><small className="kavio-kpi-note">Riwayat pekerjaan</small></div>
+        <div className="spk-stat"><span className="kavio-kpi-label">SIAP SPK</span><strong className="kavio-kpi-value">{kavlingRows.length}</strong><small className="kavio-kpi-note">Kavling tersedia</small></div>
       </div>
 
       <section className="kavio-panel spk-list-card">
