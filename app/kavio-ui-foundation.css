@@ -655,12 +655,21 @@ select option:hover {
 }
 
 
-/* Sales Management KPI: six compact status cards including BATAL. */
+/* Sales Management KPI: six equal cards in one row on desktop. */
 .sales-summary-grid {
+  display:grid !important;
   grid-template-columns:repeat(6,minmax(0,1fr)) !important;
-  gap:7px !important;
+  width:100% !important;
+  gap:8px !important;
+  align-items:stretch !important;
 }
-@media (max-width:1100px) {
+.sales-summary-card {
+  min-width:0 !important;
+  width:100% !important;
+  min-height:58px !important;
+  height:58px !important;
+}
+@media (max-width:900px) {
   .sales-summary-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
 }
 @media (max-width:650px) {
