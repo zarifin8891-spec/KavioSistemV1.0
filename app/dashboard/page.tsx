@@ -185,7 +185,7 @@ export default async function DashboardPage() {
         <DashboardPanel title="PIPELINE SALES" note="Seluruh data Sales berdasarkan status transaksi.">
           <div className="kavio-dashboard-chart">
             {salesChart.map(([label, value]) => (
-              <ChartRow key={label} label={label} value={value} max={Math.max(1, activeSales.length)} />
+              <ChartRow key={label} label={label} value={value} max={Math.max(1, salesRows.length)} />
             ))}
           </div>
         </DashboardPanel>
