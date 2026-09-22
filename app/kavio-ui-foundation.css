@@ -502,3 +502,54 @@ select option:hover {
 @media (max-width:1000px) {
   .spk-detail-progress-panels { grid-template-columns:1fr; }
 }
+
+
+/* Progress input form: four controls on one compact row with actions kept in-panel. */
+.progress-create-panel { width:100%; }
+.progress-create-head { padding:10px 12px !important; min-height:58px; }
+.progress-create-head .kavio-panel-note { font-size:9px; }
+.progress-form-close {
+  min-height:30px !important;
+  height:30px !important;
+  padding:0 10px !important;
+  font-size:9px !important;
+  flex:0 0 auto;
+}
+.progress-input-form {
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:9px 10px !important;
+  padding:11px 12px 12px !important;
+  align-items:end !important;
+}
+.progress-input-form .kavio-field { gap:4px !important; }
+.progress-input-form .kavio-field > span { font-size:8px !important; min-height:10px !important; }
+.progress-input-form .kavio-field input,
+.progress-input-form .kavio-field select {
+  min-height:34px !important;
+  height:34px !important;
+  padding:6px 9px !important;
+  font-size:10px !important;
+}
+.progress-input-form .kavio-form-note {
+  margin:0 !important;
+  padding:7px 9px !important;
+  font-size:8px !important;
+}
+.progress-input-form .kavio-actions {
+  padding-top:0 !important;
+  gap:6px !important;
+}
+.progress-submit-button {
+  min-height:32px !important;
+  height:32px !important;
+  padding:0 11px !important;
+  font-size:9px !important;
+}
+@media (max-width:900px) {
+  .progress-input-form { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+}
+@media (max-width:650px) {
+  .progress-input-form { grid-template-columns:1fr !important; }
+  .progress-create-head { align-items:flex-start; }
+  .progress-form-close { align-self:flex-start; }
+}
