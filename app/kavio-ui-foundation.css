@@ -1156,3 +1156,44 @@ button.kavio-button,
   font-size:var(--kavio-font-kpi-note) !important;
   line-height:1.2 !important;
 }
+
+/* Sidebar navigation — clean menu without section labels. */
+.kavio-nav {
+  gap:0 !important;
+  margin-top:12px !important;
+}
+.kavio-nav-section {
+  gap:2px !important;
+}
+.kavio-nav-section + .kavio-nav-section {
+  padding-top:10px !important;
+  border-top:1px solid rgba(216,180,90,.16) !important;
+}
+.kavio-nav-section-title {
+  display:none !important;
+}
+.kavio-nav-item {
+  min-height:36px !important;
+  height:36px !important;
+  padding:8px 10px !important;
+}
+.kavio-nav-logout {
+  margin-top:8px !important;
+}
+@media (max-width:900px) {
+  .kavio-nav {
+    margin-top:24px !important;
+  }
+  .kavio-nav-section + .kavio-nav-section {
+    padding-top:0 !important;
+    border-top:0 !important;
+  }
+  .kavio-nav-item {
+    min-height:18px !important;
+    height:18px !important;
+    padding:0 !important;
+  }
+  .kavio-nav-logout {
+    margin-top:10px !important;
+  }
+}
