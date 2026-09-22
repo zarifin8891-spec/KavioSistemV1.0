@@ -78,7 +78,6 @@ export default function KavioShell({ children, active }: { children: React.React
         <nav className="kavio-nav" aria-label="Navigasi KAVIO">
           {sections.map((section) => (
             <div key={section.title} className="kavio-nav-section">
-              <div className="kavio-nav-section-title">{section.title}</div>
               {section.items.map(([label, href]) => (
                 href === '#' ? (
                   <span key={label} className="kavio-nav-item is-disabled" aria-disabled="true">
