@@ -59,7 +59,7 @@ export default async function DashboardPage() {
   const activeKavlings = kavlingRows.filter((row) => row.status_aktif);
   const activeSales = salesRows.filter((row) => row.status_aktif);
   const countKavling = (status: string) => activeKavlings.filter((row) => row.status_kavling === status).length;
-  const countSales = (status: string) => activeSales.filter((row) => row.status_sales === status).length;
+  const countSales = (status: string) => salesRows.filter((row) => row.status_sales === status).length;
 
   const totalKavling = activeKavlings.length;
   // "TERJUAL" counts active Sales plus kavlings that have reached AKAD.
@@ -106,6 +106,7 @@ export default async function DashboardPage() {
     ['UANG MUKA', countSales('DP')],
     ['PROSES KPR', countSales('PROSES_KPR')],
     ['AKAD', countSales('AKAD')],
+    ['BATAL', countSales('BATAL')],
   ] as const;
 
   const error = decisionError?.message ?? kavlingError?.message ?? salesError?.message;
@@ -174,14 +175,14 @@ export default async function DashboardPage() {
       </section>
 
       <section className="kavio-dashboard-grid-3">
-        <DashboardPanel title="KOMPOSISI KAVLING" note="Status inventory aktif saat ini.">
+        <DashboardPanel title="KOMPOSISI KAVLING" note="Status inventory aktif saat ini; terjual dihitung terpisah pada KPI.">
           <div className="kavio-dashboard-chart">
             {statusChart.map(([label, value]) => (
               <ChartRow key={label} label={label} value={value} max={Math.max(1, totalKavling)} />
             ))}
           </div>
         </DashboardPanel>
-        <DashboardPanel title="PIPELINE SALES" note="Sales aktif berdasarkan tahap penjualan.">
+        <DashboardPanel title="PIPELINE SALES" note="Seluruh data Sales berdasarkan status transaksi.">
           <div className="kavio-dashboard-chart">
             {salesChart.map(([label, value]) => (
               <ChartRow key={label} label={label} value={value} max={Math.max(1, activeSales.length)} />
