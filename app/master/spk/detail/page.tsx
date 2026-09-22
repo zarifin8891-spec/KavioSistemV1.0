@@ -171,7 +171,5 @@ const th = { padding: '12px 14px', borderBottom: '1px solid rgba(216,180,90,.25)
 const td = { padding: '13px 14px', borderBottom: '1px solid rgba(216,180,90,.12)', color: '#F7F3E8' };
 const tdStrong = { ...td, fontWeight: 800 };
 const empty = { padding: 32, textAlign: 'center' as const, color: '#DCCB9C' };
-const snapshotBadge = { display: 'inline-flex', padding: '7px 10px', borderRadius: 999, border: '1px solid #D8B45A', background: 'rgba(216,180,90,.10)', color: '#E8CC7A', fontSize: 11, fontWeight: 900, letterSpacing: 0.4 };
-const snapshotMeta = { color: '#DCCB9C', fontSize: 11 };
 const primaryLink = { background: 'linear-gradient(180deg,#E8CC7A,#D8B45A)', color: '#0B1D3A', padding: '11px 16px', borderRadius: 10, textDecoration: 'none', fontWeight: 800, fontSize: 14 };
 const secondaryLink = { background: '#102A56', color: '#E8CC7A', border: '1px solid #B8943F', padding: '10px 15px', borderRadius: 10, textDecoration: 'none', fontWeight: 700, fontSize: 14 };
