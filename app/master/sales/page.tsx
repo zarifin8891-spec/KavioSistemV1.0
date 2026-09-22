@@ -67,6 +67,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
         <Summary label="UANG MUKA" value={count('DP')} />
         <Summary label="PROSES KPR" value={count('PROSES_KPR')} />
         <Summary label="AKAD" value={count('AKAD')} />
+        <Summary label="BATAL" value={count('BATAL')} />
       </div>
 
       <section className="kavio-panel sales-list-panel">
