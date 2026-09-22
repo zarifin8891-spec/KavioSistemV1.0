@@ -6,7 +6,7 @@ import { formatKavioDate } from '../../lib/date-format';
 import SalesCreatePanel from './SalesCreatePanel';
 import KavioConfirmAction from '../../components/KavioConfirmAction';
 
-type SearchParams = Promise<{ error?: string; success?: string }>;
+type SearchParams = Promise<{ error?: string; success?: string; status?: string; tipe?: string; q?: string }>;
 type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string; status_aktif: boolean; harga_jual: number | string };
 type Tipe = { id_tipe: string; nama_tipe: string };
 type Bank = { id_bank: string; nama_bank: string };
@@ -39,6 +39,17 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
   const typeMap=new Map(types.map(r=>[r.id_tipe,r.nama_tipe]));
   const bankMap=new Map(banks.map(r=>[r.id_bank,r.nama_bank]));
   const active=sales.filter(r=>r.status_aktif);
+  const filterStatus = params.status ?? '';
+  const filterTipe = params.tipe ?? '';
+  const filterQuery = (params.q ?? '').trim().toLowerCase();
+  const filteredSales = sales.filter((row) => {
+    const tipeName = typeMap.get(kavlings.find((item) => item.id_kavling === row.id_kavling)?.id_tipe ?? '') ?? '';
+    const matchesStatus = !filterStatus || row.status_sales === filterStatus;
+    const matchesTipe = !filterTipe || kavlings.find((item) => item.id_kavling === row.id_kavling)?.id_tipe === filterTipe;
+    const haystack = [row.nama_konsumen, row.id_kavling, row.hp_konsumen ?? '', row.status_sales, tipeName].join(' ').toLowerCase();
+    const matchesQuery = !filterQuery || haystack.includes(filterQuery);
+    return matchesStatus && matchesTipe && matchesQuery;
+  });
   const count=(s:string)=>active.filter(r=>r.status_sales===s).length;
   const activeSalesKavlings=new Set(active.map(r=>r.id_kavling));
   const akadSalesKavlings=new Set(sales.filter(r=>r.status_sales==='AKAD').map(r=>r.id_kavling));
@@ -61,19 +72,21 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
       <section className="kavio-panel sales-list-panel">
         <div className="kavio-panel-head sales-list-head">
           <div><h2 className="kavio-panel-title">DAFTAR SALES</h2><div className="kavio-panel-note">Satu kavling hanya memiliki satu Sales aktif. Detail konsumen tersedia melalui tombol DETAIL.</div></div>
-          <span className="kavio-badge">{sales.length} DATA</span>
+          <span className="kavio-badge">{filteredSales.length}{filteredSales.length !== sales.length ? ` / ${sales.length}` : ''} DATA</span>
         </div>
 
-        <div className="sales-filter-row">
-          <select aria-label="Filter status" defaultValue=""><option value="">SEMUA STATUS</option><option value="BOOKING">BOOKING</option><option value="DP">UANG MUKA</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select>
-          <select aria-label="Filter tipe" defaultValue=""><option value="">SEMUA TIPE</option>{types.map(t=><option key={t.id_tipe} value={t.id_tipe}>{t.nama_tipe}</option>)}</select>
-          <input aria-label="Cari konsumen" placeholder="CARI NAMA KONSUMEN..." />
-        </div>
+        <form method="get" className="sales-filter-row">
+          <select name="status" aria-label="Filter status" defaultValue={filterStatus}><option value="">SEMUA STATUS</option><option value="BOOKING">BOOKING</option><option value="DP">UANG MUKA</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select>
+          <select name="tipe" aria-label="Filter tipe" defaultValue={filterTipe}><option value="">SEMUA TIPE</option>{types.map(t=><option key={t.id_tipe} value={t.id_tipe}>{t.nama_tipe}</option>)}</select>
+          <input name="q" aria-label="Cari konsumen" defaultValue={params.q ?? ''} placeholder="CARI NAMA / KAVLING / HP..." />
+          <button type="submit" className="kavio-button sales-filter-submit">FILTER</button>
+          {(filterStatus || filterTipe || filterQuery) ? <Link href="/master/sales" className="kavio-button secondary sales-filter-reset">RESET</Link> : null}
+        </form>
 
         <div className="kavio-table-wrap">
           <table className="kavio-table sales-table">
             <thead><tr><th>NO</th><th>TANGGAL</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>HP</th><th>TIPE</th><th>HARGA DASAR</th><th>BIAYA</th><th>TOTAL HARGA</th><th>JENIS BAYAR</th><th>BANK</th><th>STATUS</th><th>AKSI</th></tr></thead>
-            <tbody>{sales.map((row,index)=>{const kavling=kavlings.find(item=>item.id_kavling===row.id_kavling);return <tr key={row.id_sales}>
+            <tbody>{filteredSales.map((row,index)=>{const kavling=kavlings.find(item=>item.id_kavling===row.id_kavling);return <tr key={row.id_sales}>
               <td className="sales-center">{index+1}</td>
               <td>{row.tgl_booking ? formatKavioDate(row.tgl_booking) : '—'}</td>
               <td className="sales-highlight"><Link href={`/master/sales/detail?id=${row.id_sales}`}>{row.id_kavling}</Link></td>
@@ -90,7 +103,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
             </tr>})}{!sales.length&&<tr><td colSpan={13} className="kavio-empty">BELUM ADA DATA SALES.</td></tr>}</tbody>
           </table>
         </div>
-        <div className="sales-table-foot"><span>MENAMPILKAN {sales.length} DATA</span><span>SALES AKTIF: {active.length}</span></div>
+        <div className="sales-table-foot"><span>MENAMPILKAN {filteredSales.length} DARI {sales.length} DATA</span><span>SALES AKTIF: {active.length}</span></div>
       </section>
       <SalesCreatePanel kavlings={saleable} tipeMap={types} banks={banks} notaries={notaries} />
     </section>
