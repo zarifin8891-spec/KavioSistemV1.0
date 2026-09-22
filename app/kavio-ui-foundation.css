@@ -553,3 +553,103 @@ select option:hover {
   .progress-create-head { align-items:flex-start; }
   .progress-form-close { align-self:flex-start; }
 }
+
+
+/* Sales Management compact operational layout. */
+.sales-summary-grid {
+  gap:8px !important;
+}
+.sales-summary-card {
+  min-height:58px !important;
+  padding:8px 12px !important;
+  border-radius:10px !important;
+}
+.sales-summary-label {
+  font-size:8px !important;
+  line-height:1.1 !important;
+}
+.sales-summary-value {
+  margin-top:3px !important;
+  font-size:18px !important;
+  line-height:1 !important;
+}
+.sales-filter-row {
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  flex-wrap:nowrap !important;
+  padding:9px 12px !important;
+  min-height:48px !important;
+  background:rgba(4,24,47,.46) !important;
+}
+.sales-filter-row select,
+.sales-filter-row input {
+  height:34px !important;
+  min-height:34px !important;
+  padding:6px 9px !important;
+  border:1px solid rgba(216,180,90,.30) !important;
+  border-radius:7px !important;
+  background:linear-gradient(180deg,var(--kavio-panel-3),var(--kavio-panel-2)) !important;
+  color:var(--kavio-ivory) !important;
+  font-size:10px !important;
+}
+.sales-filter-row select {
+  width:170px !important;
+  min-width:150px !important;
+}
+.sales-filter-row input {
+  flex:1 1 auto !important;
+  min-width:220px !important;
+}
+.sales-filter-submit,
+.sales-filter-reset {
+  height:30px !important;
+  min-height:30px !important;
+  padding:0 10px !important;
+  font-size:8px !important;
+  border-radius:6px !important;
+  flex:0 0 auto !important;
+}
+.sales-table th {
+  height:29px !important;
+  padding:4px 7px !important;
+  font-size:7.5px !important;
+}
+.sales-table td {
+  height:31px !important;
+  min-height:31px !important;
+  padding:3px 7px !important;
+  font-size:9.5px !important;
+  line-height:1.1 !important;
+}
+.sales-table .sales-actions {
+  gap:4px !important;
+  align-items:center !important;
+}
+.sales-table .sales-actions form {
+  display:flex !important;
+  margin:0 !important;
+}
+.sales-table .sales-actions .kavio-button {
+  min-height:24px !important;
+  height:24px !important;
+  padding:0 7px !important;
+  font-size:7.5px !important;
+  border-radius:5px !important;
+}
+.sales-table-foot {
+  padding:6px 10px !important;
+  font-size:8px !important;
+}
+@media (max-width:900px) {
+  .sales-filter-row { flex-wrap:wrap !important; }
+  .sales-filter-row select,
+  .sales-filter-row input { flex:1 1 180px !important; width:auto !important; min-width:0 !important; }
+}
+@media (max-width:650px) {
+  .sales-filter-row { flex-direction:column !important; align-items:stretch !important; }
+  .sales-filter-row select,
+  .sales-filter-row input,
+  .sales-filter-submit,
+  .sales-filter-reset { width:100% !important; flex:0 0 auto !important; }
+}
