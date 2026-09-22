@@ -115,7 +115,7 @@ export default async function DashboardPage() {
     <main className="kavio-dashboard">
       {error && <div className="kavio-alert error">{error}</div>}
 
-      <section className="kavio-dashboard-kpi-grid" aria-label="KPI KAVIO">
+      <section className="kavio-kpi-grid kavio-dashboard-kpi-grid" aria-label="KPI KAVIO">
         <DashboardKpi icon="⌗" label="TOTAL KAVLING" value={totalKavling} note="Seluruh inventory aktif" />
         <DashboardKpi icon="▣" label="TERJUAL" value={terjual} note="Sales aktif + sudah AKAD" />
         <DashboardKpi icon="⌂" label="SEDANG DIBANGUN" value={building} note="Kavling berstatus BUILDING" />
@@ -123,11 +123,11 @@ export default async function DashboardPage() {
         <DashboardKpi icon="◇" label="TERSEDIA" value={tersedia} note="Kavling AVAILABLE" />
       </section>
 
-      <section className="kavio-dashboard-health">
-        <div className="kavio-dashboard-health-main">
+      <section className="kavio-project-health kavio-dashboard-health">
+        <div className="kavio-project-health-main kavio-dashboard-health-main">
           <div className="kavio-panel-note">PROJECT HEALTH</div>
-          <div className="kavio-dashboard-health-title">{healthLabel(avgHealth)}</div>
-          <div className="kavio-dashboard-health-meta">Health Score rata-rata {avgHealth}/100 · Progress aktual rata-rata {(avgProgress * 100).toFixed(1)}%</div>
+          <div className="kavio-project-health-title kavio-dashboard-health-title">{healthLabel(avgHealth)}</div>
+          <div className="kavio-project-health-meta kavio-dashboard-health-meta">Health Score rata-rata {avgHealth}/100 · Progress aktual rata-rata {(avgProgress * 100).toFixed(1)}%</div>
         </div>
         <HealthSegment label="SEHAT" value={healthCounts.SEHAT} total={rows.length} />
         <HealthSegment label="WASPADA" value={healthCounts.WASPADA} total={rows.length} />
@@ -194,7 +194,7 @@ export default async function DashboardPage() {
       <DashboardPanel title="MONITORING SPK" note="Aktual vs rencana, ritme pekerjaan, dan kebutuhan progress harian.">
         {rows.length ? (
           <div className="kavio-table-wrap">
-            <table className="kavio-table">
+            <table className="kavio-table kavio-operational-table">
               <thead><tr><th>HEALTH</th><th>KAVLING</th><th>PROGRESS</th><th>GAP</th><th>UPDATE TERAKHIR</th><th>BUTUH / HARI</th><th>STATUS</th></tr></thead>
               <tbody>
                 {rows.map((row) => (
@@ -226,11 +226,11 @@ export default async function DashboardPage() {
 
 function DashboardKpi({ icon, label, value, note }: { icon: string; label: string; value: number; note: string }) {
   return (
-    <div className="kavio-dashboard-kpi">
-      <div className="kavio-dashboard-kpi-icon" aria-hidden="true">{icon}</div>
-      <div className="kavio-dashboard-kpi-label">{label}</div>
-      <div className="kavio-dashboard-kpi-value">{value}</div>
-      <div className="kavio-dashboard-kpi-note">{note}</div>
+    <div className="kavio-kpi kavio-dashboard-kpi">
+      <div className="kavio-kpi-icon kavio-dashboard-kpi-icon" aria-hidden="true">{icon}</div>
+      <div className="kavio-kpi-label kavio-dashboard-kpi-label">{label}</div>
+      <div className="kavio-kpi-value kavio-dashboard-kpi-value">{value}</div>
+      <div className="kavio-kpi-note kavio-dashboard-kpi-note">{note}</div>
     </div>
   );
 }
@@ -238,9 +238,9 @@ function DashboardKpi({ icon, label, value, note }: { icon: string; label: strin
 function HealthSegment({ label, value, total }: { label: HealthLevel; value: number; total: number }) {
   const pct = total ? Math.round(value / total * 100) : 0;
   return (
-    <div className="kavio-dashboard-health-segment">
-      <div className="kavio-dashboard-health-segment-top"><span>{label}</span><strong>{value}</strong></div>
-      <div className="kavio-dashboard-health-track"><div className="kavio-dashboard-health-fill" style={{ width: pct + '%' }} /></div>
+    <div className="kavio-project-health-segment kavio-dashboard-health-segment">
+      <div className="kavio-project-health-segment-top kavio-dashboard-health-segment-top"><span>{label}</span><strong>{value}</strong></div>
+      <div className="kavio-project-health-track kavio-dashboard-health-track"><div className="kavio-project-health-fill kavio-dashboard-health-fill" style={{ width: pct + '%' }} /></div>
       <small>{pct}% dari SPK terpantau</small>
     </div>
   );
