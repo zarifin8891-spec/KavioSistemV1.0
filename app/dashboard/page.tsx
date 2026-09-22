@@ -62,7 +62,13 @@ export default async function DashboardPage() {
   const countSales = (status: string) => activeSales.filter((row) => row.status_sales === status).length;
 
   const totalKavling = activeKavlings.length;
-  const terjual = new Set(salesRows.filter((row) => row.status_sales === 'AKAD').map((row) => row.id_kavling)).size;
+  // "TERJUAL" means the kavling currently has a non-BATAL Sales.
+  // This is intentionally separate from the inventory lifecycle status SOLD.
+  const terjual = new Set(
+    activeSales
+      .filter((row) => row.status_sales !== 'BATAL')
+      .map((row) => row.id_kavling),
+  ).size;
   const building = countKavling('BUILDING');
   const readyStock = countKavling('READY_STOCK');
   const tersedia = countKavling('AVAILABLE');
@@ -88,7 +94,7 @@ export default async function DashboardPage() {
     ['BOOKING', countKavling('BOOKING')],
     ['BUILDING', building],
     ['READY STOCK', readyStock],
-    ['SOLD', terjual],
+    ['SOLD', countKavling('SOLD')],
   ] as const;
 
   const salesChart = [
@@ -106,7 +112,7 @@ export default async function DashboardPage() {
 
       <section className="kavio-dashboard-kpi-grid" aria-label="KPI KAVIO">
         <DashboardKpi icon="⌗" label="TOTAL KAVLING" value={totalKavling} note="Seluruh inventory aktif" />
-        <DashboardKpi icon="▣" label="TERJUAL" value={terjual} note="Kavling dengan Sales AKAD" />
+        <DashboardKpi icon="▣" label="TERJUAL" value={terjual} note="Kavling dengan Sales aktif" />
         <DashboardKpi icon="⌂" label="SEDANG DIBANGUN" value={building} note="Kavling berstatus BUILDING" />
         <DashboardKpi icon="▰" label="READY STOCK" value={readyStock} note="Pekerjaan selesai, belum terjual" />
         <DashboardKpi icon="◇" label="TERSEDIA" value={tersedia} note="Kavling AVAILABLE" />
