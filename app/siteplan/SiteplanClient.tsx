@@ -91,7 +91,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   const activeMap = useMemo(() => ({ ...SITEPLAN_MAP, ...savedMap }), [savedMap]);
   const rows = useMemo(() => kavlings.filter((row) => Boolean(activeMap[row.id_kavling])), [kavlings, activeMap]);
   const unmappedRows = useMemo(() => kavlings.filter((row) => !activeMap[row.id_kavling]), [kavlings, activeMap]);
-  const selected = selectedId ? rows.find((row) => row.id_kavling === selectedId) ?? null : null;
+  const selected = selectedId ? kavlings.find((row) => row.id_kavling === selectedId) ?? null : null;
 
   const selectedSale = selected ? sales.find((row) => row.id_kavling === selected.id_kavling) : null;
   const selectedSpk = selected ? spks.find((row) => row.id_kavling === selected.id_kavling) : null;
@@ -103,6 +103,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     () => rows.filter((row) => filter === 'ALL' || row.status_kavling === filter),
     [rows, filter],
   );
+  const listRows = mappingMode ? kavlings : visibleRows;
 
   const counts = useMemo(
     () => STATUS_LIST.reduce<Record<string, number>>((acc, status) => {
@@ -175,7 +176,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       <section className="siteplan-toolbar kavio-panel">
         <div>
           <h2 className="kavio-panel-title">SITEPLAN INTERAKTIF</h2>
-          <div className="kavio-panel-note">Mapping polygon aktual terhubung ke Sales, SPK, dan Progress berdasarkan id_kavling.</div>
+          <div className="kavio-panel-note">Siteplan terbaru sebagai dasar visual. Polygon kavling dipetakan manual dan terhubung ke Sales, SPK, dan Progress berdasarkan id_kavling.</div>
         </div>
         <div className="siteplan-toolbar-actions"><button type="button" className={`kavio-button ${mappingMode ? 'primary' : 'secondary'}`} onClick={() => { setMappingMode((value) => !value); setMappingPoints([]); }}>{mappingMode ? 'KELUAR MAPPING MODE' : 'MAPPING MODE'}</button></div>
         <div className="siteplan-legend">
@@ -210,7 +211,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
               <button type="button" className="kavio-button secondary" onClick={() => setZoom((value) => Math.max(1, Number((value - 0.25).toFixed(2))))}>−</button>
               <button type="button" className="kavio-button secondary" onClick={() => setZoom(1)}>RESET</button>
             </div>
-            <div className="siteplan-stage" style={{ width: `${zoom * 100}%` }}>
+            <div className="siteplan-stage" style={{ width: `${zoom * 100}%`, aspectRatio: `${SITEPLAN_VIEWBOX.width} / ${SITEPLAN_VIEWBOX.height}` }}>
             <img src={SITEPLAN_IMAGE} alt="Siteplan Cibodas" className="siteplan-image" />
             <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''}`} viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
               {rows.map((row) => {
@@ -310,10 +311,10 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
           <div className="siteplan-list">
             <div className="siteplan-list-head">
               <span>DAFTAR KAVLING</span>
-              <small>{visibleRows.length} data</small>
+              <small>{listRows.length} data</small>
             </div>
-            {visibleRows.map((row) => (
-              <button key={row.id_kavling} type="button" className={`siteplan-list-row ${selectedId === row.id_kavling ? 'is-selected' : ''}`} onClick={() => { setSelectedId(row.id_kavling); if (mappingMode) { setMappingPoints([]); setPolygonFinished(false); } }}>
+            {listRows.map((row) => (
+              <button key={row.id_kavling} type="button" className={`siteplan-list-row ${selectedId === row.id_kavling ? 'is-selected' : ''}`} onClick={() => { setSelectedId(row.id_kavling); if (mappingMode) { const current = activeMap[row.id_kavling]?.polygon ?? []; setMappingPoints(current); setPolygonFinished(current.length >= 3); } }}>
                 <span><strong>{row.id_kavling}</strong><small>{row.id_tipe || 'Tipe —'}</small></span>
                 <em className={`siteplan-status status-${statusClass(row.status_kavling)}`}>{row.status_kavling || 'AVAILABLE'}</em>
               </button>
