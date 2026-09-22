@@ -209,7 +209,7 @@ export default async function DashboardPage() {
                     <td>{Number(row.gap_progress) >= 0 ? '+' : ''}{(Number(row.gap_progress) * 100).toFixed(1)}%</td>
                     <td>{row.tanggal_update_terakhir ? formatKavioDate(row.tanggal_update_terakhir) : 'BELUM ADA'}</td>
                     <td>{row.progress_diperlukan_per_hari == null ? '—' : (Number(row.progress_diperlukan_per_hari) * 100).toFixed(2) + '%'}</td>
-                    <td><span className="kavio-badge">{row.status_operasional}</span><div className="kavio-dashboard-mini"><span>{row.status_ritme}</span></div></td>
+                    <td><div className="kavio-dashboard-status"><span className="kavio-badge">{row.status_operasional}</span><div className="kavio-dashboard-mini"><span>{row.status_ritme}</span></div></div></td>
                   </tr>
                 ))}
               </tbody>
