@@ -533,3 +533,9 @@
     grid-template-columns:72px minmax(0,1fr) auto;
   }
 }
+
+
+/* Dashboard attention/action descriptions use uppercase for clearer scanning. */
+.kavio-dashboard-grid-2 .kavio-dashboard-list-main small {
+  text-transform: uppercase !important;
+}
