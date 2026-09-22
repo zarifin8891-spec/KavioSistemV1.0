@@ -772,3 +772,305 @@ button.kavio-button,
 .kavling-page .kavio-table td .kavio-button {
   font-size:9px !important;
 }
+
+
+/* ============================================================
+   KAVIO TYPOGRAPHY FOUNDATION — FINAL STANDARD
+   Source of truth for shared typography, KPI and operational tables.
+   ============================================================ */
+:root {
+  --kavio-font-page-title: 30px;
+  --kavio-font-panel-title: 13px;
+  --kavio-font-panel-note: 10px;
+  --kavio-font-form-label: 9px;
+  --kavio-font-input: 11px;
+  --kavio-font-button: 10px;
+  --kavio-font-table-head: 10px;
+  --kavio-font-table-body: 11px;
+  --kavio-font-badge: 9px;
+  --kavio-font-kpi-label: 13px;
+  --kavio-font-kpi-value: 28px;
+  --kavio-font-kpi-note: 12px;
+  --kavio-font-kpi-icon: 20px;
+  --kavio-font-health-title: 22px;
+  --kavio-font-health-meta: 10px;
+  --kavio-font-health-segment: 13px;
+  --kavio-font-health-small: 10px;
+}
+
+/* Shared typography */
+.kavio-panel-title,
+.kavio-dashboard-panel-title,
+.progress-section-head,
+.spk-detail-section-title {
+  font-size:var(--kavio-font-panel-title) !important;
+}
+.kavio-panel-note,
+.kavio-dashboard-panel-note {
+  font-size:var(--kavio-font-panel-note) !important;
+}
+.kavio-field,
+.kavio-create-panel .kavio-field > span,
+.sales-create-grid .kavio-field,
+.kvio-spk-form .kavio-field {
+  font-size:var(--kavio-font-form-label) !important;
+}
+.kavio-field input,
+.kavio-field select,
+.kavio-field textarea,
+.kavio-create-panel .kavio-field input,
+.kavio-create-panel .kavio-field select,
+.kavio-create-panel .kavio-field textarea {
+  font-size:var(--kavio-font-input) !important;
+}
+.kavio-button,
+button.kavio-button,
+.kavio-command-button {
+  font-size:var(--kavio-font-button) !important;
+}
+.kavio-table,
+.simple-table,
+.sales-table {
+  font-size:var(--kavio-font-table-body) !important;
+}
+.kavio-table th,
+.simple-table th,
+.sales-table th {
+  font-size:var(--kavio-font-table-head) !important;
+}
+.kavio-table td,
+.simple-table td,
+.sales-table td {
+  font-size:var(--kavio-font-table-body) !important;
+}
+.kavio-badge,
+.sales-status-badge,
+.spk-badge,
+.kavio-dashboard-priority {
+  font-size:var(--kavio-font-badge) !important;
+}
+
+/* Standard KAVIO KPI component — Dashboard visual is the reference standard. */
+.kavio-kpi-grid {
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:9px;
+}
+.kavio-kpi,
+.kavio-dashboard-kpi,
+.sales-summary-card,
+.spk-stat,
+.progress-summary-card {
+  position:relative;
+  min-width:0;
+  min-height:92px;
+  height:92px;
+  padding:11px 14px 10px 42px !important;
+  border:1px solid rgba(216,180,90,.34);
+  border-radius:11px;
+  background:linear-gradient(145deg,#173452 0%,#08213D 78%);
+  box-shadow:0 10px 24px rgba(0,0,0,.16);
+  overflow:hidden;
+}
+.kavio-kpi::before,
+.kavio-dashboard-kpi::before,
+.sales-summary-card::before,
+.spk-stat::before,
+.progress-summary-card::before {
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:4px;
+  background:linear-gradient(180deg,var(--kavio-champagne),var(--kavio-gold-dark));
+}
+.kavio-kpi-icon,
+.kavio-dashboard-kpi-icon {
+  position:absolute;
+  left:11px;
+  top:12px;
+  width:24px;
+  height:24px;
+  display:grid;
+  place-items:center;
+  color:var(--kavio-champagne);
+  font-size:var(--kavio-font-kpi-icon) !important;
+}
+.kavio-kpi-label,
+.kavio-dashboard-kpi-label,
+.sales-summary-label {
+  color:var(--kavio-muted);
+  font-size:var(--kavio-font-kpi-label) !important;
+  letter-spacing:.6px;
+  line-height:1.1;
+  text-transform:uppercase;
+}
+.kavio-kpi-value,
+.kavio-dashboard-kpi-value,
+.sales-summary-value {
+  margin-top:4px;
+  color:var(--kavio-ivory);
+  font-size:var(--kavio-font-kpi-value) !important;
+  line-height:1;
+  font-weight:700;
+}
+.kavio-kpi-note,
+.kavio-dashboard-kpi-note {
+  margin-top:5px;
+  color:var(--kavio-champagne);
+  font-size:var(--kavio-font-kpi-note) !important;
+  line-height:1.2;
+}
+.kavio-kpi-note {
+  display:block;
+}
+.kavio-kpi-grid + .kavio-kpi-grid {
+  margin-top:9px;
+}
+
+/* Project Health — fixed KAVIO standard */
+.kavio-project-health {
+  display:grid;
+  grid-template-columns:1.2fr repeat(3,1fr);
+  gap:1px;
+  background:var(--kavio-gold-dark);
+  border:1px solid var(--kavio-gold-dark);
+  border-radius:12px;
+  overflow:hidden;
+}
+.kavio-project-health-main,
+.kavio-project-health-segment {
+  min-height:76px;
+  background:linear-gradient(145deg,#123150,#0D2948);
+}
+.kavio-project-health-main {
+  padding:11px 14px;
+}
+.kavio-project-health-title {
+  margin-top:2px;
+  color:var(--kavio-ivory);
+  font-size:var(--kavio-font-health-title) !important;
+  line-height:1;
+}
+.kavio-project-health-meta {
+  margin-top:3px;
+  color:var(--kavio-muted);
+  font-size:var(--kavio-font-health-meta) !important;
+  line-height:1.25;
+}
+.kavio-project-health-main > .kavio-panel-note,
+.kavio-project-health-label {
+  font-size:13px !important;
+}
+.kavio-project-health-segment {
+  padding:11px 13px;
+}
+.kavio-project-health-segment-top {
+  display:flex;
+  justify-content:space-between;
+  color:var(--kavio-ivory);
+  font-size:var(--kavio-font-health-segment) !important;
+}
+.kavio-project-health-segment-top strong {
+  font-size:var(--kavio-font-health-segment) !important;
+}
+.kavio-project-health-track {
+  height:6px;
+  margin-top:7px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#06182D;
+}
+.kavio-project-health-fill {
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--kavio-gold-dark),var(--kavio-champagne));
+}
+.kavio-project-health-segment small {
+  display:block;
+  margin-top:5px;
+  color:var(--kavio-muted);
+  font-size:var(--kavio-font-health-small) !important;
+}
+
+/* Standard operational table */
+.kavio-operational-table {
+  width:100%;
+  table-layout:fixed;
+  border-collapse:separate;
+  border-spacing:0;
+}
+.kavio-operational-table th {
+  height:30px;
+  padding:4px 6px;
+  background:#102E4D;
+  color:var(--kavio-champagne);
+  font-size:var(--kavio-font-table-head) !important;
+  line-height:1.1;
+  font-weight:400;
+  letter-spacing:.35px;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.kavio-operational-table td {
+  height:32px;
+  min-height:32px;
+  padding:4px 6px;
+  background:transparent;
+  color:var(--kavio-ivory);
+  font-size:var(--kavio-font-table-body) !important;
+  line-height:1.1;
+  vertical-align:middle;
+  white-space:nowrap;
+}
+.kavio-operational-table .kavio-badge,
+.kavio-operational-table .kavio-dashboard-priority {
+  min-height:22px;
+  height:22px;
+  padding:3px 7px;
+  font-size:var(--kavio-font-badge) !important;
+  line-height:1;
+  white-space:nowrap;
+}
+.kavio-operational-table .kavio-progress-inline {
+  display:inline-flex;
+  align-items:center;
+  width:100%;
+  gap:7px;
+  white-space:nowrap;
+}
+.kavio-operational-table .kavio-progress-inline strong {
+  flex:0 0 44px;
+  font-size:var(--kavio-font-table-body) !important;
+  font-weight:400;
+}
+.kavio-operational-table .kavio-progress-inline .kavio-dashboard-chart-track {
+  flex:1 1 auto;
+  height:8px;
+  margin:0;
+}
+
+/* Existing Dashboard classes inherit the foundation KPI/Health standard. */
+.kavio-dashboard-kpi,
+.kavio-dashboard-kpi-grid {
+  /* typography/layout standardized above */
+}
+.kavio-dashboard-health,
+.kavio-dashboard-health-main,
+.kavio-dashboard-health-segment,
+.kavio-dashboard-health-title,
+.kavio-dashboard-health-meta,
+.kavio-dashboard-health-segment-top,
+.kavio-dashboard-health-segment small {
+  /* the component remains compatible with the standard Project Health rules */
+}
+@media (max-width:1150px) {
+  .kavio-kpi-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:850px) {
+  .kavio-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:600px) {
+  .kavio-kpi-grid { grid-template-columns:1fr; }
+}
