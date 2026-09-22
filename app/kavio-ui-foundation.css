@@ -28,7 +28,7 @@ body { margin: 0; }
 .kavio-nav-section { display:grid; gap:4px; }
 .kavio-nav-section + .kavio-nav-section { padding-top:10px; border-top:1px solid rgba(216,180,90,.16); }
 .kavio-nav-section-title { padding:2px 10px; color:var(--kavio-muted) !important; font-size:8px !important; letter-spacing:1.3px; font-weight:400 !important; }
-.kavio-nav-item { appearance:none; display:flex; align-items:center; gap:10px; width:100%; padding:10px !important; border:1px solid transparent; border-radius:8px; background:transparent; color:#E5E0D4 !important; font-size:12.5px !important; font-weight:400 !important; text-decoration:none; text-align:left; cursor:pointer; transition:background .16s ease,border-color .16s ease,color .16s ease; }
+.kavio-nav-item { appearance:none; display:flex; align-items:center; gap:10px; width:100%; padding:10px !important; border:1px solid transparent; border-radius:8px; background:transparent; color:#E5E0D4 !important; font-size:14px !important; font-weight:400 !important; text-decoration:none; text-transform:uppercase; text-align:left; cursor:pointer; transition:background .16s ease,border-color .16s ease,color .16s ease; }
 .kavio-nav-item:hover { background:rgba(216,180,90,.08) !important; border-color:rgba(216,180,90,.18) !important; color:var(--kavio-champagne) !important; }
 .kavio-nav-item.is-active { color:#172B43 !important; background:linear-gradient(90deg,var(--kavio-champagne),var(--kavio-gold)) !important; border-color:rgba(255,235,170,.55) !important; box-shadow:0 5px 18px rgba(216,180,90,.16); }
 .kavio-nav-item.is-disabled { cursor:default; opacity:.72; }
