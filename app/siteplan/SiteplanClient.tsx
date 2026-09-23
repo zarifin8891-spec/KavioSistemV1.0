@@ -237,7 +237,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     }
   };
 
-  const saveMapping = async () =>
+  const saveMapping = async () => {
     if (!selectedId || mappingPoints.length < 3) return;
     const label = mappingPoints.reduce((acc, point) => [acc[0] + point[0], acc[1] + point[1]], [0, 0]).map((value) => Math.round(value / mappingPoints.length)) as [number, number];
     const supabase = createClient();
