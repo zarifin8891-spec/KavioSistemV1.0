@@ -32,10 +32,30 @@ export default async function SiteplanPage() {
       : Promise.resolve({ data: [] }),
   ]);
 
-  const { data: savedMappings } = await supabase
+  const { data: activeSiteplan } = await supabase
+    .from('siteplan_versions')
+    .select('id,nama_siteplan,versi,file_name,file_path,mime_type,file_size,image_width,image_height,is_active,activated_at')
+    .eq('is_active', true)
+    .order('activated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let siteplanSrc = '/siteplan/siteplan-clean-source.png';
+  if (activeSiteplan?.file_path) {
+    const { data: signed } = await supabase.storage
+      .from('siteplans')
+      .createSignedUrl(activeSiteplan.file_path, 3600);
+    if (signed?.signedUrl) siteplanSrc = signed.signedUrl;
+  }
+
+  let mappingQuery = supabase
     .from('siteplan_kavling_mapping')
-    .select('id_kavling,polygon,label')
+    .select('id_kavling,polygon,label,siteplan_version_id')
     .in('id_kavling', ids);
+  if (activeSiteplan?.id) {
+    mappingQuery = mappingQuery.eq('siteplan_version_id', activeSiteplan.id);
+  }
+  const { data: savedMappings } = await mappingQuery;
 
   const spkIds = (spks ?? []).map((row) => row.id_spk);
   const { data: progressUpdates } = spkIds.length
@@ -53,7 +73,16 @@ export default async function SiteplanPage() {
         sales={sales ?? []}
         spks={spks ?? []}
         progressUpdates={progressUpdates ?? []}
-        savedMappings={(savedMappings ?? []) as { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null }[]}
+        savedMappings={(savedMappings ?? []) as { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null; siteplan_version_id?: string | null }[]}
+        activeSiteplan={activeSiteplan ? {
+          id: activeSiteplan.id,
+          nama_siteplan: activeSiteplan.nama_siteplan,
+          versi: activeSiteplan.versi,
+          file_name: activeSiteplan.file_name,
+          image_width: activeSiteplan.image_width,
+          image_height: activeSiteplan.image_height,
+        } : null}
+        siteplanSrc={siteplanSrc}
       />
     </KavioShell>
   );
