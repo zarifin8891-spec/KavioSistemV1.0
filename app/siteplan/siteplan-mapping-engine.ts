@@ -25,21 +25,60 @@ function pixelStats(data: Uint8ClampedArray, index: number) {
 
 function buildBarrierMask(imageData: ImageData): PixelMask {
   const { width, height, data } = imageData;
-  const raw = new Uint8Array(width * height);
+  const gray = new Uint8Array(width * height);
+  const chroma = new Uint8Array(width * height);
 
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       const i = (y * width + x) * 4;
-      const { gray, chroma } = pixelStats(data, i);
-      // Lot interiors are predominantly white. CAD lines, labels, roads and
-      // colored graphics become barriers. A one-pixel safety margin is added
-      // later so thin anti-aliased lines remain closed.
-      raw[y * width + x] = gray < 245 || chroma > 18 ? 1 : 0;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      gray[y * width + x] = Math.round((299 * r + 587 * g + 114 * b) / 1000);
+      chroma[y * width + x] = Math.max(r, g, b) - Math.min(r, g, b);
     }
   }
 
-  // 3×3 dilation closes tiny anti-aliased gaps in the source drawing without
-  // requiring external CV libraries.
+  // Lightweight 5×5 Gaussian blur (separable) suppresses small text strokes
+  // while preserving the longer CAD boundary lines.
+  const kernel = [1, 4, 6, 4, 1];
+  const horizontal = new Float32Array(gray.length);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      let sum = 0;
+      let weight = 0;
+      for (let k = -2; k <= 2; k += 1) {
+        const nx = Math.max(0, Math.min(width - 1, x + k));
+        const w = kernel[k + 2];
+        sum += gray[y * width + nx] * w;
+        weight += w;
+      }
+      horizontal[y * width + x] = sum / weight;
+    }
+  }
+
+  const blurredGray = new Uint8Array(gray.length);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      let sum = 0;
+      let weight = 0;
+      for (let k = -2; k <= 2; k += 1) {
+        const ny = Math.max(0, Math.min(height - 1, y + k));
+        const w = kernel[k + 2];
+        sum += horizontal[ny * width + x] * w;
+        weight += w;
+      }
+      blurredGray[y * width + x] = Math.round(sum / weight);
+    }
+  }
+
+  const raw = new Uint8Array(width * height);
+  for (let i = 0; i < raw.length; i += 1) {
+    raw[i] = blurredGray[i] < 245 || chroma[i] > 18 ? 1 : 0;
+  }
+
+  // Morphological close + small dilation closes anti-aliased breaks in thin
+  // boundaries so a lot remains isolated from the road and neighbouring lots.
   const dilated = new Uint8Array(raw.length);
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -58,9 +97,46 @@ function buildBarrierMask(imageData: ImageData): PixelMask {
     }
   }
 
-  return { width, height, data: dilated };
-}
+  const closed = new Uint8Array(raw.length);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      let open = 0;
+      for (let oy = -1; oy <= 1 && !open; oy += 1) {
+        for (let ox = -1; ox <= 1; ox += 1) {
+          const nx = x + ox;
+          const ny = y + oy;
+          if (nx < 0 || nx >= width || ny < 0 || ny >= height || !dilated[ny * width + nx]) {
+            open = 1;
+            break;
+          }
+        }
+      }
+      closed[y * width + x] = open ? 0 : 1;
+    }
+  }
 
+  const finalMask = new Uint8Array(raw.length);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      let blocked = closed[y * width + x];
+      if (!blocked) {
+        for (let oy = -1; oy <= 0 && !blocked; oy += 1) {
+          for (let ox = -1; ox <= 0; ox += 1) {
+            const nx = x + ox;
+            const ny = y + oy;
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height && closed[ny * width + nx]) {
+              blocked = 1;
+              break;
+            }
+          }
+        }
+      }
+      finalMask[y * width + x] = blocked;
+    }
+  }
+
+  return { width, height, data: finalMask };
+}
 function findOpenSeed(mask: PixelMask, x: number, y: number, radius = 10): [number, number] | null {
   const startX = Math.round(x);
   const startY = Math.round(y);
