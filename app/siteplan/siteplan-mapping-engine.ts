@@ -35,14 +35,15 @@ function buildBarrierMask(imageData: ImageData): PixelMask {
       const b = data[i + 2];
       const gray = (299 * r + 587 * g + 114 * b) / 1000;
       const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+      const isRedAnnotation = r > 145 && r > g * 1.18 && r > b * 1.18;
 
-      // Keep the neutral CAD boundary strokes and ignore colored labels,
-      // ROW annotations, blue utility marks and magenta site boundaries.
-      raw[y * width + x] = gray < 230 && chroma < 24 ? 1 : 0;
+      // Keep CAD geometry in neutral and line-coloured inks. Red labels/notes
+      // are ignored so the kavling number does not split the lot interior.
+      raw[y * width + x] = !isRedAnnotation && (gray < 245 || chroma > 14) ? 1 : 0;
     }
   }
 
-  // Close tiny anti-aliased breaks with a restrained 3×3 dilation.
+  // Close only very small gaps in anti-aliased lines.
   const dilated = new Uint8Array(raw.length);
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -303,45 +304,80 @@ export async function detectLotPolygon(
 
   context.drawImage(image, 0, 0);
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  const barrier = buildBarrierMask(imageData);
-  const seed = findOpenSeed(barrier, seedX, seedY);
-  if (!seed) throw new Error('Titik klik berada di garis/batas dan area kavling tidak dapat ditemukan.');
+  const fullBarrier = buildBarrierMask(imageData);
+  const maxAreaRatio = options.maxAreaRatio ?? 0.42;
+  const radii = [120, 180, 260, 360, 480];
+  let best: { component: Component; boundary: MappingPoint[]; offsetX: number; offsetY: number } | null = null;
 
-  const component = floodComponent(barrier, seed);
-  const maxAreaRatio = options.maxAreaRatio ?? 0.03;
-  const areaRatio = component.area / (barrier.width * barrier.height);
-  if (component.area < 80) throw new Error('Area terdeteksi terlalu kecil. Klik lebih ke tengah kavling.');
-  if (areaRatio > maxAreaRatio) throw new Error('Area terlalu besar. Klik tepat di dalam kavling, bukan jalan atau area kosong.');
+  for (const radius of radii) {
+    const x0 = Math.max(0, Math.round(seedX) - radius);
+    const y0 = Math.max(0, Math.round(seedY) - radius);
+    const x1 = Math.min(fullBarrier.width, Math.round(seedX) + radius + 1);
+    const y1 = Math.min(fullBarrier.height, Math.round(seedY) + radius + 1);
+    const localWidth = x1 - x0;
+    const localHeight = y1 - y0;
+    const localData = new Uint8Array(localWidth * localHeight);
 
-  const boundary = collectOuterBoundary(component, barrier.width, barrier.height);
-  if (boundary.length < 6) throw new Error('Batas polygon belum berhasil ditemukan.');
+    for (let y = 0; y < localHeight; y += 1) {
+      const sourceStart = (y0 + y) * fullBarrier.width + x0;
+      localData.set(fullBarrier.data.subarray(sourceStart, sourceStart + localWidth), y * localWidth);
+    }
 
+    const localSeed = findOpenSeed({ width: localWidth, height: localHeight, data: localData }, Math.round(seedX) - x0, Math.round(seedY) - y0, 12);
+    if (!localSeed) continue;
+
+    const localMask: PixelMask = { width: localWidth, height: localHeight, data: localData };
+    const component = floodComponent(localMask, localSeed);
+    const areaRatio = component.area / (localWidth * localHeight);
+    const touchesCrop = component.minX <= 1 || component.minY <= 1 || component.maxX >= localWidth - 2 || component.maxY >= localHeight - 2;
+
+    if (component.area < 120) continue;
+    if (areaRatio > maxAreaRatio) continue;
+
+    const localBoundary = collectOuterBoundary(component, localWidth, localHeight);
+    if (localBoundary.length < 6) continue;
+
+    const span = Math.max(component.maxX - component.minX, component.maxY - component.minY);
+    const simplified = simplifyClosed(localBoundary as MappingPoint[], Math.max(1.5, span * 0.012));
+    const polygon = simplified.map(([x, y]) => [x + x0, y + y0] as MappingPoint);
+
+    best = {
+      component,
+      boundary: polygon,
+      offsetX: x0,
+      offsetY: y0,
+    };
+
+    if (!touchesCrop) break;
+  }
+
+  if (!best) {
+    throw new Error('Batas polygon belum berhasil ditemukan. Klik lebih ke tengah kavling.');
+  }
+
+  const { component, boundary } = best;
   const span = Math.max(component.maxX - component.minX, component.maxY - component.minY);
-  const simplified = simplifyClosed(boundary as MappingPoint[], Math.max(1.5, span * 0.012));
-  const label: MappingPoint = seed;
-
   const confidence = Math.max(
     0,
     Math.min(
       100,
-      Math.round(
-        95
-        - Math.min(25, areaRatio * 2000)
-        - Math.min(15, Math.abs(simplified.length - boundary.length) / Math.max(1, boundary.length) * 30),
-      ),
+      Math.round(92 - Math.min(22, Math.max(0, span - 80) / 12)),
     ),
   );
 
+  const label: MappingPoint = [Math.round(seedX), Math.round(seedY)];
+
   return {
-    polygon: simplified,
+    polygon: boundary,
     label,
     confidence,
     area: component.area,
     bbox: {
-      x: component.minX,
-      y: component.minY,
+      x: component.minX + best.offsetX,
+      y: component.minY + best.offsetY,
       width: component.maxX - component.minX + 1,
       height: component.maxY - component.minY + 1,
     },
   };
 }
+
