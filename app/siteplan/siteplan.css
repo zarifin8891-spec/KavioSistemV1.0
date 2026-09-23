@@ -290,3 +290,198 @@
     grid-template-columns:1fr 1fr !important;
   }
 }
+
+
+/* ============================================================
+   KAVIO SITEPLAN — REVISION 2
+   Complete Master Kavling table + standard detail typography.
+   Auto mapping engine remains untouched.
+   ============================================================ */
+
+.siteplan-detail .kavio-panel-title {
+  font-size:var(--kavio-font-panel-title) !important;
+  line-height:1.2 !important;
+  letter-spacing:.15px !important;
+}
+.siteplan-detail .kavio-panel-note {
+  font-size:var(--kavio-font-panel-note) !important;
+  line-height:1.35 !important;
+}
+.siteplan-detail .siteplan-status {
+  min-height:24px !important;
+  padding:4px 8px !important;
+  font-size:var(--kavio-font-badge) !important;
+}
+
+.siteplan-detail-body {
+  gap:8px !important;
+  padding:12px 14px !important;
+}
+.siteplan-kpi {
+  min-height:58px !important;
+  padding:9px 11px !important;
+  border-radius:8px !important;
+}
+.siteplan-kpi span,
+.siteplan-related-grid span {
+  font-size:var(--kavio-font-form-label) !important;
+  line-height:1.1 !important;
+}
+.siteplan-kpi strong {
+  margin-top:4px !important;
+  font-size:var(--kavio-font-input) !important;
+  line-height:1.15 !important;
+}
+
+.siteplan-related {
+  padding:11px 14px !important;
+}
+.siteplan-related-title {
+  margin-bottom:8px !important;
+  font-size:12px !important;
+  line-height:1.15 !important;
+}
+.siteplan-related-grid {
+  gap:8px 14px !important;
+}
+.siteplan-related-grid strong {
+  margin-top:3px !important;
+  font-size:var(--kavio-font-input) !important;
+  line-height:1.2 !important;
+}
+.siteplan-related-empty {
+  font-size:var(--kavio-font-panel-note) !important;
+  line-height:1.35 !important;
+}
+.siteplan-related-actions {
+  gap:6px !important;
+  margin-top:2px !important;
+}
+.siteplan-related-actions .kavio-button {
+  min-height:32px !important;
+  height:32px !important;
+  padding:0 10px !important;
+  font-size:var(--kavio-font-button) !important;
+}
+
+/* Complete Kavling inventory table — same information columns as Master Kavling. */
+.siteplan-list-table-wrap {
+  width:100% !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+}
+.siteplan-list-table {
+  width:100% !important;
+  min-width:1320px !important;
+  border-collapse:separate !important;
+  border-spacing:0 !important;
+  table-layout:fixed !important;
+  font-size:var(--kavio-font-table-body) !important;
+}
+.siteplan-list-table th {
+  height:30px !important;
+  padding:5px 7px !important;
+  background:#102E4D !important;
+  color:var(--kavio-champagne) !important;
+  border-bottom:1px solid var(--kavio-gold-dark) !important;
+  font-size:var(--kavio-font-table-head) !important;
+  line-height:1.1 !important;
+  font-weight:400 !important;
+  letter-spacing:.35px !important;
+  text-align:left !important;
+  text-transform:uppercase !important;
+  white-space:nowrap !important;
+}
+.siteplan-list-table td {
+  height:34px !important;
+  min-height:34px !important;
+  padding:5px 7px !important;
+  color:var(--kavio-ivory) !important;
+  border-bottom:1px solid rgba(216,180,90,.10) !important;
+  font-size:var(--kavio-font-table-body) !important;
+  line-height:1.15 !important;
+  vertical-align:middle !important;
+  white-space:nowrap !important;
+}
+.siteplan-list-table tbody tr {
+  background:rgba(4,24,47,.16) !important;
+  transition:background .14s ease !important;
+}
+.siteplan-list-table tbody tr:nth-child(even) {
+  background:rgba(255,255,255,.018) !important;
+}
+.siteplan-list-table tbody tr:hover,
+.siteplan-list-table tbody tr.is-selected {
+  background:rgba(240,212,138,.075) !important;
+}
+.siteplan-list-table th:first-child,
+.siteplan-list-table td:first-child {
+  width:46px !important;
+  padding-left:12px !important;
+  text-align:center !important;
+}
+.siteplan-list-table th:nth-child(2),
+.siteplan-list-table td:nth-child(2) { width:104px !important; }
+.siteplan-list-table th:nth-child(3),
+.siteplan-list-table td:nth-child(3) { width:66px !important; }
+.siteplan-list-table th:nth-child(4),
+.siteplan-list-table td:nth-child(4) { width:72px !important; }
+.siteplan-list-table th:nth-child(5),
+.siteplan-list-table td:nth-child(5) { width:138px !important; }
+.siteplan-list-table th:nth-child(6),
+.siteplan-list-table td:nth-child(6) { width:104px !important; }
+.siteplan-list-table th:nth-child(7),
+.siteplan-list-table td:nth-child(7) { width:104px !important; }
+.siteplan-list-table th:nth-child(8),
+.siteplan-list-table td:nth-child(8) { width:138px !important; }
+.siteplan-list-table th:nth-child(9),
+.siteplan-list-table td:nth-child(9) { width:138px !important; }
+.siteplan-list-table th:nth-child(10),
+.siteplan-list-table td:nth-child(10) { width:138px !important; }
+.siteplan-list-table th:nth-child(11),
+.siteplan-list-table td:nth-child(11) { width:118px !important; }
+.siteplan-list-table th:nth-child(12),
+.siteplan-list-table td:nth-child(12) { width:96px !important; }
+.siteplan-list-table th:last-child,
+.siteplan-list-table td:last-child {
+  width:82px !important;
+  padding-right:12px !important;
+  text-align:center !important;
+}
+.siteplan-list-table .master-highlight {
+  color:var(--kavio-champagne) !important;
+  font-weight:400 !important;
+}
+.siteplan-list-table .siteplan-status {
+  min-height:22px !important;
+  height:22px !important;
+  padding:3px 7px !important;
+  font-size:var(--kavio-font-badge) !important;
+  line-height:1 !important;
+}
+.siteplan-list-table .status-inactive-data {
+  color:#B6B0A2 !important;
+  border-color:rgba(201,188,153,.35) !important;
+}
+.siteplan-list-select {
+  min-height:26px !important;
+  height:26px !important;
+  padding:0 8px !important;
+  border-radius:6px !important;
+  font-size:var(--kavio-font-button) !important;
+}
+
+.siteplan-list-head {
+  min-height:40px !important;
+  padding:10px 14px 8px !important;
+  font-size:12px !important;
+}
+.siteplan-list-head small {
+  font-size:11px !important;
+}
+
+@media (max-width:900px) {
+  .siteplan-list-table {
+    min-width:1180px !important;
+  }
+}
