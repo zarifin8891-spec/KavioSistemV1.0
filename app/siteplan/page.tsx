@@ -52,13 +52,9 @@ export default async function SiteplanPage() {
     .limit(1)
     .maybeSingle();
 
-  let siteplanSrc = '/siteplan/siteplan-clean-source.png';
-  if (activeSiteplan?.file_path) {
-    const { data: signed } = await supabase.storage
-      .from('siteplans')
-      .createSignedUrl(activeSiteplan.file_path, 3600);
-    if (signed?.signedUrl) siteplanSrc = signed.signedUrl;
-  }
+  const siteplanSrc = activeSiteplan?.id
+    ? `/api/siteplan-image?id=${encodeURIComponent(activeSiteplan.id)}`
+    : '/siteplan/siteplan-clean-source.png';
 
   let mappingQuery = supabase
     .from('siteplan_kavling_mapping')
