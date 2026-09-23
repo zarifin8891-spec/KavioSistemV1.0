@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
@@ -51,7 +52,9 @@ type ProgressUpdate = {
   keterangan?: string | null;
 };
 
-type SavedMapping = { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null };
+type SavedMapping = { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null; siteplan_version_id?: string | null };
+
+type ActiveSiteplan = { id: string; nama_siteplan: string; versi: string; file_name: string; image_width?: number | null; image_height?: number | null };
 
 type Props = {
   kavlings: Kavling[];
@@ -59,6 +62,8 @@ type Props = {
   spks: Spk[];
   progressUpdates: ProgressUpdate[];
   savedMappings: SavedMapping[];
+  activeSiteplan: ActiveSiteplan | null;
+  siteplanSrc: string;
 };
 
 const STATUS_LIST = ['AVAILABLE', 'BOOKING', 'BUILDING', 'READY_STOCK', 'SOLD', 'COMPLETED'] as const;
@@ -78,7 +83,11 @@ function polygonPoints(points: [number, number][]) {
   return points.map(([x, y]) => `${x},${y}`).join(' ');
 }
 
-export default function SiteplanClient({ kavlings, sales, spks, progressUpdates, savedMappings }: Props) {
+export default function SiteplanClient({ kavlings, sales, spks, progressUpdates, savedMappings, activeSiteplan, siteplanSrc }: Props) {
+  const router = useRouter();
+  const siteplanWidth = activeSiteplan?.image_width || SITEPLAN_VIEWBOX.width;
+  const siteplanHeight = activeSiteplan?.image_height || SITEPLAN_VIEWBOX.height;
+  const siteplanAspect = `${siteplanWidth} / ${siteplanHeight}`;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('ALL');
   const [mappingMode, setMappingMode] = useState(false);
@@ -87,6 +96,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   const [polygonFinished, setPolygonFinished] = useState(false);
   const [autoDetectArmed, setAutoDetectArmed] = useState(false);
   const [localSavedMappings, setLocalSavedMappings] = useState(savedMappings);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadingSiteplan, setUploadingSiteplan] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const savedMap = useMemo(() => Object.fromEntries(localSavedMappings.map((row) => [row.id_kavling, row])), [localSavedMappings]);
@@ -125,8 +136,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     try {
       setMappingNotice('Mendeteksi batas kavling otomatis...');
       const result = await detectLotPolygon(imageRef.current, seedX, seedY);
-      const scaleX = SITEPLAN_VIEWBOX.width / imageRef.current.naturalWidth;
-      const scaleY = SITEPLAN_VIEWBOX.height / imageRef.current.naturalHeight;
+      const scaleX = siteplanWidth / imageRef.current.naturalWidth;
+      const scaleY = siteplanHeight / imageRef.current.naturalHeight;
       const polygon = result.polygon.map(([x, y]) => [Math.round(x * scaleX), Math.round(y * scaleY)] as [number, number]);
       const label = [Math.round(result.label[0] * scaleX), Math.round(result.label[1] * scaleY)] as [number, number];
       setMappingPoints(polygon);
@@ -145,8 +156,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       return;
     }
     const rect = svgRef.current.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * SITEPLAN_VIEWBOX.width;
-    const y = ((event.clientY - rect.top) / rect.height) * SITEPLAN_VIEWBOX.height;
+    const x = ((event.clientX - rect.left) / rect.width) * siteplanWidth;
+    const y = ((event.clientY - rect.top) / rect.height) * siteplanHeight;
     setMappingPoints((points) => [...points, [Math.round(x), Math.round(y)]]);
     setPolygonFinished(false);
   };
@@ -166,7 +177,67 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     setMappingPoints((points) => points.slice(0, -1));
   };
 
-  const saveMapping = async () => {
+    const uploadNewSiteplan = async () => {
+    if (!uploadFile) return;
+    if (!/^image\/(png|jpeg|webp)$/.test(uploadFile.type)) {
+      setMappingNotice('Untuk upload langsung ke Siteplan KAVIO, gunakan PNG, JPG/JPEG, atau WEBP.');
+      return;
+    }
+
+    setUploadingSiteplan(true);
+    setMappingNotice('Mengunggah Siteplan baru...');
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) throw new Error('Sesi login tidak ditemukan.');
+
+      const { count } = await supabase
+        .from('siteplan_versions')
+        .select('id', { count: 'exact', head: true });
+      const version = `REV.${String((count ?? 0) + 1).padStart(2, '0')}`;
+      const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]+/g, '-');
+      const filePath = `${user.id}/${Date.now()}-${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('siteplans')
+        .upload(filePath, uploadFile, { contentType: uploadFile.type, upsert: false });
+      if (uploadError) throw uploadError;
+
+      const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(uploadFile);
+        img.onload = () => { URL.revokeObjectURL(url); resolve({ width: img.naturalWidth, height: img.naturalHeight }); };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Ukuran gambar Siteplan tidak dapat dibaca.')); };
+        img.src = url;
+      });
+
+      await supabase.from('siteplan_versions').update({ is_active: false }).eq('is_active', true);
+      const { error: insertError } = await supabase.from('siteplan_versions').insert({
+        nama_siteplan: uploadFile.name.replace(/\.[^.]+$/, ''),
+        versi: version,
+        file_name: uploadFile.name,
+        file_path: filePath,
+        mime_type: uploadFile.type,
+        file_size: uploadFile.size,
+        image_width: dimensions.width,
+        image_height: dimensions.height,
+        is_active: true,
+        uploaded_by: user.id,
+        activated_at: new Date().toISOString(),
+      });
+      if (insertError) throw insertError;
+
+      setUploadFile(null);
+      setMappingNotice(`Siteplan ${version} berhasil diaktifkan. Mapping lama tetap aman karena sekarang terikat ke versi sebelumnya.`);
+      router.refresh();
+    } catch (error) {
+      setMappingNotice(error instanceof Error ? error.message : 'Upload Siteplan gagal.');
+    } finally {
+      setUploadingSiteplan(false);
+    }
+  };
+
+  const saveMapping = async () =>
     if (!selectedId || mappingPoints.length < 3) return;
     const label = mappingPoints.reduce((acc, point) => [acc[0] + point[0], acc[1] + point[1]], [0, 0]).map((value) => Math.round(value / mappingPoints.length)) as [number, number];
     const supabase = createClient();
@@ -176,7 +247,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       setMappingNotice('Sesi login tidak ditemukan. Silakan login ulang sebelum menyimpan mapping.');
       return;
     }
-    const payload = { id_kavling: selectedId, polygon: mappingPoints, label, updated_by: user.id, updated_at: new Date().toISOString() };
+    const payload = { id_kavling: selectedId, polygon: mappingPoints, label, updated_by: user.id, updated_at: new Date().toISOString(), siteplan_version_id: activeSiteplan?.id ?? null };
     const { data, error } = await supabase
       .from('siteplan_kavling_mapping')
       .upsert(payload)
@@ -251,10 +322,10 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       <section className="siteplan-layout">
         <div className="siteplan-canvas kavio-panel">
           <div className="siteplan-viewport">
-            <div className="siteplan-stage" style={{ width: '100%', aspectRatio: `${SITEPLAN_VIEWBOX.width} / ${SITEPLAN_VIEWBOX.height}` }}>
+            <div className="siteplan-stage" style={{ width: '100%', aspectRatio: siteplanAspect }}>
               <div className="siteplan-map-layer">
-              <img ref={imageRef} src="/siteplan/siteplan-clean-source.png" alt="Siteplan terbaru" className="siteplan-image" />
-            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
+              <img ref={imageRef} src={siteplanSrc} alt={activeSiteplan?.nama_siteplan || 'Siteplan aktif'} className="siteplan-image" />
+            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
               {rows.map((row) => {
                 const map = activeMap[row.id_kavling];
                 const status = row.status_kavling || 'AVAILABLE';
@@ -286,7 +357,11 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       <section className="siteplan-toolbar kavio-panel">
         <div>
           <h2 className="kavio-panel-title">SITEPLAN INTERAKTIF</h2>
-          <div className="kavio-panel-note">Siteplan terbaru sebagai dasar visual. Polygon kavling dipetakan manual dan terhubung ke Sales, SPK, dan Progress berdasarkan id_kavling.</div>
+          <div className="kavio-panel-note">{activeSiteplan ? `${activeSiteplan.nama_siteplan} · ${activeSiteplan.versi}` : 'Siteplan bawaan KAVIO. Upload Siteplan baru dari panel ini untuk membuat versi proyek baru.'}</div>
+          <div className="siteplan-upload-row">
+            <input type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)} />
+            <button type="button" className="kavio-button primary" onClick={uploadNewSiteplan} disabled={!uploadFile || uploadingSiteplan}>{uploadingSiteplan ? 'MENGUNGGAH...' : 'UPLOAD & AKTIFKAN'}</button>
+          </div>
         </div>
         <div className="siteplan-toolbar-actions"><button type="button" className={`kavio-button ${mappingMode ? 'primary' : 'secondary'}`} onClick={() => { setMappingMode((value) => !value); setMappingPoints([]); }}>{mappingMode ? 'KELUAR MAPPING MODE' : 'MAPPING MODE'}</button></div>
         <div className="siteplan-legend">
