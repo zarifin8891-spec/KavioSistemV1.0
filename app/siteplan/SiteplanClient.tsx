@@ -86,9 +86,10 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   const [mappingNotice, setMappingNotice] = useState('');
   const [polygonFinished, setPolygonFinished] = useState(false);
   const [autoDetectArmed, setAutoDetectArmed] = useState(false);
+  const [localSavedMappings, setLocalSavedMappings] = useState(savedMappings);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const savedMap = useMemo(() => Object.fromEntries(savedMappings.map((row) => [row.id_kavling, row])), [savedMappings]);
+  const savedMap = useMemo(() => Object.fromEntries(localSavedMappings.map((row) => [row.id_kavling, row])), [localSavedMappings]);
   const activeMap = useMemo(() => ({ ...SITEPLAN_MAP, ...savedMap }), [savedMap]);
   const rows = useMemo(() => kavlings.filter((row) => Boolean(activeMap[row.id_kavling])), [kavlings, activeMap]);
   const unmappedRows = useMemo(() => kavlings.filter((row) => !activeMap[row.id_kavling]), [kavlings, activeMap]);
@@ -171,8 +172,27 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     const supabase = createClient();
     setMappingNotice('Menyimpan...');
     const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from('siteplan_kavling_mapping').upsert({ id_kavling: selectedId, polygon: mappingPoints, label, updated_by: user?.id ?? null, updated_at: new Date().toISOString() });
-    setMappingNotice(error ? `Gagal menyimpan: ${error.message}` : `Mapping ${selectedId} berhasil disimpan.`);
+    if (!user?.id) {
+      setMappingNotice('Sesi login tidak ditemukan. Silakan login ulang sebelum menyimpan mapping.');
+      return;
+    }
+    const payload = { id_kavling: selectedId, polygon: mappingPoints, label, updated_by: user.id, updated_at: new Date().toISOString() };
+    const { data, error } = await supabase
+      .from('siteplan_kavling_mapping')
+      .upsert(payload)
+      .select('id_kavling,polygon,label')
+      .single();
+    if (error) {
+      setMappingNotice(`Gagal menyimpan: ${error.message}`);
+      return;
+    }
+    if (data) {
+      setLocalSavedMappings((current) => [
+        ...current.filter((row) => row.id_kavling !== data.id_kavling),
+        data as SavedMapping,
+      ]);
+    }
+    setMappingNotice(`Mapping ${selectedId} berhasil disimpan.`);
   };
 
   const exportMapping = async () => {
