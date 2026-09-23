@@ -10,7 +10,7 @@ export default async function SiteplanPage() {
 
   const { data: kavlings } = await supabase
     .from('master_kavling')
-    .select('id_kavling,blok,no_kavling,status_kavling,id_tipe')
+    .select('id_kavling,blok,no_kavling,id_tipe,status_kavling,status_aktif,luas_tanah_standar,luas_tanah_real,kelebihan_tanah,harga_standar,harga_tanah_meter,harga_jual')
     .order('blok')
     .order('no_kavling');
 
