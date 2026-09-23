@@ -25,8 +25,7 @@ function pixelStats(data: Uint8ClampedArray, index: number) {
 
 function buildBarrierMask(imageData: ImageData): PixelMask {
   const { width, height, data } = imageData;
-  const gray = new Uint8Array(width * height);
-  const chroma = new Uint8Array(width * height);
+  const raw = new Uint8Array(width * height);
 
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -34,51 +33,16 @@ function buildBarrierMask(imageData: ImageData): PixelMask {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
-      gray[y * width + x] = Math.round((299 * r + 587 * g + 114 * b) / 1000);
-      chroma[y * width + x] = Math.max(r, g, b) - Math.min(r, g, b);
+      const gray = (299 * r + 587 * g + 114 * b) / 1000;
+      const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+
+      // Keep the neutral CAD boundary strokes and ignore colored labels,
+      // ROW annotations, blue utility marks and magenta site boundaries.
+      raw[y * width + x] = gray < 230 && chroma < 24 ? 1 : 0;
     }
   }
 
-  // Lightweight 5×5 Gaussian blur (separable) suppresses small text strokes
-  // while preserving the longer CAD boundary lines.
-  const kernel = [1, 4, 6, 4, 1];
-  const horizontal = new Float32Array(gray.length);
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      let sum = 0;
-      let weight = 0;
-      for (let k = -2; k <= 2; k += 1) {
-        const nx = Math.max(0, Math.min(width - 1, x + k));
-        const w = kernel[k + 2];
-        sum += gray[y * width + nx] * w;
-        weight += w;
-      }
-      horizontal[y * width + x] = sum / weight;
-    }
-  }
-
-  const blurredGray = new Uint8Array(gray.length);
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      let sum = 0;
-      let weight = 0;
-      for (let k = -2; k <= 2; k += 1) {
-        const ny = Math.max(0, Math.min(height - 1, y + k));
-        const w = kernel[k + 2];
-        sum += horizontal[ny * width + x] * w;
-        weight += w;
-      }
-      blurredGray[y * width + x] = Math.round(sum / weight);
-    }
-  }
-
-  const raw = new Uint8Array(width * height);
-  for (let i = 0; i < raw.length; i += 1) {
-    raw[i] = blurredGray[i] < 245 || chroma[i] > 18 ? 1 : 0;
-  }
-
-  // Morphological close + small dilation closes anti-aliased breaks in thin
-  // boundaries so a lot remains isolated from the road and neighbouring lots.
+  // Close tiny anti-aliased breaks with a restrained 3×3 dilation.
   const dilated = new Uint8Array(raw.length);
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -97,45 +61,7 @@ function buildBarrierMask(imageData: ImageData): PixelMask {
     }
   }
 
-  const closed = new Uint8Array(raw.length);
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      let open = 0;
-      for (let oy = -1; oy <= 1 && !open; oy += 1) {
-        for (let ox = -1; ox <= 1; ox += 1) {
-          const nx = x + ox;
-          const ny = y + oy;
-          if (nx < 0 || nx >= width || ny < 0 || ny >= height || !dilated[ny * width + nx]) {
-            open = 1;
-            break;
-          }
-        }
-      }
-      closed[y * width + x] = open ? 0 : 1;
-    }
-  }
-
-  const finalMask = new Uint8Array(raw.length);
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      let blocked = closed[y * width + x];
-      if (!blocked) {
-        for (let oy = -1; oy <= 0 && !blocked; oy += 1) {
-          for (let ox = -1; ox <= 0; ox += 1) {
-            const nx = x + ox;
-            const ny = y + oy;
-            if (nx >= 0 && nx < width && ny >= 0 && ny < height && closed[ny * width + nx]) {
-              blocked = 1;
-              break;
-            }
-          }
-        }
-      }
-      finalMask[y * width + x] = blocked;
-    }
-  }
-
-  return { width, height, data: finalMask };
+  return { width, height, data: dilated };
 }
 function findOpenSeed(mask: PixelMask, x: number, y: number, radius = 10): [number, number] | null {
   const startX = Math.round(x);
@@ -254,58 +180,53 @@ function collectOuterBoundary(component: Component, width: number, height: numbe
     const y = Math.floor(index / width);
     const x = index - y * width;
 
-    if (y === 0 || !pixelSet.has(index - width)) {
-      edges.push({ a: [x, y], b: [x + 1, y] });
-    }
-    if (x === width - 1 || !pixelSet.has(index + 1)) {
-      edges.push({ a: [x + 1, y], b: [x + 1, y + 1] });
-    }
-    if (y === height - 1 || !pixelSet.has(index + width)) {
-      edges.push({ a: [x + 1, y + 1], b: [x, y + 1] });
-    }
-    if (x === 0 || !pixelSet.has(index - 1)) {
-      edges.push({ a: [x, y + 1], b: [x, y] });
-    }
+    if (y === 0 || !pixelSet.has(index - width)) edges.push({ a: [x, y], b: [x + 1, y] });
+    if (x === width - 1 || !pixelSet.has(index + 1)) edges.push({ a: [x + 1, y], b: [x + 1, y + 1] });
+    if (y === height - 1 || !pixelSet.has(index + width)) edges.push({ a: [x + 1, y + 1], b: [x, y + 1] });
+    if (x === 0 || !pixelSet.has(index - 1)) edges.push({ a: [x, y + 1], b: [x, y] });
   }
+
+  const edgeId = (a: [number, number], b: [number, number]) => {
+    const ka = edgeKey(a);
+    const kb = edgeKey(b);
+    return ka < kb ? ka + '|' + kb : kb + '|' + ka;
+  };
 
   const adjacency = new Map<string, Array<[number, number]>>();
   for (const edge of edges) {
     const ka = edgeKey(edge.a);
     const kb = edgeKey(edge.b);
-    const listA = adjacency.get(ka) ?? [];
-    const listB = adjacency.get(kb) ?? [];
-    listA.push(edge.b);
-    listB.push(edge.a);
-    adjacency.set(ka, listA);
-    adjacency.set(kb, listB);
+    (adjacency.get(ka) ?? (adjacency.set(ka, []), adjacency.get(ka)!)).push(edge.b);
+    (adjacency.get(kb) ?? (adjacency.set(kb, []), adjacency.get(kb)!)).push(edge.a);
   }
 
   const used = new Set<string>();
   const loops: Array<Array<[number, number]>> = [];
 
   for (const edge of edges) {
-    const startKey = edgeKey(edge.a);
-    const edgeId = startKey + '>' + edgeKey(edge.b);
-    if (used.has(edgeId)) continue;
+    const firstId = edgeId(edge.a, edge.b);
+    if (used.has(firstId)) continue;
 
-    const loop: Array<[number, number]> = [];
-    let current = edge.a;
-    let next = edge.b;
-    loop.push(current);
+    const loop: Array<[number, number]> = [edge.a];
+    let previous = edge.a;
+    let current = edge.b;
+    used.add(firstId);
 
-    for (let guard = 0; guard < edges.length + 10; guard += 1) {
-      const from = edgeKey(current);
-      const to = edgeKey(next);
-      const id = from + '>' + to;
-      used.add(id);
-      current = next;
+    for (let guard = 0; guard < edges.length + 20; guard += 1) {
       loop.push(current);
-      if (edgeKey(current) === edgeKey(edge.a)) break;
+      if (edgeKey(current) === edgeKey(loop[0])) break;
 
-      const candidates = (adjacency.get(edgeKey(current)) ?? []).filter((point) => !used.has(edgeKey(current) + '>' + edgeKey(point)));
+      const candidates = (adjacency.get(edgeKey(current)) ?? []).filter((point) => !used.has(edgeId(current, point)));
       if (!candidates.length) break;
 
-      next = candidates[0];
+      let next = candidates[0];
+      if (candidates.length > 1) {
+        next = candidates.find((point) => edgeKey(point) !== edgeKey(previous)) ?? candidates[0];
+      }
+
+      used.add(edgeId(current, next));
+      previous = current;
+      current = next;
     }
 
     if (loop.length >= 4 && edgeKey(loop[0]) === edgeKey(loop[loop.length - 1])) {
@@ -313,7 +234,6 @@ function collectOuterBoundary(component: Component, width: number, height: numbe
     }
   }
 
-  if (!loops.length) return [];
   const signedArea = (points: Array<[number, number]>) => {
     let area = 0;
     for (let i = 0; i < points.length; i += 1) {
@@ -323,9 +243,9 @@ function collectOuterBoundary(component: Component, width: number, height: numbe
     }
     return area / 2;
   };
-  return loops.sort((a, b) => Math.abs(signedArea(b)) - Math.abs(signedArea(a)))[0];
-}
 
+  return loops.sort((a, b) => Math.abs(signedArea(b)) - Math.abs(signedArea(a)))[0] ?? [];
+}
 function perpendicularDistance(point: MappingPoint, start: MappingPoint, end: MappingPoint) {
   const dx = end[0] - start[0];
   const dy = end[1] - start[1];
