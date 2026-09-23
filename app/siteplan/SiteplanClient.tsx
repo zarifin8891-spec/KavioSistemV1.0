@@ -103,6 +103,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   const [mappingNotice, setMappingNotice] = useState('');
   const [polygonFinished, setPolygonFinished] = useState(false);
   const [autoDetectArmed, setAutoDetectArmed] = useState(false);
+  const [autoDetectSeed, setAutoDetectSeed] = useState<[number, number] | null>(null);
   const [localSavedMappings, setLocalSavedMappings] = useState(savedMappings);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadingSiteplan, setUploadingSiteplan] = useState(false);
@@ -136,45 +137,72 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
 
   const handleAutoDetect = async (event: React.MouseEvent<SVGSVGElement>) => {
     if (!mappingMode || !selectedId || !svgRef.current || !imageRef.current) return;
+
     event.preventDefault();
-    const rect = svgRef.current.getBoundingClientRect();
-    const stageRect = svgRef.current.parentElement?.getBoundingClientRect() ?? rect;
-    const displayX = event.clientX - stageRect.left;
-    const displayY = event.clientY - stageRect.top;
-    const sourceX = (displayX / Math.max(1, stageRect.width)) * siteplanWidth;
-    const sourceY = (displayY / Math.max(1, stageRect.height)) * siteplanHeight;
-    const naturalX = (sourceX / Math.max(1, siteplanWidth)) * imageRef.current.naturalWidth;
-    const naturalY = (sourceY / Math.max(1, siteplanHeight)) * imageRef.current.naturalHeight;
+    event.stopPropagation();
+
+    const svg = svgRef.current;
+    const matrix = svg.getScreenCTM();
+    if (!matrix) {
+      setMappingNotice('Koordinat Siteplan belum siap. Coba klik lagi.');
+      return;
+    }
+
+    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    const svgX = Math.max(0, Math.min(siteplanWidth, point.x));
+    const svgY = Math.max(0, Math.min(siteplanHeight, point.y));
+    const naturalX = (svgX / Math.max(1, siteplanWidth)) * imageRef.current.naturalWidth;
+    const naturalY = (svgY / Math.max(1, siteplanHeight)) * imageRef.current.naturalHeight;
+    setAutoDetectSeed([svgX, svgY]);
+
     try {
-      setMappingNotice('Mendeteksi batas kavling otomatis...');
-      const result = await detectLotPolygon(imageRef.current, naturalX, naturalY);
+      setMappingNotice(`Mendeteksi batas ${selectedId} dari titik (${Math.round(svgX)}, ${Math.round(svgY)})...`);
+      // Let React paint the feedback before the image-processing work starts.
+      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+
+      const existingPolygons = localSavedMappings
+        .filter((row) => row.id_kavling !== selectedId)
+        .map((row) => row.polygon);
+
+      const result = await detectLotPolygon(imageRef.current, naturalX, naturalY, {
+        conflictPolygons: existingPolygons,
+      });
+
       const scaleX = siteplanWidth / imageRef.current.naturalWidth;
       const scaleY = siteplanHeight / imageRef.current.naturalHeight;
       const polygon = result.polygon.map(([x, y]) => [Math.round(x * scaleX), Math.round(y * scaleY)] as [number, number]);
       const label = [Math.round(result.label[0] * scaleX), Math.round(result.label[1] * scaleY)] as [number, number];
+
       setMappingPoints(polygon);
       setPolygonFinished(true);
       setAutoDetectArmed(false);
       setMappingNotice(`AUTO MAPPING ${selectedId} berhasil. Confidence ${result.confidence}% · ${polygon.length} titik. Silakan cek lalu SIMPAN MAPPING.`);
     } catch (error) {
-      setMappingNotice(error instanceof Error ? error.message : 'Auto mapping gagal. Coba klik lebih ke tengah kavling.');
+      setMappingNotice(error instanceof Error ? error.message : 'Auto mapping gagal. Coba klik tepat di bagian dalam kavling.');
     }
   };
 
   const handleMapClick = (event: React.MouseEvent<SVGSVGElement>) => {
     if (!mappingMode || !selectedId || !svgRef.current) return;
+
     if (autoDetectArmed) {
       void handleAutoDetect(event);
       return;
     }
-    const rect = svgRef.current.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * siteplanWidth;
-    const y = ((event.clientY - rect.top) / rect.height) * siteplanHeight;
+
+    const svg = svgRef.current;
+    const matrix = svg.getScreenCTM();
+    if (!matrix) return;
+    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    const x = Math.max(0, Math.min(siteplanWidth, point.x));
+    const y = Math.max(0, Math.min(siteplanHeight, point.y));
+
     setMappingPoints((points) => [...points, [Math.round(x), Math.round(y)]]);
     setPolygonFinished(false);
+    setAutoDetectSeed([x, y]);
   };
 
-  const resetMapping = () => { setMappingPoints([]); setPolygonFinished(false); };
+  const resetMapping = () => { setMappingPoints([]); setPolygonFinished(false); setAutoDetectSeed(null); };
 
   const finishPolygon = () => {
     if (mappingPoints.length >= 3) setPolygonFinished(true);
@@ -372,6 +400,12 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                   </g>
                 );
               })}
+              {mappingMode && autoDetectSeed && (
+                <g className="siteplan-auto-seed" pointerEvents="none" aria-hidden="true">
+                  <circle cx={autoDetectSeed[0]} cy={autoDetectSeed[1]} r="12" />
+                  <circle cx={autoDetectSeed[0]} cy={autoDetectSeed[1]} r="3" />
+                </g>
+              )}
             </svg>
               </div>
             </div>
@@ -388,7 +422,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
             <button type="button" className="kavio-button primary" onClick={uploadNewSiteplan} disabled={!uploadFile || uploadingSiteplan}>{uploadingSiteplan ? 'MENGUNGGAH...' : 'UPLOAD & AKTIFKAN'}</button>
           </div>
         </div>
-        <div className="siteplan-toolbar-actions"><button type="button" className={`kavio-button ${mappingMode ? 'primary' : 'secondary'}`} onClick={() => { setMappingMode((value) => !value); setMappingPoints([]); }}>{mappingMode ? 'KELUAR MAPPING MODE' : 'MAPPING MODE'}</button></div>
+        <div className="siteplan-toolbar-actions"><button type="button" className={`kavio-button ${mappingMode ? 'primary' : 'secondary'}`} onClick={() => { setMappingMode((value) => !value); setMappingPoints([]); setAutoDetectSeed(null); setAutoDetectArmed(false); }}>{mappingMode ? 'KELUAR MAPPING MODE' : 'MAPPING MODE'}</button></div>
         <div className="siteplan-legend">
           {STATUS_LIST.map((status) => (
             <button key={status} type="button" className={`siteplan-legend-item status-${status.toLowerCase()} ${filter === status ? 'is-active' : ''}`} onClick={() => setFilter(filter === status ? 'ALL' : status)}>
