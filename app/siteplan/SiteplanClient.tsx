@@ -13,7 +13,14 @@ type Kavling = {
   blok?: string | null;
   no_kavling?: string | null;
   status_kavling?: string | null;
+  status_aktif?: boolean | null;
   id_tipe?: string | null;
+  luas_tanah_standar?: number | string | null;
+  luas_tanah_real?: number | string | null;
+  kelebihan_tanah?: number | string | null;
+  harga_standar?: number | string | null;
+  harga_tanah_meter?: number | string | null;
+  harga_jual?: number | string | null;
 };
 
 type Sale = {
@@ -460,12 +467,61 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
               <span>DAFTAR KAVLING</span>
               <small>{listRows.length} data</small>
             </div>
-            {listRows.map((row) => (
-              <button key={row.id_kavling} type="button" className={`siteplan-list-row ${selectedId === row.id_kavling ? 'is-selected' : ''}`} onClick={() => { setSelectedId(row.id_kavling); setAutoDetectArmed(false); if (mappingMode) { const current = activeMap[row.id_kavling]?.polygon ?? []; setMappingPoints(current); setPolygonFinished(current.length >= 3); } }}>
-                <span><strong>{row.id_kavling}</strong><small>{row.id_tipe || 'Tipe —'}</small></span>
-                <em className={`siteplan-status status-${statusClass(row.status_kavling)}`}>{row.status_kavling || 'AVAILABLE'}</em>
-              </button>
-            ))}
+            {<div className="siteplan-list-table-wrap">
+              <table className="siteplan-list-table">
+                <thead>
+                  <tr>
+                    <th>NO</th>
+                    <th>ID KAVLING</th>
+                    <th>BLOK</th>
+                    <th>NOMOR</th>
+                    <th>TIPE RUMAH</th>
+                    <th>L. TANAH</th>
+                    <th>KELEBIHAN</th>
+                    <th>HARGA STANDAR</th>
+                    <th>HARGA TANAH/M²</th>
+                    <th>HARGA JUAL</th>
+                    <th>STATUS KAVLING</th>
+                    <th>STATUS DATA</th>
+                    <th>AKSI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listRows.map((row, i) => (
+                    <tr key={row.id_kavling} className={selectedId === row.id_kavling ? 'is-selected' : ''}>
+                      <td>{i + 1}</td>
+                      <td className="master-highlight">{row.id_kavling}</td>
+                      <td>{row.blok || '—'}</td>
+                      <td>{row.no_kavling || '—'}</td>
+                      <td>{row.id_tipe || '—'}</td>
+                      <td>{row.luas_tanah_real != null ? `${Number(row.luas_tanah_real).toFixed(2)} m²` : '—'}</td>
+                      <td>{row.kelebihan_tanah != null ? `${Number(row.kelebihan_tanah).toFixed(2)} m²` : '—'}</td>
+                      <td>{formatMoney(row.harga_standar)}</td>
+                      <td>{formatMoney(row.harga_tanah_meter)}</td>
+                      <td>{formatMoney(row.harga_jual)}</td>
+                      <td><span className={`siteplan-status status-${statusClass(row.status_kavling)}`}>{row.status_kavling || 'AVAILABLE'}</span></td>
+                      <td><span className={`siteplan-status ${row.status_aktif === false ? 'status-inactive-data' : ''}`}>{row.status_aktif === false ? 'NONAKTIF' : 'AKTIF'}</span></td>
+                      <td>
+                        <button type="button" className="kavio-button secondary siteplan-list-select" onClick={() => {
+                          setSelectedId(row.id_kavling);
+                          setAutoDetectArmed(false);
+                          if (mappingMode) {
+                            const current = activeMap[row.id_kavling]?.polygon ?? [];
+                            setMappingPoints(current);
+                            setPolygonFinished(current.length >= 3);
+                          }
+                        }}>
+                          PILIH
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {!listRows.length && (
+                    <tr><td colSpan={13} className="kavio-empty">BELUM ADA DATA KAVLING.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>}
           </div>
         </aside>
       </section>
