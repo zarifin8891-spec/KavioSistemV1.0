@@ -366,6 +366,17 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
               <div className="siteplan-map-layer">
               <img ref={imageRef} src={siteplanSrc} alt={activeSiteplan?.nama_siteplan || 'Siteplan aktif'} className="siteplan-image" />
             <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
+              {mappingMode && (
+                <rect
+                  className="siteplan-click-surface"
+                  x="0"
+                  y="0"
+                  width={siteplanWidth}
+                  height={siteplanHeight}
+                  fill="transparent"
+                  pointerEvents="all"
+                />
+              )}
               {rows.map((row) => {
                 const map = activeMap[row.id_kavling];
                 const status = row.status_kavling || 'AVAILABLE';
