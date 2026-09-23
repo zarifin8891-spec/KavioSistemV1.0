@@ -482,3 +482,14 @@
 .siteplan-overlay.is-mapping .siteplan-polygon:not(.is-selected) polygon {
   pointer-events: auto !important;
 }
+
+
+.siteplan-auto-seed circle:first-child{
+  fill:rgba(240,212,138,.10);
+  stroke:var(--kavio-champagne);
+  stroke-width:2;
+  vector-effect:non-scaling-stroke;
+}
+.siteplan-auto-seed circle:last-child{
+  fill:var(--kavio-champagne);
+}
