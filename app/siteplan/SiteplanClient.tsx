@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
 import { SITEPLAN_MAP, SITEPLAN_VIEWBOX } from './siteplan-map';
+import { detectLotPolygon, loadSiteplanImage } from './siteplan-mapping-engine';
 
 type Kavling = {
   id_kavling: string;
@@ -84,7 +85,9 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   const [mappingPoints, setMappingPoints] = useState<[number, number][]>([]);
   const [mappingNotice, setMappingNotice] = useState('');
   const [polygonFinished, setPolygonFinished] = useState(false);
+  const [autoDetectArmed, setAutoDetectArmed] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
   const savedMap = useMemo(() => Object.fromEntries(savedMappings.map((row) => [row.id_kavling, row])), [savedMappings]);
   const activeMap = useMemo(() => ({ ...SITEPLAN_MAP, ...savedMap }), [savedMap]);
   const rows = useMemo(() => kavlings.filter((row) => Boolean(activeMap[row.id_kavling])), [kavlings, activeMap]);
@@ -111,8 +114,35 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     [rows],
   );
 
+  const handleAutoDetect = async (event: React.MouseEvent<SVGSVGElement>) => {
+    if (!mappingMode || !selectedId || !svgRef.current || !imageRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const normalizedX = (event.clientX - rect.left) / rect.width;
+    const normalizedY = (event.clientY - rect.top) / rect.height;
+    const seedX = normalizedX * imageRef.current.naturalWidth;
+    const seedY = normalizedY * imageRef.current.naturalHeight;
+    try {
+      setMappingNotice('Mendeteksi batas kavling otomatis...');
+      const result = await detectLotPolygon(imageRef.current, seedX, seedY);
+      const scaleX = SITEPLAN_VIEWBOX.width / imageRef.current.naturalWidth;
+      const scaleY = SITEPLAN_VIEWBOX.height / imageRef.current.naturalHeight;
+      const polygon = result.polygon.map(([x, y]) => [Math.round(x * scaleX), Math.round(y * scaleY)] as [number, number]);
+      const label = [Math.round(result.label[0] * scaleX), Math.round(result.label[1] * scaleY)] as [number, number];
+      setMappingPoints(polygon);
+      setPolygonFinished(true);
+      setAutoDetectArmed(false);
+      setMappingNotice(`AUTO MAPPING ${selectedId} berhasil. Confidence ${result.confidence}% · ${polygon.length} titik. Silakan cek lalu SIMPAN MAPPING.`);
+    } catch (error) {
+      setMappingNotice(error instanceof Error ? error.message : 'Auto mapping gagal. Coba klik lebih ke tengah kavling.');
+    }
+  };
+
   const handleMapClick = (event: React.MouseEvent<SVGSVGElement>) => {
     if (!mappingMode || !selectedId || !svgRef.current) return;
+    if (autoDetectArmed) {
+      void handleAutoDetect(event);
+      return;
+    }
     const rect = svgRef.current.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * SITEPLAN_VIEWBOX.width;
     const y = ((event.clientY - rect.top) / rect.height) * SITEPLAN_VIEWBOX.height;
@@ -203,7 +233,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
           <div className="siteplan-viewport">
             <div className="siteplan-stage" style={{ width: '100%', aspectRatio: `${SITEPLAN_VIEWBOX.width} / ${SITEPLAN_VIEWBOX.height}` }}>
               <div className="siteplan-map-layer">
-              <img src="/siteplan/siteplan-clean-source.png" alt="Siteplan terbaru" className="siteplan-image" />
+              <img ref={imageRef} src="/siteplan/siteplan-clean-source.png" alt="Siteplan terbaru" className="siteplan-image" />
             <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''}`} viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
               {rows.map((row) => {
                 const map = activeMap[row.id_kavling];
@@ -273,6 +303,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
               <div className="siteplan-mapping-selected">KAVLING: <strong>{selected?.id_kavling || '—'}</strong></div>
               <div className="siteplan-mapping-coords">{mappingPoints.length ? mappingPoints.map(([x, y], i) => <span key={i}>P{i + 1}: {x}, {y}</span>) : <span>Belum ada titik. Klik sudut kavling pada gambar.</span>}</div>
               <div className="siteplan-mapping-actions">
+                <button type="button" className={`kavio-button ${autoDetectArmed ? 'primary' : 'secondary'}`} onClick={() => { setAutoDetectArmed((value) => !value); setMappingNotice(autoDetectArmed ? 'Auto Detect dibatalkan.' : 'AUTO DETECT aktif. Klik sekali di bagian putih/tengah kavling yang dipilih.'); }} disabled={!selectedId}>AUTO DETECT POLYGON</button>
                 <button type="button" className="kavio-button secondary" onClick={loadCurrentMapping} disabled={!selectedId}>MUAT POLYGON SAAT INI</button>
                 <button type="button" className="kavio-button secondary" onClick={finishPolygon} disabled={mappingPoints.length < 3}>SELESAI POLYGON</button>
                 <button type="button" className="kavio-button secondary" onClick={undoMappingPoint} disabled={!mappingPoints.length}>UNDO</button>
@@ -331,7 +362,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
               <small>{listRows.length} data</small>
             </div>
             {listRows.map((row) => (
-              <button key={row.id_kavling} type="button" className={`siteplan-list-row ${selectedId === row.id_kavling ? 'is-selected' : ''}`} onClick={() => { setSelectedId(row.id_kavling); if (mappingMode) { const current = activeMap[row.id_kavling]?.polygon ?? []; setMappingPoints(current); setPolygonFinished(current.length >= 3); } }}>
+              <button key={row.id_kavling} type="button" className={`siteplan-list-row ${selectedId === row.id_kavling ? 'is-selected' : ''}`} onClick={() => { setSelectedId(row.id_kavling); setAutoDetectArmed(false); if (mappingMode) { const current = activeMap[row.id_kavling]?.polygon ?? []; setMappingPoints(current); setPolygonFinished(current.length >= 3); } }}>
                 <span><strong>{row.id_kavling}</strong><small>{row.id_tipe || 'Tipe —'}</small></span>
                 <em className={`siteplan-status status-${statusClass(row.status_kavling)}`}>{row.status_kavling || 'AVAILABLE'}</em>
               </button>
