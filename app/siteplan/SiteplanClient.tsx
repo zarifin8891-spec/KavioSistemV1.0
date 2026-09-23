@@ -171,11 +171,31 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
 
   return (
     <main className="siteplan-page">
-      <section className="siteplan-summary">
-        <div className="siteplan-summary-item"><span>TERMAPPING</span><strong>{rows.length}</strong></div>
-        <div className="siteplan-summary-item"><span>TERSEDIA</span><strong>{counts.AVAILABLE || 0}</strong></div>
-        <div className="siteplan-summary-item"><span>BOOKING</span><strong>{counts.BOOKING || 0}</strong></div>
-        <div className="siteplan-summary-item"><span>BUILDING</span><strong>{counts.BUILDING || 0}</strong></div>
+      <section className="siteplan-summary kavio-kpi-grid siteplan-kpi-grid" aria-label="KPI Siteplan">
+        <div className="kavio-kpi kavio-dashboard-kpi">
+          <div className="kavio-kpi-icon kavio-dashboard-kpi-icon" aria-hidden="true">⌗</div>
+          <div className="kavio-kpi-label kavio-dashboard-kpi-label">TERMAPPING</div>
+          <div className="kavio-kpi-value kavio-dashboard-kpi-value">{rows.length}</div>
+          <div className="kavio-kpi-note kavio-dashboard-kpi-note">Kavling sudah terhubung ke Siteplan</div>
+        </div>
+        <div className="kavio-kpi kavio-dashboard-kpi">
+          <div className="kavio-kpi-icon kavio-dashboard-kpi-icon" aria-hidden="true">◇</div>
+          <div className="kavio-kpi-label kavio-dashboard-kpi-label">TERSEDIA</div>
+          <div className="kavio-kpi-value kavio-dashboard-kpi-value">{counts.AVAILABLE || 0}</div>
+          <div className="kavio-kpi-note kavio-dashboard-kpi-note">Kavling status AVAILABLE</div>
+        </div>
+        <div className="kavio-kpi kavio-dashboard-kpi">
+          <div className="kavio-kpi-icon kavio-dashboard-kpi-icon" aria-hidden="true">▣</div>
+          <div className="kavio-kpi-label kavio-dashboard-kpi-label">BOOKING</div>
+          <div className="kavio-kpi-value kavio-dashboard-kpi-value">{counts.BOOKING || 0}</div>
+          <div className="kavio-kpi-note kavio-dashboard-kpi-note">Kavling status BOOKING</div>
+        </div>
+        <div className="kavio-kpi kavio-dashboard-kpi">
+          <div className="kavio-kpi-icon kavio-dashboard-kpi-icon" aria-hidden="true">⌂</div>
+          <div className="kavio-kpi-label kavio-dashboard-kpi-label">BUILDING</div>
+          <div className="kavio-kpi-value kavio-dashboard-kpi-value">{counts.BUILDING || 0}</div>
+          <div className="kavio-kpi-note kavio-dashboard-kpi-note">Kavling sedang dibangun</div>
+        </div>
       </section>
 
       <section className="siteplan-layout">
