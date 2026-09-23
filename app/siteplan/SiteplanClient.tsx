@@ -171,28 +171,6 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
 
   return (
     <main className="siteplan-page">
-      <section className="siteplan-toolbar kavio-panel">
-        <div>
-          <h2 className="kavio-panel-title">SITEPLAN INTERAKTIF</h2>
-          <div className="kavio-panel-note">Siteplan terbaru sebagai dasar visual. Polygon kavling dipetakan manual dan terhubung ke Sales, SPK, dan Progress berdasarkan id_kavling.</div>
-        </div>
-        <div className="siteplan-toolbar-actions"><button type="button" className={`kavio-button ${mappingMode ? 'primary' : 'secondary'}`} onClick={() => { setMappingMode((value) => !value); setMappingPoints([]); }}>{mappingMode ? 'KELUAR MAPPING MODE' : 'MAPPING MODE'}</button></div>
-        <div className="siteplan-legend">
-          {STATUS_LIST.map((status) => (
-            <button key={status} type="button" className={`siteplan-legend-item status-${status.toLowerCase()} ${filter === status ? 'is-active' : ''}`} onClick={() => setFilter(filter === status ? 'ALL' : status)}>
-              <i />{status.replace('_', ' ')} <strong>{counts[status] || 0}</strong>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {unmappedRows.length > 0 && (
-        <div className="siteplan-mapping-alert">
-          <strong>{unmappedRows.length} kavling belum memiliki mapping Siteplan.</strong>
-          <span>{unmappedRows.map((row) => row.id_kavling).join(', ')}</span>
-        </div>
-      )}
-
       <section className="siteplan-summary">
         <div className="siteplan-summary-item"><span>TERMAPPING</span><strong>{rows.length}</strong></div>
         <div className="siteplan-summary-item"><span>TERSEDIA</span><strong>{counts.AVAILABLE || 0}</strong></div>
@@ -233,6 +211,31 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
             </div>
           </div>
         </div>
+
+
+      <section className="siteplan-toolbar kavio-panel">
+        <div>
+          <h2 className="kavio-panel-title">SITEPLAN INTERAKTIF</h2>
+          <div className="kavio-panel-note">Siteplan terbaru sebagai dasar visual. Polygon kavling dipetakan manual dan terhubung ke Sales, SPK, dan Progress berdasarkan id_kavling.</div>
+        </div>
+        <div className="siteplan-toolbar-actions"><button type="button" className={`kavio-button ${mappingMode ? 'primary' : 'secondary'}`} onClick={() => { setMappingMode((value) => !value); setMappingPoints([]); }}>{mappingMode ? 'KELUAR MAPPING MODE' : 'MAPPING MODE'}</button></div>
+        <div className="siteplan-legend">
+          {STATUS_LIST.map((status) => (
+            <button key={status} type="button" className={`siteplan-legend-item status-${status.toLowerCase()} ${filter === status ? 'is-active' : ''}`} onClick={() => setFilter(filter === status ? 'ALL' : status)}>
+              <i />{status.replace('_', ' ')} <strong>{counts[status] || 0}</strong>
+            </button>
+          ))}
+        </div>
+      </section>
+
+
+      {unmappedRows.length > 0 && (
+        <div className="siteplan-mapping-alert">
+          <strong>{unmappedRows.length} kavling belum memiliki mapping Siteplan.</strong>
+          <span>{unmappedRows.map((row) => row.id_kavling).join(', ')}</span>
+        </div>
+      )}
+
 
         <aside className="siteplan-detail kavio-panel">
           <div className="kavio-panel-head">
