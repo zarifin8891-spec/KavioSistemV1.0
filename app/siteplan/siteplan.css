@@ -471,25 +471,19 @@
   }
 }
 
-
-/* Mapping interaction — selected polygon remains click-through for manual point placement. */
-.siteplan-overlay.is-mapping .siteplan-polygon.is-selected polygon {
-  pointer-events: none !important;
+/* Mapping interaction surface — the SVG must accept clicks even when no polygons exist yet. */
+.siteplan-overlay.is-mapping {
+  pointer-events:all !important;
+  cursor:crosshair !important;
 }
+.siteplan-click-surface {
+  pointer-events:all !important;
+}
+.siteplan-overlay.is-mapping .siteplan-polygon.is-selected polygon,
 .siteplan-overlay.is-mapping .siteplan-polygon.is-selected text {
-  pointer-events: none !important;
+  pointer-events:none !important;
 }
-.siteplan-overlay.is-mapping .siteplan-polygon:not(.is-selected) polygon {
-  pointer-events: auto !important;
-}
-
-
-.siteplan-auto-seed circle:first-child{
-  fill:rgba(240,212,138,.10);
-  stroke:var(--kavio-champagne);
-  stroke-width:2;
-  vector-effect:non-scaling-stroke;
-}
-.siteplan-auto-seed circle:last-child{
-  fill:var(--kavio-champagne);
+.siteplan-overlay.is-mapping .siteplan-polygon:not(.is-selected) polygon,
+.siteplan-overlay.is-mapping .siteplan-polygon:not(.is-selected) text {
+  pointer-events:auto !important;
 }
