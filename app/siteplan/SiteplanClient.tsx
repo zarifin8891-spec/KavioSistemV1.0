@@ -5,7 +5,7 @@ import { useMemo, useRef, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
 import { SITEPLAN_MAP, SITEPLAN_VIEWBOX } from './siteplan-map';
-import { detectLotPolygon, loadSiteplanImage } from './siteplan-mapping-engine';
+import { detectLotPolygon } from './siteplan-mapping-engine';
 
 type Kavling = {
   id_kavling: string;
@@ -234,7 +234,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
             <div className="siteplan-stage" style={{ width: '100%', aspectRatio: `${SITEPLAN_VIEWBOX.width} / ${SITEPLAN_VIEWBOX.height}` }}>
               <div className="siteplan-map-layer">
               <img ref={imageRef} src="/siteplan/siteplan-clean-source.png" alt="Siteplan terbaru" className="siteplan-image" />
-            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''}`} viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
+            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
               {rows.map((row) => {
                 const map = activeMap[row.id_kavling];
                 const status = row.status_kavling || 'AVAILABLE';
