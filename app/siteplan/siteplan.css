@@ -364,7 +364,7 @@
   font-size:var(--kavio-font-button) !important;
 }
 
-/* Complete Kavling inventory table — same information columns as Master Kavling. */
+/* Complete Kavling inventory table — compact Master Kavling operational columns. */
 .siteplan-list-table-wrap {
   width:100% !important;
   overflow-x:auto !important;
@@ -372,7 +372,7 @@
 }
 .siteplan-list-table {
   width:100% !important;
-  min-width:1320px !important;
+  min-width:980px !important;
   border-collapse:separate !important;
   border-spacing:0 !important;
   table-layout:fixed !important;
@@ -421,27 +421,21 @@
   text-align:center !important;
 }
 .siteplan-list-table th:nth-child(2),
-.siteplan-list-table td:nth-child(2) { width:104px !important; }
+.siteplan-list-table td:nth-child(2) { width:105px !important; }
 .siteplan-list-table th:nth-child(3),
-.siteplan-list-table td:nth-child(3) { width:66px !important; }
+.siteplan-list-table td:nth-child(3) { width:72px !important; }
 .siteplan-list-table th:nth-child(4),
-.siteplan-list-table td:nth-child(4) { width:72px !important; }
+.siteplan-list-table td:nth-child(4) { width:78px !important; }
 .siteplan-list-table th:nth-child(5),
-.siteplan-list-table td:nth-child(5) { width:138px !important; }
+.siteplan-list-table td:nth-child(5) { width:150px !important; }
 .siteplan-list-table th:nth-child(6),
-.siteplan-list-table td:nth-child(6) { width:104px !important; }
+.siteplan-list-table td:nth-child(6) { width:115px !important; }
 .siteplan-list-table th:nth-child(7),
-.siteplan-list-table td:nth-child(7) { width:104px !important; }
+.siteplan-list-table td:nth-child(7) { width:110px !important; }
 .siteplan-list-table th:nth-child(8),
-.siteplan-list-table td:nth-child(8) { width:138px !important; }
+.siteplan-list-table td:nth-child(8) { width:125px !important; }
 .siteplan-list-table th:nth-child(9),
-.siteplan-list-table td:nth-child(9) { width:138px !important; }
-.siteplan-list-table th:nth-child(10),
-.siteplan-list-table td:nth-child(10) { width:138px !important; }
-.siteplan-list-table th:nth-child(11),
-.siteplan-list-table td:nth-child(11) { width:118px !important; }
-.siteplan-list-table th:nth-child(12),
-.siteplan-list-table td:nth-child(12) { width:96px !important; }
+.siteplan-list-table td:nth-child(9) { width:95px !important; }
 .siteplan-list-table th:last-child,
 .siteplan-list-table td:last-child {
   width:82px !important;
@@ -471,17 +465,20 @@
   font-size:var(--kavio-font-button) !important;
 }
 
-.siteplan-list-head {
-  min-height:40px !important;
-  padding:10px 14px 8px !important;
-  font-size:12px !important;
-}
-.siteplan-list-head small {
-  font-size:11px !important;
-}
-
 @media (max-width:900px) {
   .siteplan-list-table {
     min-width:1180px !important;
   }
+}
+
+
+/* Mapping interaction — selected polygon remains click-through for manual point placement. */
+.siteplan-overlay.is-mapping .siteplan-polygon.is-selected polygon {
+  pointer-events: none !important;
+}
+.siteplan-overlay.is-mapping .siteplan-polygon.is-selected text {
+  pointer-events: none !important;
+}
+.siteplan-overlay.is-mapping .siteplan-polygon:not(.is-selected) polygon {
+  pointer-events: auto !important;
 }
