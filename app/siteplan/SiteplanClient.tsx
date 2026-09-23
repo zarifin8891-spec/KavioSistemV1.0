@@ -83,7 +83,6 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   const [mappingMode, setMappingMode] = useState(false);
   const [mappingPoints, setMappingPoints] = useState<[number, number][]>([]);
   const [mappingNotice, setMappingNotice] = useState('');
-  const [zoom, setZoom] = useState(1);
   const [polygonFinished, setPolygonFinished] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const savedMap = useMemo(() => Object.fromEntries(savedMappings.map((row) => [row.id_kavling, row])), [savedMappings]);
@@ -204,13 +203,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       <section className="siteplan-layout">
         <div className="siteplan-canvas kavio-panel">
           <div className="siteplan-viewport">
-            <div className="siteplan-zoom-controls">
-              <button type="button" className="kavio-button secondary" onClick={() => setZoom((value) => Math.min(3, Number((value + 0.25).toFixed(2))))}>+</button>
-              <span>{Math.round(zoom * 100)}%</span>
-              <button type="button" className="kavio-button secondary" onClick={() => setZoom((value) => Math.max(1, Number((value - 0.25).toFixed(2))))}>−</button>
-              <button type="button" className="kavio-button secondary" onClick={() => setZoom(1)}>RESET</button>
-            </div>
-            <div className="siteplan-stage" style={{ width: `${zoom * 100}%`, aspectRatio: `${SITEPLAN_VIEWBOX.width} / ${SITEPLAN_VIEWBOX.height}` }}>
+            <div className="siteplan-stage" style={{ width: '100%', aspectRatio: `${SITEPLAN_VIEWBOX.width} / ${SITEPLAN_VIEWBOX.height}` }}>
             <img src="/siteplan/siteplan-clean-source.png" alt="Siteplan terbaru" className="siteplan-image" />
             <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''}`} viewBox={`0 0 ${SITEPLAN_VIEWBOX.width} ${SITEPLAN_VIEWBOX.height}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
               {rows.map((row) => {
