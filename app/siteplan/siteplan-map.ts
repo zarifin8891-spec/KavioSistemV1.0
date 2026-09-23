@@ -17,8 +17,7 @@ const SITEPLAN_IDS = [
   ...Array.from({ length: 82 }, (_, i) => `C-${String(i + 1).padStart(2, '0')}`),
   ...Array.from({ length: 60 }, (_, i) => `D-${String(i + 1).padStart(2, '0')}`),
   ...Array.from({ length: 73 }, (_, i) => `E-${String(i + 1).padStart(2, '0')}`),
-  ...Array.from({ length: 28 }, (_, i) => `F-${String(i + 1).padStart(2, '0')}`),
-  ...Array.from({ length: 27 }, (_, i) => `F-${String(i + 30).padStart(2, '0')}`),
+  ...Array.from({ length: 56 }, (_, i) => `F-${String(i + 1).padStart(2, '0')}`),
   ...Array.from({ length: 70 }, (_, i) => `G-${String(i + 1).padStart(2, '0')}`),
 ] as const;
 
@@ -53,6 +52,8 @@ function buildMap(): Record<string, SiteplanLotMap> {
   let index = 0;
 
   for (const id of SITEPLAN_IDS) {
+    if (index + 7 >= values.length) break;
+
     const polygon: SiteplanPoint[] = [];
     let prevX = 0;
     let prevY = 0;
