@@ -6,11 +6,13 @@ export type SiteplanLotMap = {
   label: SiteplanPoint;
 };
 
+// Landscape coordinate system after rotating the supplied Siteplan 90° clockwise.
+// Original asset: 1488 × 2105. Rotated display: 2105 × 1488.
 export const SITEPLAN_VIEWBOX = {
-  width: 1488,
-  height: 2105,
+  width: 2105,
+  height: 1488,
 };
 
-// Mapping manual dimulai dari Siteplan terbaru yang disimpan di public/siteplan.
-// Polygon lama tidak digunakan karena memakai sistem koordinat dari gambar prototype sebelumnya.
+// Prototype polygons were cleared because their coordinates belonged to the previous image.
+// New polygons are traced directly on the rotated latest Siteplan and persisted to Supabase.
 export const SITEPLAN_MAP: Record<string, SiteplanLotMap> = {};
