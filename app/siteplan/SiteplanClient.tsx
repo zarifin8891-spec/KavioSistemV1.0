@@ -128,14 +128,18 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
 
   const handleAutoDetect = async (event: React.MouseEvent<SVGSVGElement>) => {
     if (!mappingMode || !selectedId || !svgRef.current || !imageRef.current) return;
+    event.preventDefault();
     const rect = svgRef.current.getBoundingClientRect();
-    const normalizedX = (event.clientX - rect.left) / rect.width;
-    const normalizedY = (event.clientY - rect.top) / rect.height;
-    const seedX = normalizedX * imageRef.current.naturalWidth;
-    const seedY = normalizedY * imageRef.current.naturalHeight;
+    const stageRect = svgRef.current.parentElement?.getBoundingClientRect() ?? rect;
+    const displayX = event.clientX - stageRect.left;
+    const displayY = event.clientY - stageRect.top;
+    const sourceX = (displayX / Math.max(1, stageRect.width)) * siteplanWidth;
+    const sourceY = (displayY / Math.max(1, stageRect.height)) * siteplanHeight;
+    const naturalX = (sourceX / Math.max(1, siteplanWidth)) * imageRef.current.naturalWidth;
+    const naturalY = (sourceY / Math.max(1, siteplanHeight)) * imageRef.current.naturalHeight;
     try {
       setMappingNotice('Mendeteksi batas kavling otomatis...');
-      const result = await detectLotPolygon(imageRef.current, seedX, seedY);
+      const result = await detectLotPolygon(imageRef.current, naturalX, naturalY);
       const scaleX = siteplanWidth / imageRef.current.naturalWidth;
       const scaleY = siteplanHeight / imageRef.current.naturalHeight;
       const polygon = result.polygon.map(([x, y]) => [Math.round(x * scaleX), Math.round(y * scaleY)] as [number, number]);
