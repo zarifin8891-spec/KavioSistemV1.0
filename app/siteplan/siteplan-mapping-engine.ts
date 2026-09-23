@@ -14,10 +14,6 @@ type PixelMask = {
   data: Uint8Array;
 };
 
-function clampByte(value: number) {
-  return Math.max(0, Math.min(255, value));
-}
-
 function pixelStats(data: Uint8ClampedArray, index: number) {
   const r = data[index];
   const g = data[index + 1];
@@ -66,8 +62,8 @@ function buildBarrierMask(imageData: ImageData): PixelMask {
 }
 
 function findOpenSeed(mask: PixelMask, x: number, y: number, radius = 10): [number, number] | null {
-  const startX = clampByte(Math.round(x));
-  const startY = clampByte(Math.round(y));
+  const startX = Math.round(x);
+  const startY = Math.round(y);
   const px = Math.max(0, Math.min(mask.width - 1, startX));
   const py = Math.max(0, Math.min(mask.height - 1, startY));
   if (!mask.data[py * mask.width + px]) return [px, py];
