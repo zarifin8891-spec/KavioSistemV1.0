@@ -15,6 +15,7 @@ type Kavling = {
   status_kavling?: string | null;
   status_aktif?: boolean | null;
   id_tipe?: string | null;
+  nama_tipe?: string | null;
   luas_tanah_standar?: number | string | null;
   luas_tanah_real?: number | string | null;
   kelebihan_tanah?: number | string | null;
@@ -493,7 +494,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                       <td className="master-highlight">{row.id_kavling}</td>
                       <td>{row.blok || '—'}</td>
                       <td>{row.no_kavling || '—'}</td>
-                      <td>{row.id_tipe || '—'}</td>
+                      <td>{row.nama_tipe || row.id_tipe || '—'}</td>
                       <td>{row.luas_tanah_real != null ? `${Number(row.luas_tanah_real).toFixed(2)} m²` : '—'}</td>
                       <td>{row.kelebihan_tanah != null ? `${Number(row.kelebihan_tanah).toFixed(2)} m²` : '—'}</td>
                       <td>{formatMoney(row.harga_standar)}</td>
