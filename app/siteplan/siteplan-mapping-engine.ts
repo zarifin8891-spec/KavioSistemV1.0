@@ -49,9 +49,24 @@ function pixelStats(data: Uint8ClampedArray, index: number) {
 function isBarrierPixel(data: Uint8ClampedArray, index: number) {
   const { r, g, b, gray, chroma } = pixelStats(data, index);
 
-  // Parcel outlines in the supplied Siteplan are primarily neutral CAD
-  // strokes and magenta parcel lines. Strong red is treated as label/text.
-  const isRedText = r > 150 && r > g * 1.18 && r > b * 1.18;
+  /*
+   * IMPORTANT: In the actual KAVIO Siteplan, parcel boundaries are drawn in
+   * red/magenta. Earlier versions explicitly rejected red pixels as "text",
+   * which removed the very boundary we needed to detect.
+   *
+   * We therefore treat red/magenta linework as the primary parcel barrier.
+   * Red labels may also become tiny isolated barriers inside a lot, but they
+   * cannot close the lot by themselves, so the flood-fill remains bounded by
+   * the parcel outline. Dark neutral CAD strokes are retained as secondary
+   * barriers for the remaining technical linework.
+   */
+  const isRedParcel =
+    r > 155 &&
+    r - g > 70 &&
+    r - b > 70 &&
+    g < 150 &&
+    b < 150;
+
   const isMagentaParcel =
     r > 135 &&
     b > 105 &&
@@ -59,10 +74,11 @@ function isBarrierPixel(data: Uint8ClampedArray, index: number) {
     r - g > 38 &&
     b - g > 28;
 
-  // Neutral CAD is deliberately darker than the near-white paper background.
-  const isNeutralCad = gray < 235 && chroma < 24;
+  const isNeutralCad =
+    gray < 185 &&
+    chroma < 24;
 
-  return !isRedText && (isMagentaParcel || isNeutralCad);
+  return isRedParcel || isMagentaParcel || isNeutralCad;
 }
 
 async function buildBarrierMask(
@@ -85,7 +101,7 @@ async function buildBarrierMask(
     }
   }
 
-  // Close only one-pixel anti-aliased gaps, then remove the added outer rim.
+  // Close one-pixel anti-aliased gaps in parcel strokes.
   const dilated = new Uint8Array(raw.length);
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
