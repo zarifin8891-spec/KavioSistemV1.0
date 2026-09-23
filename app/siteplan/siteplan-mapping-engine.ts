@@ -10,12 +10,7 @@ export type AutoMappingResult = {
   bbox: { x: number; y: number; width: number; height: number };
 };
 
-type PixelMask = {
-  width: number;
-  height: number;
-  data: Uint8Array;
-};
-
+type PixelMask = { width: number; height: number; data: Uint8Array };
 type Component = {
   pixels: number[];
   area: number;
@@ -25,7 +20,7 @@ type Component = {
   maxY: number;
 };
 
-const nextPaint = () =>
+const yieldToBrowser = () =>
   new Promise<void>((resolve) => {
     if (typeof window === 'undefined') return resolve();
     window.requestAnimationFrame(() => resolve());
@@ -41,67 +36,37 @@ function pixelStats(data: Uint8ClampedArray, index: number) {
 }
 
 /**
- * KAVIO Auto Mapping V2
- * Works from the clicked lot outward instead of scanning the whole Siteplan.
- * This keeps the UI responsive and limits the risk of a boundary leaking
- * into adjacent lots.
+ * Boundary model for the supplied KAVIO Siteplan:
+ * lot boundaries are the red/magenta CAD linework.
+ * Neutral/grey engineering lines are NOT used as parcel barriers because
+ * they connect roads, ROW and other technical details across parcels.
  */
-function isBarrierPixel(data: Uint8ClampedArray, index: number) {
-  const { r, g, b, gray, chroma } = pixelStats(data, index);
-
-  /*
-   * IMPORTANT: In the actual KAVIO Siteplan, parcel boundaries are drawn in
-   * red/magenta. Earlier versions explicitly rejected red pixels as "text",
-   * which removed the very boundary we needed to detect.
-   *
-   * We therefore treat red/magenta linework as the primary parcel barrier.
-   * Red labels may also become tiny isolated barriers inside a lot, but they
-   * cannot close the lot by themselves, so the flood-fill remains bounded by
-   * the parcel outline. Dark neutral CAD strokes are retained as secondary
-   * barriers for the remaining technical linework.
-   */
-  const isRedParcel =
-    r > 155 &&
-    r - g > 70 &&
-    r - b > 70 &&
-    g < 150 &&
-    b < 150;
-
-  const isMagentaParcel =
-    r > 135 &&
-    b > 105 &&
-    g < 160 &&
-    r - g > 38 &&
-    b - g > 28;
-
-  const isNeutralCad =
-    gray < 185 &&
-    chroma < 24;
-
-  return isRedParcel || isMagentaParcel || isNeutralCad;
+function isParcelBoundaryPixel(data: Uint8ClampedArray, index: number) {
+  const { r, g, b } = pixelStats(data, index);
+  const red =
+    r > 145 &&
+    r - g > 55 &&
+    r - b > 55 &&
+    g < 175 &&
+    b < 175;
+  const magenta =
+    r > 125 &&
+    b > 95 &&
+    g < 170 &&
+    r - g > 30 &&
+    b - g > 20;
+  return red || magenta;
 }
 
-async function buildBarrierMask(
-  context: CanvasRenderingContext2D,
-  x0: number,
-  y0: number,
-  width: number,
-  height: number,
-): Promise<PixelMask> {
-  const imageData = context.getImageData(x0, y0, width, height);
+function buildParcelMask(imageData: ImageData): PixelMask {
+  const { width, height, data } = imageData;
   const raw = new Uint8Array(width * height);
-  const pixelsPerChunk = 80 * width;
 
-  for (let offset = 0; offset < width * height; offset += 1) {
-    const index = offset * 4;
-    raw[offset] = isBarrierPixel(imageData.data, index) ? 1 : 0;
-
-    if (offset > 0 && offset % pixelsPerChunk === 0) {
-      await nextPaint();
-    }
+  for (let i = 0, p = 0; i < raw.length; i += 1, p += 4) {
+    raw[i] = isParcelBoundaryPixel(data, p) ? 1 : 0;
   }
 
-  // Close one-pixel anti-aliased gaps in parcel strokes.
+  // Thicken red/magenta linework only enough to bridge anti-aliased 1px gaps.
   const dilated = new Uint8Array(raw.length);
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -118,13 +83,13 @@ async function buildBarrierMask(
       }
       dilated[y * width + x] = blocked;
     }
-    if (y > 0 && y % 80 === 0) await nextPaint();
+    if (y > 0 && y % 96 === 0) void yieldToBrowser();
   }
 
   return { width, height, data: dilated };
 }
 
-function findOpenSeed(mask: PixelMask, x: number, y: number, radius = 12): [number, number] | null {
+function findOpenSeed(mask: PixelMask, x: number, y: number, radius = 14): [number, number] | null {
   const px = Math.max(0, Math.min(mask.width - 1, Math.round(x)));
   const py = Math.max(0, Math.min(mask.height - 1, Math.round(y)));
 
@@ -144,7 +109,7 @@ function findOpenSeed(mask: PixelMask, x: number, y: number, radius = 12): [numb
   return null;
 }
 
-async function floodComponent(mask: PixelMask, seed: [number, number]): Promise<Component> {
+async function floodComponent(mask: PixelMask, seed: [number, number], hardRadius: number): Promise<Component> {
   const { width, height, data } = mask;
   const total = width * height;
   const visited = new Uint8Array(total);
@@ -154,29 +119,25 @@ async function floodComponent(mask: PixelMask, seed: [number, number]): Promise<
   const seedIndex = seed[1] * width + seed[0];
 
   if (data[seedIndex]) {
-    return {
-      pixels: [],
-      area: 0,
-      minX: seed[0],
-      minY: seed[1],
-      maxX: seed[0],
-      maxY: seed[1],
-    };
+    return { pixels: [], area: 0, minX: seed[0], minY: seed[1], maxX: seed[0], maxY: seed[1] };
   }
 
   queue[tail++] = seedIndex;
   visited[seedIndex] = 1;
-
   const pixels: number[] = [];
   let minX = seed[0];
   let minY = seed[1];
   let maxX = seed[0];
   let maxY = seed[1];
+  const radiusSq = hardRadius * hardRadius;
 
   while (head < tail) {
     const index = queue[head++];
     const y = Math.floor(index / width);
     const x = index - y * width;
+    const dx = x - seed[0];
+    const dy = y - seed[1];
+    if (dx * dx + dy * dy > radiusSq) continue;
 
     pixels.push(index);
     if (x < minX) minX = x;
@@ -186,43 +147,28 @@ async function floodComponent(mask: PixelMask, seed: [number, number]): Promise<
 
     if (x > 0) {
       const n = index - 1;
-      if (!visited[n] && !data[n]) {
-        visited[n] = 1;
-        queue[tail++] = n;
-      }
+      if (!visited[n] && !data[n]) { visited[n] = 1; queue[tail++] = n; }
     }
     if (x < width - 1) {
       const n = index + 1;
-      if (!visited[n] && !data[n]) {
-        visited[n] = 1;
-        queue[tail++] = n;
-      }
+      if (!visited[n] && !data[n]) { visited[n] = 1; queue[tail++] = n; }
     }
     if (y > 0) {
       const n = index - width;
-      if (!visited[n] && !data[n]) {
-        visited[n] = 1;
-        queue[tail++] = n;
-      }
+      if (!visited[n] && !data[n]) { visited[n] = 1; queue[tail++] = n; }
     }
     if (y < height - 1) {
       const n = index + width;
-      if (!visited[n] && !data[n]) {
-        visited[n] = 1;
-        queue[tail++] = n;
-      }
+      if (!visited[n] && !data[n]) { visited[n] = 1; queue[tail++] = n; }
     }
 
-    if (head % 20000 === 0) await nextPaint();
+    if (head % 25000 === 0) await yieldToBrowser();
   }
 
   return { pixels, area: pixels.length, minX, minY, maxX, maxY };
 }
 
-type Edge = {
-  a: MappingPoint;
-  b: MappingPoint;
-};
+type Edge = { a: MappingPoint; b: MappingPoint };
 
 function edgeKey(point: MappingPoint) {
   return point[0] + ':' + point[1];
@@ -235,7 +181,6 @@ function collectOuterBoundary(component: Component, width: number, height: numbe
   for (const index of component.pixels) {
     const y = Math.floor(index / width);
     const x = index - y * width;
-
     if (y === 0 || !pixelSet.has(index - width)) edges.push({ a: [x, y], b: [x + 1, y] });
     if (x === width - 1 || !pixelSet.has(index + 1)) edges.push({ a: [x + 1, y], b: [x + 1, y + 1] });
     if (y === height - 1 || !pixelSet.has(index + width)) edges.push({ a: [x + 1, y + 1], b: [x, y + 1] });
@@ -249,7 +194,6 @@ function collectOuterBoundary(component: Component, width: number, height: numbe
   };
 
   const adjacency = new Map<string, MappingPoint[]>();
-
   for (const edge of edges) {
     const ka = edgeKey(edge.a);
     const kb = edgeKey(edge.b);
@@ -275,16 +219,12 @@ function collectOuterBoundary(component: Component, width: number, height: numbe
       loop.push(current);
       if (edgeKey(current) === edgeKey(loop[0])) break;
 
-      const candidates = (adjacency.get(edgeKey(current)) ?? [])
-        .filter((point) => !used.has(edgeId(current, point)));
-
+      const candidates = (adjacency.get(edgeKey(current)) ?? []).filter(
+        (point) => !used.has(edgeId(current, point)),
+      );
       if (!candidates.length) break;
 
-      let next = candidates[0];
-      if (candidates.length > 1) {
-        next = candidates.find((point) => edgeKey(point) !== edgeKey(previous)) ?? candidates[0];
-      }
-
+      const next = candidates.find((point) => edgeKey(point) !== edgeKey(previous)) ?? candidates[0];
       used.add(edgeId(current, next));
       previous = current;
       current = next;
@@ -295,17 +235,17 @@ function collectOuterBoundary(component: Component, width: number, height: numbe
     }
   }
 
-  const signedArea = (points: MappingPoint[]) => {
-    let area = 0;
+  const area = (points: MappingPoint[]) => {
+    let value = 0;
     for (let i = 0; i < points.length; i += 1) {
       const [x1, y1] = points[i];
       const [x2, y2] = points[(i + 1) % points.length];
-      area += x1 * y2 - x2 * y1;
+      value += x1 * y2 - x2 * y1;
     }
-    return area / 2;
+    return Math.abs(value / 2);
   };
 
-  return loops.sort((a, b) => Math.abs(signedArea(b)) - Math.abs(signedArea(a)))[0] ?? [];
+  return loops.sort((a, b) => area(b) - area(a))[0] ?? [];
 }
 
 function perpendicularDistance(point: MappingPoint, start: MappingPoint, end: MappingPoint) {
@@ -323,7 +263,6 @@ function simplifyRdp(points: MappingPoint[], epsilon: number): MappingPoint[] {
 
   let maxDistance = 0;
   let index = 0;
-
   for (let i = 1; i < points.length - 1; i += 1) {
     const distance = perpendicularDistance(points[i], points[0], points[points.length - 1]);
     if (distance > maxDistance) {
@@ -337,7 +276,6 @@ function simplifyRdp(points: MappingPoint[], epsilon: number): MappingPoint[] {
     const right = simplifyRdp(points.slice(index), epsilon);
     return left.slice(0, -1).concat(right);
   }
-
   return [points[0], points[points.length - 1]];
 }
 
@@ -361,7 +299,7 @@ function bbox(points: MappingPoint[]) {
   const ys = points.map((p) => p[1]);
   const x = Math.min(...xs);
   const y = Math.min(...ys);
-  return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
+  return { x: Math.min(...xs), y: Math.min(...ys), width: Math.max(...xs) - Math.min(...xs), height: Math.max(...ys) - Math.min(...ys) };
 }
 
 function pointInPolygon(point: MappingPoint, polygon: MappingPoint[]) {
@@ -369,10 +307,12 @@ function pointInPolygon(point: MappingPoint, polygon: MappingPoint[]) {
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
     const [xi, yi] = polygon[i];
     const [xj, yj] = polygon[j];
-    const intersects =
+    if (
       yi > point[1] !== yj > point[1] &&
-      point[0] < ((xj - xi) * (point[1] - yi)) / Math.max(1e-9, yj - yi) + xi;
-    if (intersects) inside = !inside;
+      point[0] < ((xj - xi) * (point[1] - yi)) / (yj - yi || 1e-9) + xi
+    ) {
+      inside = !inside;
+    }
   }
   return inside;
 }
@@ -380,6 +320,7 @@ function pointInPolygon(point: MappingPoint, polygon: MappingPoint[]) {
 function segmentsIntersect(a: MappingPoint, b: MappingPoint, c: MappingPoint, d: MappingPoint) {
   const cross = (p: MappingPoint, q: MappingPoint, r: MappingPoint) =>
     (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+
   const onSegment = (p: MappingPoint, q: MappingPoint, r: MappingPoint) =>
     Math.min(p[0], r[0]) <= q[0] + 0.5 &&
     q[0] <= Math.max(p[0], r[0]) + 0.5 &&
@@ -391,13 +332,17 @@ function segmentsIntersect(a: MappingPoint, b: MappingPoint, c: MappingPoint, d:
   const c3 = cross(c, d, a);
   const c4 = cross(c, d, b);
 
-  if ((c1 > 0 && c2 < 0 || c1 < 0 && c2 > 0) && (c3 > 0 && c4 < 0 || c3 < 0 && c4 > 0)) {
-    return true;
-  }
-  return Math.abs(c1) < 0.5 && onSegment(a, c, b) ||
-    Math.abs(c2) < 0.5 && onSegment(a, d, b) ||
-    Math.abs(c3) < 0.5 && onSegment(c, a, d) ||
-    Math.abs(c4) < 0.5 && onSegment(c, b, d);
+  if (
+    ((c1 > 0 && c2 < 0) || (c1 < 0 && c2 > 0)) &&
+    ((c3 > 0 && c4 < 0) || (c3 < 0 && c4 > 0))
+  ) return true;
+
+  return (
+    (Math.abs(c1) < 0.5 && onSegment(a, c, b)) ||
+    (Math.abs(c2) < 0.5 && onSegment(a, d, b)) ||
+    (Math.abs(c3) < 0.5 && onSegment(c, a, d)) ||
+    (Math.abs(c4) < 0.5 && onSegment(c, b, d))
+  );
 }
 
 export function polygonsConflict(a: MappingPoint[], b: MappingPoint[]) {
@@ -405,12 +350,12 @@ export function polygonsConflict(a: MappingPoint[], b: MappingPoint[]) {
 
   const ba = bbox(a);
   const bb = bbox(b);
-  const boxesSeparated =
+  if (
     ba.x + ba.width < bb.x ||
     bb.x + bb.width < ba.x ||
     ba.y + ba.height < bb.y ||
-    bb.y + bb.height < ba.y;
-  if (boxesSeparated) return false;
+    bb.y + bb.height < ba.y
+  ) return false;
 
   if (pointInPolygon(a[0], b) || pointInPolygon(b[0], a)) return true;
 
@@ -425,91 +370,210 @@ export function polygonsConflict(a: MappingPoint[], b: MappingPoint[]) {
   return false;
 }
 
+function nearestParcelHit(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  searchRadius = 2,
+) {
+  const ix = Math.round(x);
+  const iy = Math.round(y);
+  let best: number | null = null;
+
+  for (let oy = -searchRadius; oy <= searchRadius; oy += 1) {
+    for (let ox = -searchRadius; ox <= searchRadius; ox += 1) {
+      const nx = ix + ox;
+      const ny = iy + oy;
+      if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+      const p = (ny * width + nx) * 4;
+      if (isParcelBoundaryPixel(data, p)) {
+        const d = ox * ox + oy * oy;
+        if (best === null || d < best) best = d;
+      }
+    }
+  }
+
+  return best;
+}
+
+function radialBoundary(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  seedX: number,
+  seedY: number,
+) {
+  const samples = 180;
+  const maxDistance = 520;
+  const distances: Array<number | null> = new Array(samples).fill(null);
+
+  for (let i = 0; i < samples; i += 1) {
+    const theta = (i / samples) * Math.PI * 2;
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
+
+    for (let distance = 8; distance <= maxDistance; distance += 1) {
+      const x = seedX + cos * distance;
+      const y = seedY + sin * distance;
+      if (x < 0 || x >= width || y < 0 || y >= height) break;
+
+      if (nearestParcelHit(data, width, height, x, y, 2) !== null) {
+        distances[i] = distance;
+        break;
+      }
+    }
+  }
+
+  const finite = distances.filter((value): value is number => value !== null);
+  if (finite.length < samples * 0.55) return null;
+
+  // Robust smoothing: internal red labels are local outliers; parcel edges are
+  // spatially coherent across neighbouring rays.
+  const smoothed = distances.map((value, i) => {
+    const window: number[] = [];
+    for (let k = -4; k <= 4; k += 1) {
+      const candidate = distances[(i + k + samples) % samples];
+      if (candidate !== null) window.push(candidate);
+    }
+    if (window.length < 4) return value;
+    window.sort((a, b) => a - b);
+    const median = window[Math.floor(window.length / 2)];
+    if (value === null) return median;
+    return Math.abs(value - median) > Math.max(12, median * 0.22) ? median : value;
+  });
+
+  const points: MappingPoint[] = [];
+  for (let i = 0; i < samples; i += 3) {
+    const distance = smoothed[i];
+    if (distance === null) continue;
+    const theta = (i / samples) * Math.PI * 2;
+    points.push([
+      Math.round(seedX + Math.cos(theta) * distance),
+      Math.round(seedY + Math.sin(theta) * distance),
+    ]);
+  }
+
+  if (points.length < 20) return null;
+
+  const simplified = simplifyClosed(points, 3.5);
+  if (simplified.length < 6) return null;
+  if (!pointInPolygon([Math.round(seedX), Math.round(seedY)], simplified)) return null;
+
+  return simplified;
+}
+
+async function floodDetect(
+  context: CanvasRenderingContext2D,
+  imageWidth: number,
+  imageHeight: number,
+  seedX: number,
+  seedY: number,
+) {
+  const radii = [180, 260, 360, 480, 620];
+  for (const radius of radii) {
+    const x0 = Math.max(0, Math.round(seedX) - radius);
+    const y0 = Math.max(0, Math.round(seedY) - radius);
+    const x1 = Math.min(imageWidth, Math.round(seedX) + radius + 1);
+    const y1 = Math.min(imageHeight, Math.round(seedY) + radius + 1);
+    const width = x1 - x0;
+    const height = y1 - y0;
+
+    const imageData = context.getImageData(x0, y0, width, height);
+    const mask = buildParcelMask(imageData);
+    const localSeed = findOpenSeed(mask, Math.round(seedX) - x0, Math.round(seedY) - y0, 18);
+    if (!localSeed) continue;
+
+    const component = await floodComponent(mask, localSeed, radius);
+    const boundary = collectOuterBoundary(component, width, height);
+    if (component.area < 1200 || boundary.length < 8) continue;
+
+    const polygon = simplifyClosed(
+      boundary.map(([x, y]) => [x + x0, y + y0] as MappingPoint),
+      3.0,
+    );
+
+    if (polygon.length < 6) continue;
+    if (!pointInPolygon([Math.round(seedX), Math.round(seedY)], polygon)) continue;
+
+    const area = polygonArea(polygon);
+    const ratio = area / Math.max(1, Math.PI * radius * radius);
+    if (ratio < 0.025 || ratio > 0.92) continue;
+
+    return polygon;
+  }
+  return null;
+}
+
 export async function detectLotPolygon(
   image: HTMLImageElement,
   seedX: number,
   seedY: number,
-  options: { maxAreaRatio?: number; conflictPolygons?: MappingPoint[][] } = {},
+  options: { conflictPolygons?: MappingPoint[][] } = {},
 ): Promise<AutoMappingResult> {
+  if (!image.naturalWidth || !image.naturalHeight) {
+    throw new Error('Gambar Siteplan belum siap dibaca. Tunggu sampai Siteplan selesai dimuat.');
+  }
+
   const canvas = document.createElement('canvas');
   canvas.width = image.naturalWidth;
   canvas.height = image.naturalHeight;
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) throw new Error('Canvas context tidak tersedia.');
 
-  // The important architectural change: only analyze a local region around
-  // the clicked lot. We no longer scan the whole Siteplan on every click.
-  const radii = [180, 260, 360, 480, 640];
-  const maxAreaRatio = options.maxAreaRatio ?? 0.42;
-  let best: { component: Component; boundary: MappingPoint[]; x0: number; y0: number } | null = null;
+  context.drawImage(image, 0, 0);
+  await yieldToBrowser();
 
-  for (const radius of radii) {
-    await nextPaint();
+  const clampedX = Math.max(0, Math.min(canvas.width - 1, seedX));
+  const clampedY = Math.max(0, Math.min(canvas.height - 1, seedY));
 
-    const x0 = Math.max(0, Math.round(seedX) - radius);
-    const y0 = Math.max(0, Math.round(seedY) - radius);
-    const x1 = Math.min(canvas.width, Math.round(seedX) + radius);
-    const y1 = Math.min(canvas.height, Math.round(seedY) + radius);
-    const width = Math.max(1, x1 - x0);
-    const height = Math.max(1, y1 - y0);
+  let polygon = await floodDetect(context, canvas.width, canvas.height, clampedX, clampedY);
 
-    const mask = await buildBarrierMask(context, x0, y0, width, height);
-    const localSeed = findOpenSeed(mask, Math.round(seedX) - x0, Math.round(seedY) - y0, 16);
-
-    if (!localSeed) continue;
-
-    const component = await floodComponent(mask, localSeed);
-    if (component.area < 120) continue;
-
-    const ratio = component.area / (width * height);
-    const touchesCrop =
-      component.minX <= 1 ||
-      component.minY <= 1 ||
-      component.maxX >= width - 2 ||
-      component.maxY >= height - 2;
-
-    if (ratio > maxAreaRatio) continue;
-
-    const boundary = collectOuterBoundary(component, width, height);
-    if (boundary.length < 6) continue;
-
-    const span = Math.max(component.maxX - component.minX, component.maxY - component.minY);
-    const simplified = simplifyClosed(boundary, Math.max(1.5, span * 0.01));
-    const polygon = simplified.map(([x, y]) => [x + x0, y + y0] as MappingPoint);
-
-    if (polygonArea(polygon) < 250) continue;
-    if (!pointInPolygon([Math.round(seedX), Math.round(seedY)], polygon)) continue;
-
-    const conflict = (options.conflictPolygons ?? []).some((other) => polygonsConflict(polygon, other));
-    if (conflict) {
-      throw new Error('Hasil Auto Detect bertabrakan dengan mapping kavling yang sudah tersimpan. Klik ulang lebih ke tengah kavling.');
-    }
-
-    best = { component, boundary: polygon, x0, y0 };
-
-    // We have a closed component that did not touch the crop — stop expanding.
-    if (!touchesCrop) break;
+  // Fallback is still geometry-driven: trace the nearest coherent red/magenta
+  // boundary in multiple directions rather than inventing fixed lot coordinates.
+  if (!polygon) {
+    const localRadius = 600;
+    const x0 = Math.max(0, Math.round(clampedX) - localRadius);
+    const y0 = Math.max(0, Math.round(clampedY) - localRadius);
+    const x1 = Math.min(canvas.width, Math.round(clampedX) + localRadius + 1);
+    const y1 = Math.min(canvas.height, Math.round(clampedY) + localRadius + 1);
+    const imageData = context.getImageData(x0, y0, x1 - x0, y1 - y0);
+    polygon = radialBoundary(
+      imageData.data,
+      imageData.width,
+      imageData.height,
+      clampedX - x0,
+      clampedY - y0,
+    )?.map(([x, y]) => [x + x0, y + y0] as MappingPoint) ?? null;
   }
 
-  if (!best) {
-    throw new Error('Batas kavling belum berhasil ditemukan. Klik tepat di area kosong bagian dalam kavling.');
+  if (!polygon) {
+    throw new Error('Batas kavling belum berhasil ditemukan. Klik benar-benar di area putih bagian dalam kavling.');
   }
 
-  const { component, boundary } = best;
-  const width = boundary.length;
-  const spread = Math.max(component.maxX - component.minX, component.maxY - component.minY);
-  const confidence = Math.max(0, Math.min(99, Math.round(88 - Math.max(0, spread - 80) / 18)));
+  const conflict = (options.conflictPolygons ?? []).some((other) => polygonsConflict(polygon!, other));
+  if (conflict) {
+    throw new Error('Hasil Auto Detect bertabrakan dengan mapping kavling yang sudah tersimpan. Mapping tidak disimpan.');
+  }
+
+  const area = polygonArea(polygon);
+  const bb = bbox(polygon);
+  const spread = Math.max(bb.width, bb.height);
+
+  const confidence = Math.max(
+    55,
+    Math.min(
+      99,
+      Math.round(96 - Math.max(0, spread - 120) / 22),
+    ),
+  );
 
   return {
-    polygon: boundary,
-    label: [Math.round(seedX), Math.round(seedY)],
+    polygon,
+    label: [Math.round(clampedX), Math.round(clampedY)],
     confidence,
-    area: component.area,
-    bbox: {
-      x: component.minX + best.x0,
-      y: component.minY + best.y0,
-      width: component.maxX - component.minX + 1,
-      height: component.maxY - component.minY + 1,
-    },
+    area,
+    bbox: bb,
   };
 }
