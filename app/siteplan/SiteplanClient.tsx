@@ -350,7 +350,20 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                     role="button"
                     tabIndex={0}
                     aria-label={`Pilih kavling ${row.id_kavling}`}
-                    onClick={(event) => { if (mappingMode) return; setSelectedId(row.id_kavling); }}
+                    onClick={(event) => {
+                      if (mappingMode) {
+                        if (selectedId !== row.id_kavling) {
+                          event.stopPropagation();
+                          setSelectedId(row.id_kavling);
+                          setAutoDetectArmed(false);
+                          const current = activeMap[row.id_kavling]?.polygon ?? [];
+                          setMappingPoints(current);
+                          setPolygonFinished(current.length >= 3);
+                        }
+                        return;
+                      }
+                      setSelectedId(row.id_kavling);
+                    }}
                     onKeyDown={(event) => handlePolygonKey(event, row.id_kavling)}
                   >
                     <polygon points={mappingMode && selectedId === row.id_kavling && mappingPoints.length >= 3 ? polygonPoints(mappingPoints) : polygonPoints(map.polygon)} />
@@ -479,9 +492,6 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                     <th>TIPE RUMAH</th>
                     <th>L. TANAH</th>
                     <th>KELEBIHAN</th>
-                    <th>HARGA STANDAR</th>
-                    <th>HARGA TANAH/M²</th>
-                    <th>HARGA JUAL</th>
                     <th>STATUS KAVLING</th>
                     <th>STATUS DATA</th>
                     <th>AKSI</th>
@@ -497,9 +507,6 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                       <td>{row.nama_tipe || row.id_tipe || '—'}</td>
                       <td>{row.luas_tanah_real != null ? `${Number(row.luas_tanah_real).toFixed(2)} m²` : '—'}</td>
                       <td>{row.kelebihan_tanah != null ? `${Number(row.kelebihan_tanah).toFixed(2)} m²` : '—'}</td>
-                      <td>{formatMoney(row.harga_standar)}</td>
-                      <td>{formatMoney(row.harga_tanah_meter)}</td>
-                      <td>{formatMoney(row.harga_jual)}</td>
                       <td><span className={`siteplan-status status-${statusClass(row.status_kavling)}`}>{row.status_kavling || 'AVAILABLE'}</span></td>
                       <td><span className={`siteplan-status ${row.status_aktif === false ? 'status-inactive-data' : ''}`}>{row.status_aktif === false ? 'NONAKTIF' : 'AKTIF'}</span></td>
                       <td>
@@ -518,7 +525,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                     </tr>
                   ))}
                   {!listRows.length && (
-                    <tr><td colSpan={13} className="kavio-empty">BELUM ADA DATA KAVLING.</td></tr>
+                    <tr><td colSpan={10} className="kavio-empty">BELUM ADA DATA KAVLING.</td></tr>
                   )}
                 </tbody>
               </table>
