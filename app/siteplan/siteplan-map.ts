@@ -6,13 +6,13 @@ export type SiteplanLotMap = {
   label: SiteplanPoint;
 };
 
-// Landscape coordinate system after rotating the supplied Siteplan 90° clockwise.
-// Original asset: 1488 × 2105. Rotated display: 2105 × 1488.
+// Coordinate system follows the new correct Siteplan source asset directly.
+// Asset size: 3268 × 2189 (landscape). A.01 is on the right side as requested.
 export const SITEPLAN_VIEWBOX = {
-  width: 2105,
-  height: 1488,
+  width: 3268,
+  height: 2189,
 };
 
-// Prototype polygons were cleared because their coordinates belonged to the previous image.
-// New polygons are traced directly on the rotated latest Siteplan and persisted to Supabase.
+// Prototype polygons are cleared because their coordinates belonged to the previous image.
+// New polygons are traced directly on the current Siteplan and persisted to Supabase.
 export const SITEPLAN_MAP: Record<string, SiteplanLotMap> = {};
