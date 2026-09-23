@@ -8,13 +8,25 @@ export default async function SiteplanPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: kavlings } = await supabase
-    .from('master_kavling')
-    .select('id_kavling,blok,no_kavling,id_tipe,status_kavling,status_aktif,luas_tanah_standar,luas_tanah_real,kelebihan_tanah,harga_standar,harga_tanah_meter,harga_jual')
-    .order('blok')
-    .order('no_kavling');
+  const [{ data: kavlings }, { data: tipeRumah }] = await Promise.all([
+    supabase
+      .from('master_kavling')
+      .select('id_kavling,blok,no_kavling,id_tipe,status_kavling,status_aktif,luas_tanah_standar,luas_tanah_real,kelebihan_tanah,harga_standar,harga_tanah_meter,harga_jual')
+      .order('blok')
+      .order('no_kavling'),
+    supabase
+      .from('master_tipe_rumah')
+      .select('id_tipe,nama_tipe')
+      .eq('status_aktif', true)
+      .order('nama_tipe'),
+  ]);
 
-  const ids = (kavlings ?? []).map((row) => row.id_kavling);
+  const tipeMap = new Map((tipeRumah ?? []).map((row) => [row.id_tipe, row.nama_tipe]));
+  const kavlingRows = (kavlings ?? []).map((row) => ({
+    ...row,
+    nama_tipe: tipeMap.get(row.id_tipe) ?? row.id_tipe,
+  }));
+  const ids = kavlingRows.map((row) => row.id_kavling);
 
   const [{ data: sales }, { data: spks }] = await Promise.all([
     ids.length
@@ -69,7 +81,7 @@ export default async function SiteplanPage() {
   return (
     <KavioShell>
       <SiteplanClient
-        kavlings={kavlings ?? []}
+        kavlings={kavlingRows}
         sales={sales ?? []}
         spks={spks ?? []}
         progressUpdates={progressUpdates ?? []}
