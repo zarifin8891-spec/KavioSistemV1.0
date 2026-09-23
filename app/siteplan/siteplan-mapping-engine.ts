@@ -35,15 +35,19 @@ function buildBarrierMask(imageData: ImageData): PixelMask {
       const b = data[i + 2];
       const gray = (299 * r + 587 * g + 114 * b) / 1000;
       const chroma = Math.max(r, g, b) - Math.min(r, g, b);
-      const isRedAnnotation = r > 145 && r > g * 1.18 && r > b * 1.18;
 
-      // Keep CAD geometry in neutral and line-coloured inks. Red labels/notes
-      // are ignored so the kavling number does not split the lot interior.
-      raw[y * width + x] = !isRedAnnotation && (gray < 245 || chroma > 14) ? 1 : 0;
+      // Parcel geometry in the supplied Siteplan is drawn primarily as
+      // neutral CAD strokes and magenta parcel outlines. Red text/labels,
+      // green landscaping and cyan/blue utilities are deliberately excluded.
+      const isMagentaParcel = r > 145 && b > 115 && g < 150 && (r - g) > 45 && (b - g) > 35;
+      const isRedText = r > 145 && r > g * 1.18 && r > b * 1.18;
+      const isNeutralCad = gray < 248 && chroma < 20;
+
+      raw[y * width + x] = (isNeutralCad || isMagentaParcel) && !isRedText ? 1 : 0;
     }
   }
 
-  // Close only very small gaps in anti-aliased lines.
+  // One-pixel dilation closes anti-aliased breaks without swallowing narrow lot gaps.
   const dilated = new Uint8Array(raw.length);
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
