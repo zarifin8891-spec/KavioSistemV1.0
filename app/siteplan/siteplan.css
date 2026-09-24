@@ -487,3 +487,33 @@
 .siteplan-overlay.is-mapping .siteplan-polygon:not(.is-selected) text {
   pointer-events:auto !important;
 }
+
+
+/* Mapping Mode uses one consistent KAVIO working color regardless of kavling status.
+   Normal Siteplan mode keeps the operational status colors. */
+.siteplan-overlay.is-mapping .siteplan-polygon polygon,
+.siteplan-overlay.is-mapping .siteplan-polygon:hover polygon,
+.siteplan-overlay.is-mapping .siteplan-polygon:focus polygon,
+.siteplan-overlay.is-mapping .siteplan-polygon.is-selected polygon,
+.siteplan-overlay.is-mapping .siteplan-polygon.status-available polygon,
+.siteplan-overlay.is-mapping .siteplan-polygon.status-booking polygon,
+.siteplan-overlay.is-mapping .siteplan-polygon.status-sold polygon,
+.siteplan-overlay.is-mapping .siteplan-polygon.status-building polygon,
+.siteplan-overlay.is-mapping .siteplan-polygon.status-ready_stock polygon,
+.siteplan-overlay.is-mapping .siteplan-polygon.status-completed polygon {
+  fill:rgba(240,212,138,.18) !important;
+  stroke:transparent !important;
+  stroke-width:0 !important;
+}
+.siteplan-overlay.is-mapping .siteplan-polygon.is-selected polygon {
+  fill:rgba(240,212,138,.32) !important;
+}
+.siteplan-overlay.is-mapping .siteplan-map-point {
+  fill:var(--kavio-gold) !important;
+  stroke:var(--kavio-navy) !important;
+  stroke-width:2 !important;
+  cursor:grab !important;
+}
+.siteplan-overlay.is-mapping .siteplan-map-point:active {
+  cursor:grabbing !important;
+}
