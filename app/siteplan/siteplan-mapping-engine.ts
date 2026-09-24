@@ -417,6 +417,142 @@ function segmentsIntersect(
   );
 }
 
+function simplifyToVertexBudget(points: MappingPoint[], maxVertices = 10) {
+  if (points.length <= maxVertices) return points;
+
+  let low = 0.5;
+  let high = 2;
+
+  for (let i = 0; i < 14; i += 1) {
+    const mid = (low + high) / 2;
+    const candidate = simplifyClosed(points, mid);
+    if (candidate.length > maxVertices) low = mid;
+    else high = mid;
+  }
+
+  let result = simplifyClosed(points, high);
+
+  let changed = true;
+  while (changed && result.length > 4) {
+    changed = false;
+    for (let i = 0; i < result.length; i += 1) {
+      const prev = result[(i - 1 + result.length) % result.length];
+      const cur = result[i];
+      const next = result[(i + 1) % result.length];
+      if (perpendicularDistance(cur, prev, next) < 2.5) {
+        result = result.filter((_, index) => index !== i);
+        changed = true;
+        break;
+      }
+    }
+  }
+
+  return result.length <= maxVertices ? result : result.slice(0, maxVertices);
+}
+
+function findInkHit(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  band = 1,
+) {
+  const ix = Math.round(x);
+  const iy = Math.round(y);
+
+  for (let r = 0; r <= band; r += 1) {
+    for (let ox = -r; ox <= r; ox += 1) {
+      for (let oy = -r; oy <= r; oy += 1) {
+        const nx = ix + ox;
+        const ny = iy + oy;
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+        const p = (ny * width + nx) * 4;
+        const { gray, chroma } = pixelStats(data, p);
+        if (gray < 225 || chroma > 18) return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function radialTracePolygon(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  seedX: number,
+  seedY: number,
+) {
+  const samples = 96;
+  const maxDistance = Math.max(
+    160,
+    Math.min(520, Math.hypot(width, height) * 0.28),
+  );
+  const distances: Array<number | null> = new Array(samples).fill(null);
+
+  for (let i = 0; i < samples; i += 1) {
+    const theta = (i / samples) * Math.PI * 2;
+    const cos = Math.cos(theta);
+    const sin = Math.sin(theta);
+
+    for (let distance = 8; distance <= maxDistance; distance += 1) {
+      const x = seedX + cos * distance;
+      const y = seedY + sin * distance;
+      if (x < 0 || x >= width || y < 0 || y >= height) break;
+
+      if (findInkHit(data, width, height, x, y, 1)) {
+        distances[i] = distance;
+        break;
+      }
+    }
+  }
+
+  const finite = distances.filter((value): value is number => value !== null);
+  if (finite.length < samples * 0.60) return null;
+
+  const smoothed = distances.map((value, index) => {
+    const neighborhood: number[] = [];
+
+    for (let k = -4; k <= 4; k += 1) {
+      const candidate = distances[(index + k + samples) % samples];
+      if (candidate !== null) neighborhood.push(candidate);
+    }
+
+    if (neighborhood.length < 5) return value;
+
+    neighborhood.sort((a, b) => a - b);
+    const median = neighborhood[Math.floor(neighborhood.length / 2)];
+
+    // Suppress abrupt internal text hits while retaining smooth parcel edges.
+    return value === null || Math.abs(value - median) > Math.max(10, median * 0.22)
+      ? median
+      : value;
+  });
+
+  const trace: MappingPoint[] = [];
+  for (let i = 0; i < samples; i += 1) {
+    const distance = smoothed[i];
+    if (distance === null) continue;
+
+    const theta = (i / samples) * Math.PI * 2;
+    trace.push([
+      Math.round(seedX + Math.cos(theta) * distance),
+      Math.round(seedY + Math.sin(theta) * distance),
+    ]);
+  }
+
+  if (trace.length < 32) return null;
+
+  let polygon = simplifyClosed(trace, Math.max(3, maxDistance * 0.004));
+  polygon = simplifyToVertexBudget(polygon, 10);
+
+  const click: MappingPoint = [Math.round(seedX), Math.round(seedY)];
+  if (polygon.length < 4 || !pointInPolygon(click, polygon)) return null;
+
+  return polygon;
+}
+
 export function polygonsConflict(a: MappingPoint[], b: MappingPoint[]) {
   if (a.length < 3 || b.length < 3) return false;
 
@@ -465,124 +601,117 @@ export async function detectLotPolygon(
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) throw new Error('Canvas context tidak tersedia.');
 
-  const radii = [140, 190, 260, 360, 500];
+  context.drawImage(image, 0, 0);
+  await yieldToBrowser();
 
-  for (const radius of radii) {
-    await yieldToBrowser();
+  const clickX = Math.max(0, Math.min(canvas.width - 1, seedX));
+  const clickY = Math.max(0, Math.min(canvas.height - 1, seedY));
 
-    const x0 = Math.max(0, Math.round(seedX) - radius);
-    const y0 = Math.max(0, Math.round(seedY) - radius);
-    const x1 = Math.min(canvas.width, Math.round(seedX) + radius + 1);
-    const y1 = Math.min(canvas.height, Math.round(seedY) + radius + 1);
-    const cropWidth = x1 - x0;
-    const cropHeight = y1 - y0;
+  const localRadius = Math.max(
+    180,
+    Math.min(620, Math.round(Math.min(canvas.width, canvas.height) * 0.38)),
+  );
 
-    if (cropWidth < 20 || cropHeight < 20) continue;
+  const x0 = Math.max(0, Math.round(clickX) - localRadius);
+  const y0 = Math.max(0, Math.round(clickY) - localRadius);
+  const x1 = Math.min(canvas.width, Math.round(clickX) + localRadius + 1);
+  const y1 = Math.min(canvas.height, Math.round(clickY) + localRadius + 1);
 
-    const cropImageData = context.getImageData(
-      x0,
-      y0,
-      cropWidth,
-      cropHeight,
-    );
+  const localData = context.getImageData(x0, y0, x1 - x0, y1 - y0);
 
-    const barrier = await buildInkBarrierMask(cropImageData);
+  // Primary detector: trace the closest coherent line surrounding the clicked face.
+  // Unlike raw pixel contours, it immediately returns geometric corner candidates.
+  let polygon = radialTracePolygon(
+    localData.data,
+    localData.width,
+    localData.height,
+    clickX - x0,
+    clickY - y0,
+  )?.map(([x, y]) => [x + x0, y + y0] as MappingPoint) ?? null;
 
+  // Fallback retains the proven flood-fill concept for drawings where radial
+  // tracing is inconclusive.
+  if (!polygon) {
+    const barrier = buildInkBarrierMask(localData);
     const localSeed = findOpenSeed(
       barrier,
-      Math.round(seedX) - x0,
-      Math.round(seedY) - y0,
+      clickX - x0,
+      clickY - y0,
       18,
     );
 
-    if (!localSeed) continue;
+    if (localSeed) {
+      const component = await floodComponent(barrier, localSeed);
 
-    const component = await floodComponent(barrier, localSeed);
+      const touchesCrop =
+        component.minX <= 1 ||
+        component.minY <= 1 ||
+        component.maxX >= localData.width - 2 ||
+        component.maxY >= localData.height - 2;
 
-    if (component.area < 150) continue;
+      const areaRatio =
+        component.area /
+        Math.max(1, localData.width * localData.height);
 
-    const touchesCrop =
-      component.minX <= 1 ||
-      component.minY <= 1 ||
-      component.maxX >= cropWidth - 2 ||
-      component.maxY >= cropHeight - 2;
+      if (!touchesCrop && component.area >= 150 && areaRatio < 0.20) {
+        const boundary = collectOuterBoundary(
+          component,
+          localData.width,
+          localData.height,
+        );
 
-    // A valid lot face should be comfortably smaller than its analysis crop.
-    const areaRatio = component.area / Math.max(1, cropWidth * cropHeight);
-    const widthRatio =
-      (component.maxX - component.minX + 1) / Math.max(1, cropWidth);
-    const heightRatio =
-      (component.maxY - component.minY + 1) / Math.max(1, cropHeight);
+        if (boundary.length >= 6) {
+          const sourceBoundary = boundary.map(
+            ([x, y]) => [x + x0, y + y0] as MappingPoint,
+          );
 
-    if (areaRatio > 0.20 || widthRatio > 0.85 || heightRatio > 0.85) {
-      continue;
+          const candidate = simplifyToVertexBudget(
+            simplifyClosed(sourceBoundary, 4),
+            10,
+          );
+
+          const click: MappingPoint = [
+            Math.round(clickX),
+            Math.round(clickY),
+          ];
+
+          if (candidate.length >= 4 && pointInPolygon(click, candidate)) {
+            polygon = candidate;
+          }
+        }
+      }
     }
-
-    if (touchesCrop) {
-      // The lot is not fully enclosed at this radius. Expand the crop rather
-      // than accepting a partial boundary that could overlap neighbours.
-      continue;
-    }
-
-    const localBoundary = collectOuterBoundary(
-      component,
-      cropWidth,
-      cropHeight,
-    );
-
-    if (localBoundary.length < 6) continue;
-
-    const sourceBoundary = localBoundary.map(
-      ([x, y]) => [x + x0, y + y0] as MappingPoint,
-    );
-
-    const span = Math.max(
-      component.maxX - component.minX,
-      component.maxY - component.minY,
-    );
-
-    const polygon = simplifyClosed(
-      sourceBoundary,
-      Math.max(1.5, Math.min(5, span * 0.012)),
-    );
-
-    if (polygon.length < 6) continue;
-
-    const clickPoint: MappingPoint = [
-      Math.round(seedX),
-      Math.round(seedY),
-    ];
-
-    if (!pointInPolygon(clickPoint, polygon)) continue;
-
-    const conflict = (options.conflictPolygons ?? []).some((other) =>
-      polygonsConflict(polygon, other),
-    );
-
-    if (conflict) {
-      throw new Error(
-        'Hasil Auto Detect bertabrakan dengan mapping kavling yang sudah tersimpan. Mapping tidak disimpan.',
-      );
-    }
-
-    const area = polygonArea(polygon);
-    const bb = bbox(polygon);
-    const spread = Math.max(bb.width, bb.height);
-    const confidence = Math.max(
-      55,
-      Math.min(99, Math.round(97 - Math.max(0, spread - 120) / 24)),
-    );
-
-    return {
-      polygon,
-      label: clickPoint,
-      confidence,
-      area,
-      bbox: bb,
-    };
   }
 
-  throw new Error(
-    'Batas kavling belum berhasil ditemukan. Klik benar-benar di area putih bagian dalam kavling.',
+  if (!polygon) {
+    throw new Error(
+      'Batas kavling belum berhasil ditemukan. Klik di area putih bagian dalam kavling.',
+    );
+  }
+
+  const conflict = (options.conflictPolygons ?? []).some((other) =>
+    polygonsConflict(polygon!, other),
   );
+
+  if (conflict) {
+    throw new Error(
+      'Hasil Auto Detect bertabrakan dengan mapping kavling yang sudah tersimpan. Mapping tidak disimpan.',
+    );
+  }
+
+  const area = polygonArea(polygon);
+  const bb = bbox(polygon);
+  const spread = Math.max(bb.width, bb.height);
+  const confidence = Math.max(
+    55,
+    Math.min(99, Math.round(96 - Math.max(0, spread - 120) / 24)),
+  );
+
+  return {
+    polygon,
+    label: [Math.round(clickX), Math.round(clickY)],
+    confidence,
+    area,
+    bbox: bb,
+  };
 }
