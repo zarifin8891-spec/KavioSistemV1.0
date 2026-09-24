@@ -444,7 +444,10 @@ function simplifyToVertexBudget(points: MappingPoint[], maxVertices = 8) {
 }
 
 function isParcelLinePixel(data: Uint8ClampedArray, index: number) {
-  const { r, g, b, gray, chroma } = pixelStats(data, index);
+  const r = data[index];
+  const g = data[index + 1];
+  const b = data[index + 2];
+  const { gray, chroma } = pixelStats(data, index);
 
   // Red/magenta = parcel outlines in the supplied drawing.
   const redOrMagenta =
