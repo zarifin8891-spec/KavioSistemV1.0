@@ -417,64 +417,115 @@ function segmentsIntersect(
   );
 }
 
-function simplifyToVertexBudget(points: MappingPoint[], maxVertices = 10) {
+function simplifyToVertexBudget(points: MappingPoint[], maxVertices = 8) {
   if (points.length <= maxVertices) return points;
 
   let low = 0.5;
   let high = 2;
 
-  for (let i = 0; i < 14; i += 1) {
-    const mid = (low + high) / 2;
-    const candidate = simplifyClosed(points, mid);
-    if (candidate.length > maxVertices) low = mid;
-    else high = mid;
+  // Expand the tolerance until the curve actually falls within the vertex budget.
+  let candidate = simplifyClosed(points, high);
+  while (candidate.length > maxVertices && high < 64) {
+    high *= 2;
+    candidate = simplifyClosed(points, high);
   }
 
-  let result = simplifyClosed(points, high);
-
-  let changed = true;
-  while (changed && result.length > 4) {
-    changed = false;
-    for (let i = 0; i < result.length; i += 1) {
-      const prev = result[(i - 1 + result.length) % result.length];
-      const cur = result[i];
-      const next = result[(i + 1) % result.length];
-      if (perpendicularDistance(cur, prev, next) < 2.5) {
-        result = result.filter((_, index) => index !== i);
-        changed = true;
-        break;
-      }
+  for (let i = 0; i < 18; i += 1) {
+    const mid = (low + high) / 2;
+    const test = simplifyClosed(points, mid);
+    if (test.length > maxVertices) low = mid;
+    else {
+      high = mid;
+      candidate = test;
     }
   }
 
-  return result.length <= maxVertices ? result : result.slice(0, maxVertices);
+  return candidate.length >= 4 ? candidate : points;
 }
 
-function findInkHit(
+function isParcelLinePixel(data: Uint8ClampedArray, index: number) {
+  const { r, g, b, gray, chroma } = pixelStats(data, index);
+
+  // Red/magenta = parcel outlines in the supplied drawing.
+  const redOrMagenta =
+    r > 125 &&
+    r - g > 28 &&
+    r - b > 20 &&
+    g < 185 &&
+    b < 185;
+
+  // Dark neutral = black/grey CAD linework.
+  const darkNeutral = gray < 175 && chroma < 22;
+
+  // Deliberately ignore green/blue/cyan utility and landscape graphics.
+  return redOrMagenta || darkNeutral;
+}
+
+function tangentialContinuity(
   data: Uint8ClampedArray,
   width: number,
   height: number,
   x: number,
   y: number,
-  band = 1,
+  tx: number,
+  ty: number,
 ) {
-  const ix = Math.round(x);
-  const iy = Math.round(y);
+  let length = 0;
 
-  for (let r = 0; r <= band; r += 1) {
-    for (let ox = -r; ox <= r; ox += 1) {
-      for (let oy = -r; oy <= r; oy += 1) {
-        const nx = ix + ox;
-        const ny = iy + oy;
-        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
-        const p = (ny * width + nx) * 4;
-        const { gray, chroma } = pixelStats(data, p);
-        if (gray < 225 || chroma > 18) return true;
-      }
+  for (let step = -10; step <= 10; step += 1) {
+    const nx = Math.round(x + tx * step);
+    const ny = Math.round(y + ty * step);
+    if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+
+    const p = (ny * width + nx) * 4;
+    if (isParcelLinePixel(data, p)) length += 1;
+  }
+
+  return length;
+}
+
+function findBoundaryHit(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  rayCos: number,
+  raySin: number,
+) {
+  const tangentX = -raySin;
+  const tangentY = rayCos;
+
+  for (let radius = 5; radius <= 520; radius += 1) {
+    const hitX = x + rayCos * radius;
+    const hitY = y + raySin * radius;
+
+    if (hitX < 0 || hitX >= width || hitY < 0 || hitY >= height) break;
+
+    const ix = Math.round(hitX);
+    const iy = Math.round(hitY);
+    const p = (iy * width + ix) * 4;
+
+    if (!isParcelLinePixel(data, p)) continue;
+
+    // A parcel edge has a coherent run in its tangent direction. A lot label
+    // usually produces only a short isolated stroke, so it is rejected.
+    const continuity = tangentialContinuity(
+      data,
+      width,
+      height,
+      ix,
+      iy,
+      tangentX,
+      tangentY,
+    );
+
+    if (continuity >= 9) {
+      return radius;
     }
   }
 
-  return false;
+  return null;
 }
 
 function radialTracePolygon(
@@ -484,48 +535,48 @@ function radialTracePolygon(
   seedX: number,
   seedY: number,
 ) {
-  const samples = 96;
+  const samples = 72;
   const maxDistance = Math.max(
     160,
-    Math.min(520, Math.hypot(width, height) * 0.28),
+    Math.min(480, Math.hypot(width, height) * 0.25),
   );
   const distances: Array<number | null> = new Array(samples).fill(null);
 
   for (let i = 0; i < samples; i += 1) {
     const theta = (i / samples) * Math.PI * 2;
-    const cos = Math.cos(theta);
-    const sin = Math.sin(theta);
-
-    for (let distance = 8; distance <= maxDistance; distance += 1) {
-      const x = seedX + cos * distance;
-      const y = seedY + sin * distance;
-      if (x < 0 || x >= width || y < 0 || y >= height) break;
-
-      if (findInkHit(data, width, height, x, y, 1)) {
-        distances[i] = distance;
-        break;
-      }
-    }
+    const rayCos = Math.cos(theta);
+    const raySin = Math.sin(theta);
+    distances[i] = findBoundaryHit(
+      data,
+      width,
+      height,
+      seedX,
+      seedY,
+      rayCos,
+      raySin,
+    );
+    if (distances[i] !== null && distances[i]! > maxDistance) distances[i] = null;
   }
 
   const finite = distances.filter((value): value is number => value !== null);
-  if (finite.length < samples * 0.60) return null;
+  if (finite.length < samples * 0.55) return null;
 
+  // Fill isolated misses from the local median first.
   const smoothed = distances.map((value, index) => {
     const neighborhood: number[] = [];
-
     for (let k = -4; k <= 4; k += 1) {
       const candidate = distances[(index + k + samples) % samples];
       if (candidate !== null) neighborhood.push(candidate);
     }
 
-    if (neighborhood.length < 5) return value;
-
+    if (neighborhood.length < 4) return value;
     neighborhood.sort((a, b) => a - b);
     const median = neighborhood[Math.floor(neighborhood.length / 2)];
 
-    // Suppress abrupt internal text hits while retaining smooth parcel edges.
-    return value === null || Math.abs(value - median) > Math.max(10, median * 0.22)
+    if (value === null) return median;
+
+    // Remove abrupt short text/annotation hits.
+    return Math.abs(value - median) > Math.max(9, median * 0.18)
       ? median
       : value;
   });
@@ -542,12 +593,13 @@ function radialTracePolygon(
     ]);
   }
 
-  if (trace.length < 32) return null;
-
-  let polygon = simplifyClosed(trace, Math.max(3, maxDistance * 0.004));
-  polygon = simplifyToVertexBudget(polygon, 10);
+  if (trace.length < 24) return null;
 
   const click: MappingPoint = [Math.round(seedX), Math.round(seedY)];
+
+  let polygon = simplifyClosed(trace, 3);
+  polygon = simplifyToVertexBudget(polygon, 8);
+
   if (polygon.length < 4 || !pointInPolygon(click, polygon)) return null;
 
   return polygon;
