@@ -104,6 +104,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   const [polygonFinished, setPolygonFinished] = useState(false);
   const [autoDetectArmed, setAutoDetectArmed] = useState(false);
   const [autoDetectSeed, setAutoDetectSeed] = useState<[number, number] | null>(null);
+  const [draggingPointIndex, setDraggingPointIndex] = useState<number | null>(null);
   const [localSavedMappings, setLocalSavedMappings] = useState(savedMappings);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadingSiteplan, setUploadingSiteplan] = useState(false);
@@ -182,6 +183,18 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     }
   };
 
+  const getSvgPoint = (event: React.MouseEvent<SVGSVGElement | SVGCircleElement>) => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+    const matrix = svg.getScreenCTM();
+    if (!matrix) return null;
+    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    return [
+      Math.max(0, Math.min(siteplanWidth, Math.round(point.x))),
+      Math.max(0, Math.min(siteplanHeight, Math.round(point.y))),
+    ] as [number, number];
+  };
+
   const handleMapClick = (event: React.MouseEvent<SVGSVGElement>) => {
     if (!mappingMode || !selectedId || !svgRef.current) return;
 
@@ -190,19 +203,52 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       return;
     }
 
-    const svg = svgRef.current;
-    const matrix = svg.getScreenCTM();
-    if (!matrix) return;
-    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
-    const x = Math.max(0, Math.min(siteplanWidth, point.x));
-    const y = Math.max(0, Math.min(siteplanHeight, point.y));
+    // Once the polygon is completed (including Auto Detect), clicking the
+    // interior must not create a rogue extra vertex. Edit via the handles.
+    if (polygonFinished) return;
 
-    setMappingPoints((points) => [...points, [Math.round(x), Math.round(y)]]);
-    setPolygonFinished(false);
-    setAutoDetectSeed([x, y]);
+    const point = getSvgPoint(event);
+    if (!point) return;
+
+    setMappingPoints((points) => [...points, point]);
+    setAutoDetectSeed(point);
   };
 
-  const resetMapping = () => { setMappingPoints([]); setPolygonFinished(false); setAutoDetectSeed(null); };
+  const handlePointMouseDown = (
+    event: React.MouseEvent<SVGCircleElement>,
+    pointIndex: number,
+  ) => {
+    if (!mappingMode || !selectedId || !mappingPoints.length) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setDraggingPointIndex(pointIndex);
+  };
+
+  const handleMapMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
+    if (draggingPointIndex === null || !mappingMode || !selectedId) return;
+    const point = getSvgPoint(event);
+    if (!point) return;
+
+    setMappingPoints((points) =>
+      points.map((current, index) => (index === draggingPointIndex ? point : current)),
+    );
+    setAutoDetectSeed(point);
+  };
+
+  const handleMapMouseUp = (event: React.MouseEvent<SVGSVGElement>) => {
+    if (draggingPointIndex === null) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setMappingNotice(`Titik P${draggingPointIndex + 1} dipindahkan. Cek polygon lalu SIMPAN MAPPING.`);
+    setDraggingPointIndex(null);
+  };
+
+  const resetMapping = () => {
+    setMappingPoints([]);
+    setPolygonFinished(false);
+    setAutoDetectSeed(null);
+    setDraggingPointIndex(null);
+  };
 
   const finishPolygon = () => {
     if (mappingPoints.length >= 3) setPolygonFinished(true);
@@ -365,7 +411,10 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
             <div className="siteplan-stage" style={{ width: '100%', aspectRatio: siteplanAspect }}>
               <div className="siteplan-map-layer">
               <img ref={imageRef} src={siteplanSrc} alt={activeSiteplan?.nama_siteplan || 'Siteplan aktif'} className="siteplan-image" />
-            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}>
+            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}
+            onMouseMove={handleMapMouseMove}
+            onMouseUp={handleMapMouseUp}
+            onMouseLeave={handleMapMouseUp}>
               {mappingMode && (
                 <rect
                   className="siteplan-click-surface"
@@ -407,7 +456,18 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                   >
                     <polygon points={mappingMode && selectedId === row.id_kavling && mappingPoints.length >= 3 ? polygonPoints(mappingPoints) : polygonPoints(map.polygon)} />
                     {map.label && <text x={map.label[0]} y={map.label[1]} textAnchor="middle">{row.id_kavling}</text>}
-                    {mappingMode && (selectedId === row.id_kavling ? mappingPoints : map.polygon).map(([x, y], pointIndex) => <circle key={pointIndex} cx={x} cy={y} r="7" className="siteplan-map-point" />)}
+                    {mappingMode && (selectedId === row.id_kavling ? mappingPoints : map.polygon).map(([x, y], pointIndex) => (
+                      <circle
+                        key={pointIndex}
+                        cx={x}
+                        cy={y}
+                        r={selectedId === row.id_kavling ? '8' : '6'}
+                        className="siteplan-map-point"
+                        onMouseDown={selectedId === row.id_kavling ? (event) => handlePointMouseDown(event, pointIndex) : undefined}
+                        onClick={(event) => event.stopPropagation()}
+                        style={{ cursor: selectedId === row.id_kavling ? 'grab' : 'default' }}
+                      />
+                    ))}
                   </g>
                 );
               })}
