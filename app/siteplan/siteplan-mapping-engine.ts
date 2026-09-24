@@ -51,7 +51,7 @@ function pixelStats(data: Uint8ClampedArray, index: number) {
  * Text inside a lot is harmless here: flood-fill finds the connected WHITE
  * face containing the click, and the outer boundary of that face is used.
  */
-function buildInkBarrierMask(imageData: ImageData): PixelMask {
+async function buildInkBarrierMask(imageData: ImageData): Promise<PixelMask> {
   const { width, height, data } = imageData;
   const raw = new Uint8Array(width * height);
 
@@ -632,7 +632,7 @@ export async function detectLotPolygon(
   // Fallback retains the proven flood-fill concept for drawings where radial
   // tracing is inconclusive.
   if (!polygon) {
-    const barrier = buildInkBarrierMask(localData);
+    const barrier = await buildInkBarrierMask(localData);
     const localSeed = findOpenSeed(
       barrier,
       clickX - x0,
