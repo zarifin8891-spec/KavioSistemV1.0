@@ -91,6 +91,37 @@ function polygonPoints(points: [number, number][]) {
   return points.map(([x, y]) => `${x},${y}`).join(' ');
 }
 
+function polygonCenter(points: [number, number][]) {
+  if (!points.length) return [0, 0] as [number, number];
+
+  let areaTwice = 0;
+  let centerX = 0;
+  let centerY = 0;
+
+  for (let i = 0; i < points.length; i += 1) {
+    const [x1, y1] = points[i];
+    const [x2, y2] = points[(i + 1) % points.length];
+    const cross = x1 * y2 - x2 * y1;
+    areaTwice += cross;
+    centerX += (x1 + x2) * cross;
+    centerY += (y1 + y2) * cross;
+  }
+
+  if (Math.abs(areaTwice) < 0.0001) {
+    const xs = points.map(([x]) => x);
+    const ys = points.map(([, y]) => y);
+    return [
+      Math.round((Math.min(...xs) + Math.max(...xs)) / 2),
+      Math.round((Math.min(...ys) + Math.max(...ys)) / 2),
+    ] as [number, number];
+  }
+
+  return [
+    Math.round(centerX / (3 * areaTwice)),
+    Math.round(centerY / (3 * areaTwice)),
+  ] as [number, number];
+}
+
 export default function SiteplanClient({ kavlings, sales, spks, progressUpdates, savedMappings, activeSiteplan, siteplanSrc }: Props) {
   const router = useRouter();
   const siteplanWidth = activeSiteplan?.image_width || SITEPLAN_VIEWBOX.width;
@@ -454,8 +485,31 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                     }}
                     onKeyDown={(event) => handlePolygonKey(event, row.id_kavling)}
                   >
-                    <polygon points={mappingMode && selectedId === row.id_kavling && mappingPoints.length >= 3 ? polygonPoints(mappingPoints) : polygonPoints(map.polygon)} />
-                    {map.label && <text x={map.label[0]} y={map.label[1]} textAnchor="middle">{row.id_kavling}</text>}
+                    {(() => {
+                      const displayPolygon =
+                        mappingMode && selectedId === row.id_kavling && mappingPoints.length >= 3
+                          ? mappingPoints
+                          : map.polygon;
+                      const center = displayPolygon.length >= 3
+                        ? polygonCenter(displayPolygon)
+                        : map.label;
+                      return (
+                        <>
+                          <polygon points={polygonPoints(displayPolygon)} />
+                          {center && (
+                            <text
+                              x={center[0]}
+                              y={center[1]}
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                              className={`siteplan-lot-label status-${statusClass(status)}`}
+                            >
+                              {row.id_kavling}
+                            </text>
+                          )}
+                        </>
+                      );
+                    })()}
                     {mappingMode && (selectedId === row.id_kavling ? mappingPoints : map.polygon).map(([x, y], pointIndex) => (
                       <circle
                         key={pointIndex}
