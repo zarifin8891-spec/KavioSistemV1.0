@@ -109,3 +109,5 @@
     grid-template-columns:1fr!important;
   }
 }
+
+.user-row-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.user-password-button{min-width:84px}@media(max-width:800px){.user-row-actions{justify-content:flex-start}}
