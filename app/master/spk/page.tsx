@@ -5,6 +5,7 @@ import SpkCreatePanel from './SpkCreatePanel';
 import { createClient } from '../../../lib/supabase/server';
 import { formatKavioDate } from '../../lib/date-format';
 import KavioConfirmAction from '../../components/KavioConfirmAction';
+import KavioActionGate from '../../components/KavioActionGate';
 
 type SearchParams = Promise<{ error?: string; success?: string }>;
 type Kavling = { id_kavling: string; blok: string; no_kavling: string; id_tipe: string; status_kavling: string };
@@ -83,8 +84,10 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
                 <td><span className={`spk-badge ${row.status_spk.toLowerCase()}`}>{row.status_spk}</span></td>
                 <td><div className="spk-actions">
                   <Link href={`/master/spk/detail/${row.id_spk}`} className="kavio-button secondary">DETAIL</Link>
-                  {row.status_spk === 'DRAFT' && !row.is_active ? <form action={activateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="kavio-button">AKTIFKAN</button></form> : null}
-                  {row.is_active ? <KavioConfirmAction action={deactivateSpk} hidden={{ id_spk: row.id_spk }} label="SELESAIKAN" confirmMessage={'Konfirmasi: SPK ' + row.id_spk.slice(0, 8) + ' untuk kavling ' + row.id_kavling + ' akan ditandai SELESAI. Pastikan progress aktual sudah 100%. Lanjutkan?'} /> : null}
+                  <KavioActionGate action="SPK_WRITE">
+                    {row.status_spk === 'DRAFT' && !row.is_active ? <form action={activateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="kavio-button">AKTIFKAN</button></form> : null}
+                    {row.is_active ? <KavioConfirmAction action={deactivateSpk} hidden={{ id_spk: row.id_spk }} label="SELESAIKAN" confirmMessage={'Konfirmasi: SPK ' + row.id_spk.slice(0, 8) + ' untuk kavling ' + row.id_kavling + ' akan ditandai SELESAI. Pastikan progress aktual sudah 100%. Lanjutkan?'} /> : null}
+                  </KavioActionGate>
                 </div></td>
               </tr>)}
               {!spkRows.length && <tr><td colSpan={9} className="kavio-empty">BELUM ADA DATA SPK.</td></tr>}
