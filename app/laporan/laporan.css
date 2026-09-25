@@ -3,7 +3,7 @@
 /* KAVIO Laporan — filter controls and compact report reading area */
 .laporan-filterbar{
   display:grid;
-  grid-template-columns:minmax(250px,2fr) repeat(2,minmax(150px,1fr)) auto auto;
+  grid-template-columns:minmax(220px,2fr) repeat(4,minmax(125px,1fr)) auto auto;
   align-items:center;
   gap:8px;
   padding:10px 14px 12px;
@@ -54,7 +54,7 @@
 
 @media(max-width:1200px){
   .laporan-filterbar{
-    grid-template-columns:minmax(220px,1.8fr) repeat(2,minmax(135px,1fr)) auto auto;
+    grid-template-columns:minmax(210px,1.7fr) repeat(4,minmax(120px,1fr)) auto auto;
   }
 }
 
@@ -78,4 +78,22 @@
   .laporan-filterbar input{
     grid-column:auto;
   }
+}
+
+
+.laporan-date-filter{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.laporan-date-filter span{
+  font-family:var(--kavio-font)!important;
+  font-size:9px!important;
+  font-weight:400!important;
+  line-height:1.1!important;
+  color:var(--kavio-muted)!important;
+}
+.laporan-date-filter input{
+  margin:0!important;
 }
