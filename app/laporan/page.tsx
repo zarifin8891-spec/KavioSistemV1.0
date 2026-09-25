@@ -33,13 +33,10 @@ const money = (value: number | string | null | undefined) => {
 const statusClass = (value: string | null | undefined) =>
   String(value ?? '').toLowerCase().replace(/\s+/g, '_');
 
-const displaySalesStatus = (value: string | null | undefined) =>
-  String(value ?? '').toUpperCase() === 'DP' ? 'UANG MUKA' : (value || '—');
-
-const SALES_STATUS_OPTIONS = ['BOOKING', 'UANG MUKA', 'PROSES KPR', 'AKAD'] as const;
-
-const displaySalesStatus = (value: string | null | undefined) =>
-  String(value ?? '').toUpperCase() === 'DP' ? 'UANG MUKA' : (value || '—');
+const displaySalesStatus = (value: string | null | undefined) => {
+  const normalized = String(value ?? '').toUpperCase().replace(/_/g, ' ');
+  return normalized === 'DP' ? 'UANG MUKA' : (value ? normalized : '—');
+};
 
 const SALES_STATUS_OPTIONS = ['BOOKING', 'UANG MUKA', 'PROSES KPR', 'AKAD'] as const;
 
@@ -161,9 +158,9 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   const officeMap = new Map((offices ?? []).map((row) => [String(row.id_kantor), String(row.nama_kantor_pelaksana)]));
   const mandorMap = new Map((mandors ?? []).map((row) => [String(row.id_mandor), String(row.nama_mandor)]));
 
-  const activeSales = salesRows.filter((row) => row.status_aktif !== false);
+  const reportSales = salesRows.filter((row) => SALES_STATUS_OPTIONS.includes(displaySalesStatus(row.status_sales) as typeof SALES_STATUS_OPTIONS[number]));
 
-  const salesWithCode = activeSales.map((row, index) => ({
+  const salesWithCode = reportSales.map((row, index) => ({
     ...row,
     displayId: formatDocumentCode('SLS', row.tgl_booking, index + 1),
   }));
@@ -215,7 +212,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   );
 
   const salesStatuses = SALES_STATUS_OPTIONS;
-  const payments = [...new Set(activeSales.map((row) => row.jenis_pembayaran).filter(Boolean))].sort();
+  const payments = [...new Set(reportSales.map((row) => row.jenis_pembayaran).filter(Boolean))].sort();
   const spkStatuses = [...new Set(progressRows.map((row) => row.status_spk).filter(Boolean))].sort();
   const tipeOptions = [...new Set(progressRows.map((row) => row.id_tipe).filter(Boolean))].sort();
   const kantorOptions = [...new Set(progressRows.map((row) => row.id_kantor).filter(Boolean))].sort();
