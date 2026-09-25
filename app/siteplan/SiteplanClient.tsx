@@ -7,6 +7,7 @@ import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
 import { SITEPLAN_MAP, SITEPLAN_VIEWBOX } from './siteplan-map';
 import { detectLotPolygon } from './siteplan-mapping-engine';
+import KavioActionGate from '../components/KavioActionGate';
 
 type Kavling = {
   id_kavling: string;
@@ -542,12 +543,16 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
         <div>
           <h2 className="kavio-panel-title">SITEPLAN INTERAKTIF</h2>
           <div className="kavio-panel-note">{activeSiteplan ? `${activeSiteplan.nama_siteplan} · ${activeSiteplan.versi}` : 'Siteplan bawaan KAVIO. Upload Siteplan baru dari panel ini untuk membuat versi proyek baru.'}</div>
-          <div className="siteplan-upload-row">
-            <input type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)} />
-            <button type="button" className="kavio-button primary" onClick={uploadNewSiteplan} disabled={!uploadFile || uploadingSiteplan}>{uploadingSiteplan ? 'MENGUNGGAH...' : 'UPLOAD & AKTIFKAN'}</button>
-          </div>
+          <KavioActionGate action="SITEPLAN_MAP">
+            <div className="siteplan-upload-row">
+              <input type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)} />
+              <button type="button" className="kavio-button primary" onClick={uploadNewSiteplan} disabled={!uploadFile || uploadingSiteplan}>{uploadingSiteplan ? 'MENGUNGGAH...' : 'UPLOAD & AKTIFKAN'}</button>
+            </div>
+          </KavioActionGate>
         </div>
-        <div className="siteplan-toolbar-actions"><button type="button" className={`kavio-button ${mappingMode ? 'primary' : 'secondary'}`} onClick={() => { setMappingMode((value) => !value); setMappingPoints([]); setAutoDetectSeed(null); setAutoDetectArmed(false); }}>{mappingMode ? 'KELUAR MAPPING MODE' : 'MAPPING MODE'}</button></div>
+        <KavioActionGate action="SITEPLAN_MAP">
+          <div className="siteplan-toolbar-actions"><button type="button" className={`kavio-button ${mappingMode ? 'primary' : 'secondary'}`} onClick={() => { setMappingMode((value) => !value); setMappingPoints([]); setAutoDetectSeed(null); setAutoDetectArmed(false); }}>{mappingMode ? 'KELUAR MAPPING MODE' : 'MAPPING MODE'}</button></div>
+        </KavioActionGate>
         <div className="siteplan-legend">
           {STATUS_LIST.map((status) => (
             <button key={status} type="button" className={`siteplan-legend-item status-${status.toLowerCase()} ${filter === status ? 'is-active' : ''}`} onClick={() => setFilter(filter === status ? 'ALL' : status)}>
@@ -576,7 +581,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
           </div>
 
           {mappingMode ? (
-            <div className="siteplan-mapping-panel">
+            <KavioActionGate action="SITEPLAN_MAP">
+              <div className="siteplan-mapping-panel">
               <div className="siteplan-related-title">CALIBRATION / MAPPING</div>
               <p>Pilih kavling, lalu klik titik-titik sudut kavling langsung pada gambar. Titik yang dibuat menjadi polygon kerja sementara.</p>
               <div className="siteplan-mapping-selected">KAVLING: <strong>{selected?.id_kavling || '—'}</strong></div>
@@ -592,7 +598,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
               </div>
               <div className="siteplan-mapping-selected">TITIK: <strong>{mappingPoints.length}</strong> · Minimal 3 titik. {polygonFinished ? 'Polygon siap disimpan.' : 'Tambahkan titik mengikuti batas kavling.'}</div>
               {mappingNotice && <div className="siteplan-mapping-notice">{mappingNotice}</div>}
-            </div>
+              </div>
+            </KavioActionGate>
           ) : selected ? (
             <>
               <div className="siteplan-detail-body">
