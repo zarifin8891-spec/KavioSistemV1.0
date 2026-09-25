@@ -33,6 +33,15 @@ const money = (value: number | string | null | undefined) => {
 const statusClass = (value: string | null | undefined) =>
   String(value ?? '').toLowerCase().replace(/\s+/g, '_');
 
+const formatDocumentCode = (
+  prefix: 'SPK' | 'SLS',
+  dateValue: string | null | undefined,
+  sequence: number,
+) => {
+  const year = dateValue && /^\d{4}/.test(dateValue) ? dateValue.slice(2, 4) : String(new Date().getFullYear()).slice(2, 4);
+  return `${prefix}-${year}/${String(sequence).padStart(4, '0')}`;
+};
+
 const contains = (value: unknown, q: string) =>
   !q || String(value ?? '').toLowerCase().includes(q.toLowerCase());
 
@@ -128,31 +137,48 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
 
   const activeSales = salesRows.filter((row) => row.status_aktif !== false);
 
-  const filteredSales = activeSales.filter((row) =>
+  const salesWithCode = activeSales.map((row, index) => ({
+    ...row,
+    displayId: formatDocumentCode('SLS', row.tgl_booking, index + 1),
+  }));
+
+  const progressWithCode = progressRows.map((row, index) => ({
+    ...row,
+    displayId: formatDocumentCode('SPK', row.tgl_spk, index + 1),
+  }));
+
+  const filteredSales = salesWithCode.filter((row) =>
     (!status || row.status_sales === status) &&
     (!payment || row.jenis_pembayaran === payment) &&
     (!dateFrom || !row.tgl_booking || row.tgl_booking >= dateFrom) &&
     (!dateTo || !row.tgl_booking || row.tgl_booking <= dateTo) &&
     (
+      contains(row.displayId, q) ||
       contains(row.id_sales, q) ||
       contains(row.id_kavling, q) ||
       contains(row.nama_konsumen, q)
     )
   );
 
-  const filteredProgress = progressRows.filter((row) =>
+  const filteredProgress = progressWithCode.filter((row) =>
     (!spkStatus || row.status_spk === spkStatus) &&
     (!tipe || row.id_tipe === tipe) &&
     (!kantor || row.id_kantor === kantor) &&
     (!mandor || row.id_mandor === mandor) &&
     (
+      contains(row.displayId, q) ||
       contains(row.id_spk, q) ||
       contains(row.id_kavling, q) ||
       contains(row.id_tipe, q)
     )
   );
 
-  const filteredDecision = decisionRows.filter((row) =>
+  const decisionWithCode = decisionRows.map((row, index) => ({
+    ...row,
+    displayId: formatDocumentCode('SPK', row.tgl_spk, index + 1),
+  }));
+
+  const filteredDecision = decisionWithCode.filter((row) =>
     (!health || row.health_level === health) &&
     (!priority || row.prioritas_tindakan === priority) &&
     (!operasional || row.status_operasional === operasional) &&
@@ -197,12 +223,6 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   return (
     <main className="laporan-page">
       <section className="kavio-panel laporan-selector">
-        <div className="kavio-panel-head">
-          <div>
-            <h2 className="kavio-panel-title">PILIH LAPORAN</h2>
-            <div className="kavio-panel-note">Laporan bersumber dari data operasional KAVIO yang sedang berjalan.</div>
-          </div>
-        </div>
         <div className="laporan-tabs">
           {REPORTS.map((item) => (
             <Link key={item.key} href={`/laporan?jenis=${item.key}`} className={`laporan-tab ${selected === item.key ? 'is-active' : ''}`}>
@@ -233,7 +253,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
             <table className="kavio-table">
               <thead><tr><th>NO</th><th>ID SALES</th><th>TANGGAL BOOKING</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>PEMBAYARAN</th><th>HARGA JUAL</th><th>TARGET AKAD</th><th>STATUS</th></tr></thead>
               <tbody>
-                {filteredSales.map((row, index) => <tr key={row.id_sales}><td>{index + 1}</td><td>{row.id_sales}</td><td>{formatKavioDate(row.tgl_booking)}</td><td>{row.id_kavling}</td><td>{row.nama_konsumen || '—'}</td><td>{row.jenis_pembayaran || '—'}</td><td>{money(row.harga_jual)}</td><td>{formatKavioDate(row.target_akad)}</td><td><span className={`kavio-badge status-${statusClass(row.status_sales)}`}>{row.status_sales || '—'}</span></td></tr>)}
+                {filteredSales.map((row, index) => <tr key={row.id_sales}><td>{index + 1}</td><td>{row.displayId}</td><td>{formatKavioDate(row.tgl_booking)}</td><td>{row.id_kavling}</td><td>{row.nama_konsumen || '—'}</td><td>{row.jenis_pembayaran || '—'}</td><td>{money(row.harga_jual)}</td><td>{formatKavioDate(row.target_akad)}</td><td><span className={`kavio-badge status-${statusClass(row.status_sales)}`}>{row.status_sales || '—'}</span></td></tr>)}
                 {!filteredSales.length && <tr><td colSpan={9} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
               </tbody>
             </table>
@@ -248,7 +268,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
             <span className="kavio-badge">{filteredProgress.length} DATA</span>
           </div>
           <FilterBar>
-            <input className="laporan-filter-search" name="q" defaultValue={q} placeholder="CARI SPK / KAVLING / TIPE..." />
+            <input className="laporan-filter-search" name="q" defaultValue={q} placeholder="CARI ID SPK / KAVLING / TIPE..." />
             <select name="spk" defaultValue={spkStatus}><option value="">SEMUA STATUS SPK</option>{spkStatuses.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
             <select name="tipe" defaultValue={tipe}><option value="">SEMUA TIPE</option>{tipeOptions.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
             <select name="kantor" defaultValue={kantor}><option value="">SEMUA KANTOR</option>{kantorOptions.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
@@ -258,7 +278,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
             <table className="kavio-table">
               <thead><tr><th>NO</th><th>SPK</th><th>KAVLING</th><th>TIPE</th><th>KANTOR</th><th>MANDOR</th><th>TANGGAL SPK</th><th>TARGET SELESAI</th><th>PROGRESS TOTAL</th><th>STATUS SPK</th></tr></thead>
               <tbody>
-                {filteredProgress.map((row,index) => <tr key={row.id_spk}><td>{index+1}</td><td>{row.id_spk}</td><td>{row.id_kavling}</td><td>{row.id_tipe || '—'}</td><td>{row.id_kantor || '—'}</td><td>{row.id_mandor || '—'}</td><td>{formatKavioDate(row.tgl_spk)}</td><td>{formatKavioDate(row.tgl_target_selesai)}</td><td>{pct(row.progress_total)}</td><td><span className="kavio-badge">{row.status_spk || '—'}</span></td></tr>)}
+                {filteredProgress.map((row,index) => <tr key={row.id_spk}><td>{index+1}</td><td>{row.displayId}</td><td>{row.id_kavling}</td><td>{row.id_tipe || '—'}</td><td>{row.id_kantor || '—'}</td><td>{row.id_mandor || '—'}</td><td>{formatKavioDate(row.tgl_spk)}</td><td>{formatKavioDate(row.tgl_target_selesai)}</td><td>{pct(row.progress_total)}</td><td><span className="kavio-badge">{row.status_spk || '—'}</span></td></tr>)}
                 {!filteredProgress.length && <tr><td colSpan={10} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
               </tbody>
             </table>
@@ -273,7 +293,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
             <span className="kavio-badge">{filteredDecision.length} DATA</span>
           </div>
           <FilterBar>
-            <input className="laporan-filter-search" name="q" defaultValue={q} placeholder="CARI SPK / KAVLING / HEALTH..." />
+            <input className="laporan-filter-search" name="q" defaultValue={q} placeholder="CARI ID SPK / KAVLING / HEALTH..." />
             <select name="health" defaultValue={health}><option value="">SEMUA HEALTH</option>{healthOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select>
             <select name="priority" defaultValue={priority}><option value="">SEMUA PRIORITAS</option>{priorityOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select>
             <select name="operasional" defaultValue={operasional}><option value="">SEMUA OPERASIONAL</option>{operationalOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select>
@@ -283,7 +303,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
             <table className="kavio-table">
               <thead><tr><th>NO</th><th>SPK</th><th>KAVLING</th><th>TANGGAL SPK</th><th>TARGET SELESAI</th><th>UPDATE TERAKHIR</th><th>PROGRESS AKTUAL</th><th>TARGET PROGRESS</th><th>GAP</th><th>SISA HARI</th><th>PERIODE TERAKHIR</th><th>OPERASIONAL</th><th>RITME</th><th>HEALTH SCORE</th><th>HEALTH</th><th>PRIORITAS</th><th>TINDAKAN</th></tr></thead>
               <tbody>
-                {filteredDecision.map((row,index) => <tr key={row.id_spk}><td>{index+1}</td><td>{row.id_spk}</td><td>{row.id_kavling}</td><td>{formatKavioDate(row.tgl_spk)}</td><td>{formatKavioDate(row.tgl_target_selesai)}</td><td>{formatKavioDate(row.tanggal_update_terakhir)}</td><td>{pct(row.progress_aktual)}</td><td>{pct(row.progress_seharusnya)}</td><td>{pct(row.gap_progress)}</td><td>{row.sisa_hari ?? '—'}</td><td>{pct(row.progress_periode_terakhir)}</td><td>{row.status_operasional || '—'}</td><td>{row.status_ritme || '—'}</td><td>{row.health_score ?? '—'}</td><td><span className="kavio-badge">{row.health_level || '—'}</span></td><td><span className="kavio-badge">{row.prioritas_tindakan || '—'}</span></td><td className="laporan-action-cell">{row.action_rekomendasi || '—'}</td></tr>)}
+                {filteredDecision.map((row,index) => <tr key={row.id_spk}><td>{index+1}</td><td>{row.displayId}</td><td>{row.id_kavling}</td><td>{formatKavioDate(row.tgl_spk)}</td><td>{formatKavioDate(row.tgl_target_selesai)}</td><td>{formatKavioDate(row.tanggal_update_terakhir)}</td><td>{pct(row.progress_aktual)}</td><td>{pct(row.progress_seharusnya)}</td><td>{pct(row.gap_progress)}</td><td>{row.sisa_hari ?? '—'}</td><td>{pct(row.progress_periode_terakhir)}</td><td>{row.status_operasional || '—'}</td><td>{row.status_ritme || '—'}</td><td>{row.health_score ?? '—'}</td><td><span className="kavio-badge">{row.health_level || '—'}</span></td><td><span className="kavio-badge">{row.prioritas_tindakan || '—'}</span></td><td className="laporan-action-cell">{row.action_rekomendasi || '—'}</td></tr>)}
                 {!filteredDecision.length && <tr><td colSpan={17} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
               </tbody>
             </table>
