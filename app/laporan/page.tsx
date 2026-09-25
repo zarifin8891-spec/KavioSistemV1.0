@@ -71,10 +71,13 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
     { data: sales },
     { data: progress },
     { data: decision },
+    { data: banks },
+    { data: offices },
+    { data: mandors },
   ] = await Promise.all([
     supabase
       .from('sales')
-      .select('id_sales,id_kavling,nama_konsumen,status_sales,jenis_pembayaran,harga_jual,tgl_booking,target_akad,status_aktif')
+      .select('id_sales,id_kavling,nama_konsumen,status_sales,jenis_pembayaran,harga_jual,tgl_booking,target_akad,status_aktif,id_bank')
       .order('tgl_booking', { ascending: false }),
     supabase
       .from('v_progress_summary')
@@ -84,12 +87,25 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
       .from('v_decision_engine')
       .select('id_spk,id_kavling,id_tipe,tgl_spk,tgl_target_selesai,status_spk,is_active,progress_aktual,progress_seharusnya,sisa_hari,tanggal_update_terakhir,status_operasional,status_ritme,prioritas_tindakan,action_rekomendasi,health_score,health_level,health_description')
       .order('id_kavling'),
+    supabase
+      .from('master_bank')
+      .select('id_bank,nama_bank')
+      .order('nama_bank'),
+    supabase
+      .from('master_kantor_pelaksana')
+      .select('id_kantor,nama_kantor_pelaksana')
+      .order('nama_kantor_pelaksana'),
+    supabase
+      .from('master_mandor')
+      .select('id_mandor,nama_mandor,id_kantor')
+      .order('nama_mandor'),
   ]);
 
   const salesRows = (sales ?? []) as Array<{
     id_sales: string;
     id_kavling: string;
     nama_konsumen: string | null;
+    id_bank?: string | null;
     status_sales: string | null;
     jenis_pembayaran: string | null;
     harga_jual: number | string | null;
@@ -130,6 +146,10 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
     health_level: string | null;
     health_description: string | null;
   }>;
+
+  const bankMap = new Map((banks ?? []).map((row) => [String(row.id_bank), String(row.nama_bank)]));
+  const officeMap = new Map((offices ?? []).map((row) => [String(row.id_kantor), String(row.nama_kantor_pelaksana)]));
+  const mandorMap = new Map((mandors ?? []).map((row) => [String(row.id_mandor), String(row.nama_mandor)]));
 
   const activeSales = salesRows.filter((row) => row.status_aktif !== false);
 
@@ -242,10 +262,10 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
           </FilterBar>
           <div className="kavio-table-wrap">
             <table className="kavio-table">
-              <thead><tr><th>NO</th><th>ID SALES</th><th>TANGGAL BOOKING</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>PEMBAYARAN</th><th>HARGA JUAL</th><th>TARGET AKAD</th><th>STATUS</th></tr></thead>
+              <thead><tr><th>NO</th><th>ID SALES</th><th>TANGGAL BOOKING</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>PEMBAYARAN</th><th>BANK KPR</th><th>HARGA JUAL</th><th>TARGET AKAD</th><th>STATUS</th></tr></thead>
               <tbody>
-                {filteredSales.map((row, index) => <tr key={row.id_sales}><td>{index + 1}</td><td>{row.displayId}</td><td>{formatKavioDate(row.tgl_booking)}</td><td>{row.id_kavling}</td><td>{row.nama_konsumen || '—'}</td><td>{row.jenis_pembayaran || '—'}</td><td>{money(row.harga_jual)}</td><td>{formatKavioDate(row.target_akad)}</td><td><span className={`kavio-badge status-${statusClass(row.status_sales)}`}>{row.status_sales || '—'}</span></td></tr>)}
-                {!filteredSales.length && <tr><td colSpan={9} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
+                {filteredSales.map((row, index) => <tr key={row.id_sales}><td>{index + 1}</td><td>{row.displayId}</td><td>{formatKavioDate(row.tgl_booking)}</td><td>{row.id_kavling}</td><td>{row.nama_konsumen || '—'}</td><td>{row.jenis_pembayaran || '—'}</td><td>{row.id_bank ? (bankMap.get(String(row.id_bank)) || row.id_bank) : '—'}</td><td>{money(row.harga_jual)}</td><td>{formatKavioDate(row.target_akad)}</td><td><span className={`kavio-badge status-${statusClass(row.status_sales)}`}>{row.status_sales || '—'}</span></td></tr>)}
+                {!filteredSales.length && <tr><td colSpan={10} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -269,7 +289,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
             <table className="kavio-table">
               <thead><tr><th>NO</th><th>SPK</th><th>KAVLING</th><th>TIPE</th><th>KANTOR</th><th>MANDOR</th><th>TANGGAL SPK</th><th>TARGET SELESAI</th><th>PROGRESS TOTAL</th><th>STATUS SPK</th></tr></thead>
               <tbody>
-                {filteredProgress.map((row,index) => <tr key={row.id_spk}><td>{index+1}</td><td>{row.displayId}</td><td>{row.id_kavling}</td><td>{row.id_tipe || '—'}</td><td>{row.id_kantor || '—'}</td><td>{row.id_mandor || '—'}</td><td>{formatKavioDate(row.tgl_spk)}</td><td>{formatKavioDate(row.tgl_target_selesai)}</td><td>{pct(row.progress_total)}</td><td><span className="kavio-badge">{row.status_spk || '—'}</span></td></tr>)}
+                {filteredProgress.map((row,index) => <tr key={row.id_spk}><td>{index+1}</td><td>{row.displayId}</td><td>{row.id_kavling}</td><td>{row.id_tipe || '—'}</td><td>{row.id_kantor ? (officeMap.get(String(row.id_kantor)) || row.id_kantor) : '—'}</td><td>{row.id_mandor ? (mandorMap.get(String(row.id_mandor)) || row.id_mandor) : '—'}</td><td>{formatKavioDate(row.tgl_spk)}</td><td>{formatKavioDate(row.tgl_target_selesai)}</td><td>{pct(row.progress_total)}</td><td><span className="kavio-badge">{row.status_spk || '—'}</span></td></tr>)}
                 {!filteredProgress.length && <tr><td colSpan={10} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
               </tbody>
             </table>
