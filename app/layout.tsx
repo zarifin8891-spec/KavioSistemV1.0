@@ -5,6 +5,7 @@ import './kavio-sales-layout.css';
 import './kavio-sales-module.css';
 import './kavio-ui-components.css';
 import './siteplan/siteplan.css';
+import './laporan/laporan.css';
 import './kavio-ui-foundation.css';
 
 export const metadata: Metadata = {
