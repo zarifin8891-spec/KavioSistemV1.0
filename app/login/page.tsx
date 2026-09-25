@@ -58,20 +58,20 @@ export default function LoginPage() {
         style={{
           width: '100%',
           maxWidth: 460,
-          padding: 32,
+          padding: 26px 30px 28px,
           border: `1px solid rgba(216,180,90,.34)`,
           borderRadius: 18,
           background: 'linear-gradient(180deg, rgba(18,49,80,.98), rgba(7,30,55,.98))',
           boxShadow: '0 18px 55px rgba(0,0,0,.30)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 26 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
           <img
             src={KAVIO_LOGO_DATA_URI}
             alt="KAVIO — Satu Data, Satu Kendali, Satu Hasil"
             style={{
               display: 'block',
-              width: 'min(100%, 340px)',
+              width: 'min(100%, 330px)',
               height: 'auto',
               maxHeight: 150,
               objectFit: 'contain',
@@ -79,15 +79,11 @@ export default function LoginPage() {
           />
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ color: colors.champagne, fontSize: 10, fontWeight: 900, letterSpacing: 1.6 }}>EXECUTIVE PROJECT CONTROL</div>
-          <h1 style={{ margin: '7px 0 8px', color: colors.ivory, fontSize: 30, lineHeight: 1.12 }}>Masuk ke KAVIO</h1>
-          <p style={{ margin: 0, color: colors.muted, fontSize: 13, lineHeight: 1.55 }}>
-            Pantau penjualan, pekerjaan, progress, dan kondisi proyek dari satu kendali.
-          </p>
+        <div style={{ marginBottom: 20 }}>
+          <h1 style={{ margin: 0, color: colors.ivory, fontSize: 30, lineHeight: 1.12 }}>Masuk ke KAVIO</h1>
         </div>
 
-        <form onSubmit={handleLogin} style={{ display: 'grid', gap: 15 }}>
+        <form onSubmit={handleLogin} style={{ display: 'grid', gap: 13 }}>
           <label style={{ display: 'grid', gap: 7, color: colors.ivory, fontSize: 11, fontWeight: 800 }}>
             <span>EMAIL</span>
             <input
@@ -168,9 +164,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ marginTop: 22, paddingTop: 15, borderTop: '1px solid rgba(216,180,90,.18)', color: colors.gold, fontSize: 8, fontWeight: 900, letterSpacing: 1.2, textAlign: 'center' }}>
-          SATU DATA • SATU KENDALI • SATU HASIL
-        </div>
       </section>
     </main>
   );
