@@ -800,3 +800,85 @@
     height:50px !important;
   }
 }
+
+
+/* ============================================================
+   KAVIO SELECTED KAVLING DETAIL — FONT TUNING
+   Keep the compact layout; improve readability and hierarchy.
+   ============================================================ */
+
+.siteplan-detail .kavio-panel-title{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:16px!important;
+  font-weight:400!important;
+  line-height:1.2!important;
+}
+.siteplan-detail .kavio-panel-note{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:10px!important;
+  font-weight:400!important;
+  line-height:1.35!important;
+}
+
+.siteplan-detail-body .siteplan-kpi span,
+.siteplan-related-grid span{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:10px!important;
+  font-weight:400!important;
+  line-height:1.1!important;
+}
+.siteplan-detail-body .siteplan-kpi strong,
+.siteplan-related-grid strong{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:12px!important;
+  font-weight:400!important;
+  line-height:1.2!important;
+}
+
+.siteplan-related-title{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:13px!important;
+  font-weight:400!important;
+  line-height:1.15!important;
+}
+
+.siteplan-related-sales .siteplan-related-actions .kavio-button,
+.siteplan-related-spk .siteplan-related-actions .kavio-button{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:11px!important;
+  font-weight:400!important;
+}
+
+.siteplan-detail .siteplan-status{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:10px!important;
+  font-weight:400!important;
+}
+
+.siteplan-list-head{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:13px!important;
+  font-weight:400!important;
+}
+.siteplan-list-head small{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:11px!important;
+  font-weight:400!important;
+}
+
+.siteplan-list-table th{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:11px!important;
+  font-weight:400!important;
+}
+.siteplan-list-table td{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:12px!important;
+  font-weight:400!important;
+}
+.siteplan-list-table .siteplan-status,
+.siteplan-list-select{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:10px!important;
+  font-weight:400!important;
+}
