@@ -45,6 +45,8 @@ export default function UserManagementClient() {
   const [statusAktif, setStatusAktif] = useState(true);
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const loadUsers = async () => {
     setLoading(true);
@@ -84,6 +86,8 @@ export default function UserManagementClient() {
     setStatusAktif(true);
     setPassword('');
     setNewPassword('');
+    setShowPassword(false);
+    setShowNewPassword(false);
     setEditing(null);
     setPasswordUser(null);
     setShowCreate(false);
@@ -100,6 +104,8 @@ export default function UserManagementClient() {
     setStatusAktif(row.status_aktif);
     setPassword('');
     setNewPassword('');
+    setShowPassword(false);
+    setShowNewPassword(false);
     setPasswordUser(null);
   };
 
@@ -358,15 +364,26 @@ export default function UserManagementClient() {
             {!editing && (
               <label className="kavio-field">
                 <span>PASSWORD AWAL</span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Minimal 8 karakter"
-                  minLength={8}
-                  required
-                  autoComplete="new-password"
-                />
+                <div className="manajemen-user-password-field">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Minimal 8 karakter"
+                    minLength={8}
+                    required
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="manajemen-user-eye-button"
+                    onClick={() => setShowPassword((value) => !value)}
+                    aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                    title={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                  >
+                    {showPassword ? '◉' : '◌'}
+                  </button>
+                </div>
               </label>
             )}
 
