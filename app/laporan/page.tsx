@@ -33,6 +33,11 @@ const money = (value: number | string | null | undefined) => {
 const statusClass = (value: string | null | undefined) =>
   String(value ?? '').toLowerCase().replace(/\s+/g, '_');
 
+const displaySalesStatus = (value: string | null | undefined) =>
+  String(value ?? '').toUpperCase() === 'DP' ? 'UANG MUKA' : (value || '—');
+
+const SALES_STATUS_OPTIONS = ['BOOKING', 'UANG MUKA', 'PROSES KPR', 'AKAD'] as const;
+
 const formatDocumentCode = (
   prefix: 'SPK' | 'SLS',
   dateValue: string | null | undefined,
@@ -164,7 +169,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   }));
 
   const filteredSales = salesWithCode.filter((row) =>
-    (!status || row.status_sales === status) &&
+    (!status || displaySalesStatus(row.status_sales) === status) &&
     (!payment || row.jenis_pembayaran === payment) &&
     (!dateFrom || !row.tgl_booking || row.tgl_booking >= dateFrom) &&
     (!dateTo || !row.tgl_booking || row.tgl_booking <= dateTo) &&
@@ -204,7 +209,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
     )
   );
 
-  const salesStatuses = [...new Set(activeSales.map((row) => row.status_sales).filter(Boolean))].sort();
+  const salesStatuses = SALES_STATUS_OPTIONS;
   const payments = [...new Set(activeSales.map((row) => row.jenis_pembayaran).filter(Boolean))].sort();
   const spkStatuses = [...new Set(progressRows.map((row) => row.status_spk).filter(Boolean))].sort();
   const tipeOptions = [...new Set(progressRows.map((row) => row.id_tipe).filter(Boolean))].sort();
@@ -255,7 +260,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
           </div>
           <FilterBar>
             <input className="laporan-filter-search" name="q" defaultValue={q} placeholder="CARI ID SALES / KAVLING / KONSUMEN..." />
-            <select name="status" defaultValue={status}><option value="">SEMUA STATUS</option>{salesStatuses.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
+            <select name="status" defaultValue={status}><option value="">SEMUA STATUS</option>{salesStatuses.map((item) => <option key={item} value={item}>{item}</option>)}</select>
             <select name="payment" defaultValue={payment}><option value="">SEMUA PEMBAYARAN</option>{payments.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
             <label className="laporan-date-filter"><span>DARI TANGGAL</span><input type="date" name="date_from" defaultValue={dateFrom} /></label>
             <label className="laporan-date-filter"><span>SAMPAI TANGGAL</span><input type="date" name="date_to" defaultValue={dateTo} /></label>
@@ -264,7 +269,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
             <table className="kavio-table">
               <thead><tr><th>NO</th><th>ID SALES</th><th>TANGGAL BOOKING</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>PEMBAYARAN</th><th>BANK KPR</th><th>HARGA JUAL</th><th>TARGET AKAD</th><th>STATUS</th></tr></thead>
               <tbody>
-                {filteredSales.map((row, index) => <tr key={row.id_sales}><td>{index + 1}</td><td>{row.displayId}</td><td>{formatKavioDate(row.tgl_booking)}</td><td>{row.id_kavling}</td><td>{row.nama_konsumen || '—'}</td><td>{row.jenis_pembayaran || '—'}</td><td>{row.id_bank ? (bankMap.get(String(row.id_bank)) || row.id_bank) : '—'}</td><td>{money(row.harga_jual)}</td><td>{formatKavioDate(row.target_akad)}</td><td><span className={`kavio-badge status-${statusClass(row.status_sales)}`}>{row.status_sales || '—'}</span></td></tr>)}
+                {filteredSales.map((row, index) => <tr key={row.id_sales}><td>{index + 1}</td><td>{row.displayId}</td><td>{formatKavioDate(row.tgl_booking)}</td><td>{row.id_kavling}</td><td>{row.nama_konsumen || '—'}</td><td>{row.jenis_pembayaran || '—'}</td><td>{row.id_bank ? (bankMap.get(String(row.id_bank)) || row.id_bank) : '—'}</td><td>{money(row.harga_jual)}</td><td>{formatKavioDate(row.target_akad)}</td><td><span className={`kavio-badge status-${statusClass(displaySalesStatus(row.status_sales))}`}>{displaySalesStatus(row.status_sales)}</span></td></tr>)}
                 {!filteredSales.length && <tr><td colSpan={10} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
               </tbody>
             </table>
