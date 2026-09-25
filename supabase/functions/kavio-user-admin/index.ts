@@ -132,6 +132,9 @@ Deno.serve(async (req) => {
 
       if (!userId) return json({ error: "User ID wajib." }, 400);
       if (!allowedRoles.has(role)) return json({ error: "Role tidak valid." }, 400);
+      if (userId === authData.user.id && (role !== "DIREKTUR" && role !== "ADMIN" || body.status_aktif !== true)) {
+        return json({ error: "Akun yang sedang digunakan tidak boleh kehilangan akses Manajemen User." }, 400);
+      }
 
       const { data: target, error: targetError } = await admin.auth.admin.getUserById(userId);
       if (targetError || !target.user) return json({ error: "User tidak ditemukan." }, 404);
