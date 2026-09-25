@@ -41,13 +41,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (user && pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  if (user && access.status_aktif !== true && pathname !== '/login') {
+    return NextResponse.redirect(new URL('/login?akses=nonaktif', request.url));
   }
 
-  if (user && access.status_aktif !== true) {
-    const logoutResponse = NextResponse.redirect(new URL('/login?akses=nonaktif', request.url));
-    return logoutResponse;
+  if (user && pathname === '/login') {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   if (user && !isPublicRoute && !canViewPath(role, pathname)) {
