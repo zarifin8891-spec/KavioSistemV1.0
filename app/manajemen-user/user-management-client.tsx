@@ -289,15 +289,40 @@ export default function UserManagementClient() {
 
             <label className="kavio-field">
               <span>PASSWORD BARU</span>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                placeholder="Minimal 8 karakter"
-                minLength={8}
-                required
-                autoComplete="new-password"
-              />
+              <div className="manajemen-user-password-field">
+                <input
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  placeholder="Minimal 8 karakter"
+                  minLength={8}
+                  required
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  className="manajemen-user-eye-button"
+                  onClick={() => setShowNewPassword((value) => !value)}
+                  aria-label={showNewPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                  title={showNewPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    {showNewPassword ? (
+                      <>
+                        <path d="M3 3l18 18" />
+                        <path d="M10.6 10.6a3 3 0 0 0 4 4" />
+                        <path d="M9.9 4.3A12.3 12.3 0 0 1 12 4c5.4 0 9.5 4 10.5 8-0.4 1.5-1.3 2.9-2.5 4.1" />
+                        <path d="M6.2 6.2C4.4 7.5 2.9 9.5 1.5 12c1 4 5.1 8 10.5 8 1.4 0 2.7-.3 3.9-.8" />
+                      </>
+                    ) : (
+                      <>
+                        <path d="M1.5 12S5.1 4 12 4s10.5 8 10.5 8S18.9 20 12 20 1.5 12 1.5 12Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </>
+                    )}
+                  </svg>
+                </button>
+              </div>
             </label>
 
             <div className="kavio-form-note">
