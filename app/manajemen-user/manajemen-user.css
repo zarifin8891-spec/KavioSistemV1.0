@@ -158,10 +158,16 @@
   border:0;
   background:transparent;
   color:var(--kavio-muted);
-  font-family:var(--kavio-font);
-  font-size:14px;
-  line-height:1;
   cursor:pointer;
+}
+.manajemen-user-eye-button svg{
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 .manajemen-user-eye-button:hover{
   color:var(--kavio-champagne);
