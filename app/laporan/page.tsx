@@ -38,6 +38,11 @@ const displaySalesStatus = (value: string | null | undefined) =>
 
 const SALES_STATUS_OPTIONS = ['BOOKING', 'UANG MUKA', 'PROSES KPR', 'AKAD'] as const;
 
+const displaySalesStatus = (value: string | null | undefined) =>
+  String(value ?? '').toUpperCase() === 'DP' ? 'UANG MUKA' : (value || '—');
+
+const SALES_STATUS_OPTIONS = ['BOOKING', 'UANG MUKA', 'PROSES KPR', 'AKAD'] as const;
+
 const formatDocumentCode = (
   prefix: 'SPK' | 'SLS',
   dateValue: string | null | undefined,
