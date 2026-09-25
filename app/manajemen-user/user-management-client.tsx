@@ -41,6 +41,7 @@ export default function UserManagementClient() {
   const [nama, setNama] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<(typeof ROLES)[number]>('USER');
+  const [statusAktif, setStatusAktif] = useState(true);
   const [password, setPassword] = useState('');
 
   const loadUsers = async () => {
@@ -78,6 +79,7 @@ export default function UserManagementClient() {
     setNama('');
     setEmail('');
     setRole('USER');
+    setStatusAktif(true);
     setPassword('');
     setEditing(null);
     setShowCreate(false);
@@ -91,6 +93,7 @@ export default function UserManagementClient() {
     setNama(row.nama ?? '');
     setEmail(row.email ?? '');
     setRole((ROLES.includes(row.role as (typeof ROLES)[number]) ? row.role : 'USER') as (typeof ROLES)[number]);
+    setStatusAktif(row.status_aktif);
     setPassword('');
   };
 
@@ -136,7 +139,7 @@ export default function UserManagementClient() {
         user_id: editing.user_id,
         nama,
         role,
-        status_aktif: editing.status_aktif,
+        status_aktif: statusAktif,
       },
     });
 
@@ -255,6 +258,16 @@ export default function UserManagementClient() {
                 {ROLES.map((item) => <option key={item} value={item}>{item}</option>)}
               </select>
             </label>
+
+            {editing && (
+              <label className="kavio-field">
+                <span>STATUS</span>
+                <select value={statusAktif ? 'AKTIF' : 'NONAKTIF'} onChange={(event) => setStatusAktif(event.target.value === 'AKTIF')}>
+                  <option value="AKTIF">AKTIF</option>
+                  <option value="NONAKTIF">NONAKTIF</option>
+                </select>
+              </label>
+            )}
 
             {!editing && (
               <label className="kavio-field">
