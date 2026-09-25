@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createSales } from './actions';
+import KavioActionGate from '../../components/KavioActionGate';
 
 type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string; harga_jual: number | string };
 type Tipe = { id_tipe: string; nama_tipe: string };
@@ -27,12 +28,13 @@ export default function SalesCreatePanel({
   const selected = kavlings.find((row) => row.id_kavling === selectedKavling);
 
   return (
-    <div className="sales-create-wrap">
-      <button type="button" className="kavio-command-button" onClick={() => setOpen((value) => !value)}>
-        <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span><span>{open ? 'Tutup Form' : 'Tambah Sales'}</span>
-      </button>
+    <KavioActionGate action="SALES_WRITE">
+      <div className="sales-create-wrap">
+        <button type="button" className="kavio-command-button" onClick={() => setOpen((value) => !value)}>
+          <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span><span>{open ? 'Tutup Form' : 'Tambah Sales'}</span>
+        </button>
 
-      {open && (
+        {open && (
         <section className="kavio-panel sales-create-panel">
           <div className="kavio-panel-head">
             <div>
@@ -70,7 +72,8 @@ export default function SalesCreatePanel({
             <div className="kavio-actions"><button type="submit" className="kavio-button" disabled={!kavlings.length}>SIMPAN SALES</button></div>
           </form>
         </section>
-      )}
-    </div>
+        )}
+      </div>
+    </KavioActionGate>
   );
 }
