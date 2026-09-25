@@ -36,6 +36,7 @@ export default function UserManagementClient() {
   const [error, setError] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<UserRow | null>(null);
+  const [passwordUser, setPasswordUser] = useState<UserRow | null>(null);
   const [query, setQuery] = useState('');
 
   const [nama, setNama] = useState('');
@@ -43,6 +44,7 @@ export default function UserManagementClient() {
   const [role, setRole] = useState<(typeof ROLES)[number]>('USER');
   const [statusAktif, setStatusAktif] = useState(true);
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
 
   const loadUsers = async () => {
     setLoading(true);
@@ -81,7 +83,9 @@ export default function UserManagementClient() {
     setRole('USER');
     setStatusAktif(true);
     setPassword('');
+    setNewPassword('');
     setEditing(null);
+    setPasswordUser(null);
     setShowCreate(false);
   };
 
@@ -95,6 +99,17 @@ export default function UserManagementClient() {
     setRole((ROLES.includes(row.role as (typeof ROLES)[number]) ? row.role : 'USER') as (typeof ROLES)[number]);
     setStatusAktif(row.status_aktif);
     setPassword('');
+    setNewPassword('');
+    setPasswordUser(null);
+  };
+
+  const startPasswordChange = (row: UserRow) => {
+    setError('');
+    setMessage('');
+    setEditing(null);
+    setShowCreate(false);
+    setPasswordUser(row);
+    setNewPassword('');
   };
 
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
@@ -122,6 +137,34 @@ export default function UserManagementClient() {
     setMessage('Pengguna berhasil dibuat.');
     resetForm();
     await loadUsers();
+    setSaving(false);
+  };
+
+  const handlePasswordChange = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!passwordUser) return;
+
+    setSaving(true);
+    setError('');
+    setMessage('');
+
+    const { data, error: invokeError } = await supabase.functions.invoke('kavio-user-admin', {
+      body: {
+        action: 'set_password',
+        user_id: passwordUser.user_id,
+        password: newPassword,
+      },
+    });
+
+    if (invokeError || data?.error) {
+      setError(invokeError?.message || data?.error || 'Gagal mengganti password.');
+      setSaving(false);
+      return;
+    }
+
+    setMessage(`Password untuk ${passwordUser.email || 'pengguna'} berhasil diganti.`);
+    setNewPassword('');
+    setPasswordUser(null);
     setSaving(false);
   };
 
@@ -165,7 +208,7 @@ export default function UserManagementClient() {
           </div>
           <div className="manajemen-user-head-actions">
             <span className="kavio-badge">{filteredRows.length} USER</span>
-            <button type="button" className="kavio-command-button" onClick={() => { setEditing(null); setShowCreate(true); setError(''); setMessage(''); resetForm(); setShowCreate(true); }}>
+            <button type="button" className="kavio-command-button" onClick={() => { resetForm(); setShowCreate(true); }}>
               + TAMBAH USER
             </button>
           </div>
@@ -213,7 +256,12 @@ export default function UserManagementClient() {
                     <td><span className="kavio-badge">{roleLabel(row.role)}</span></td>
                     <td><span className={`kavio-badge user-status-badge ${row.status_aktif ? 'is-active' : 'is-inactive'}`}>{row.status_aktif ? 'AKTIF' : 'NONAKTIF'}</span></td>
                     <td>{formatKavioDate(row.last_sign_in_at)}</td>
-                    <td><button type="button" className="kavio-button secondary user-edit-button" onClick={() => startEdit(row)}>EDIT</button></td>
+                    <td>
+                      <div className="user-row-actions">
+                        <button type="button" className="kavio-button secondary user-edit-button" onClick={() => startEdit(row)}>EDIT</button>
+                        <button type="button" className="kavio-button secondary user-password-button" onClick={() => startPasswordChange(row)}>PASSWORD</button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -221,6 +269,51 @@ export default function UserManagementClient() {
           </table>
         </div>
       </section>
+
+      {passwordUser && (
+        <section className="kavio-panel manajemen-user-form-panel">
+          <div className="kavio-panel-head">
+            <div>
+              <h2 className="kavio-panel-title">GANTI PASSWORD</h2>
+              <div className="kavio-panel-note">
+                Ubah password untuk {passwordUser.nama || passwordUser.email || 'pengguna'}.
+              </div>
+            </div>
+            <button type="button" className="kavio-button secondary" onClick={resetForm}>TUTUP</button>
+          </div>
+
+          <form className="kavio-form manajemen-user-form" onSubmit={handlePasswordChange}>
+            <label className="kavio-field">
+              <span>EMAIL</span>
+              <input value={passwordUser.email || ''} disabled />
+            </label>
+
+            <label className="kavio-field">
+              <span>PASSWORD BARU</span>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                placeholder="Minimal 8 karakter"
+                minLength={8}
+                required
+                autoComplete="new-password"
+              />
+            </label>
+
+            <div className="kavio-form-note">
+              <strong>Catatan:</strong> password baru langsung berlaku untuk login berikutnya.
+            </div>
+
+            <div className="kavio-actions">
+              <button type="button" className="kavio-button secondary" onClick={resetForm} disabled={saving}>BATAL</button>
+              <button type="submit" className="kavio-button" disabled={saving}>
+                {saving ? 'MENYIMPAN...' : 'GANTI PASSWORD'}
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
 
       {(showCreate || editing) && (
         <section className="kavio-panel manajemen-user-form-panel">
