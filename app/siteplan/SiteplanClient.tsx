@@ -602,7 +602,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                 <div className="siteplan-kpi"><span>STATUS</span><strong>{selected.status_kavling || '—'}</strong></div>
               </div>
 
-              <div className="siteplan-related">
+              <div className="siteplan-related siteplan-related-sales">
                 <div className="siteplan-related-title">SALES</div>
                 {selectedSale ? (
                   <div className="siteplan-related-grid">
@@ -615,7 +615,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                 ) : <div className="siteplan-related-empty">Belum ada data Sales untuk kavling ini.</div>}
               </div>
 
-              <div className="siteplan-related">
+              <div className="siteplan-related siteplan-related-spk">
                 <div className="siteplan-related-title">SPK & PROGRESS</div>
                 {selectedSpk ? (
                   <div className="siteplan-related-grid">
