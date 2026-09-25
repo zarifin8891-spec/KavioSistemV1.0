@@ -4,7 +4,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 type Body =
   | { action: "list" }
   | { action: "create"; email: string; password: string; nama: string; role: string }
-  | { action: "update_profile"; user_id: string; nama: string; role: string; status_aktif: boolean };
+  | { action: "update_profile"; user_id: string; nama: string; role: string; status_aktif: boolean }
+  | { action: "set_password"; user_id: string; password: string };
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -123,6 +124,22 @@ Deno.serve(async (req) => {
       }
 
       return json({ ok: true, user_id: created.user.id });
+    }
+
+    if (body.action === "set_password") {
+      const userId = String(body.user_id ?? "").trim();
+      const password = String(body.password ?? "");
+
+      if (!userId) return json({ error: "User ID wajib." }, 400);
+      if (password.length < 8) return json({ error: "Password minimal 8 karakter." }, 400);
+
+      const { data: target, error: targetError } = await admin.auth.admin.getUserById(userId);
+      if (targetError || !target.user) return json({ error: "User tidak ditemukan." }, 404);
+
+      const { error } = await admin.auth.admin.updateUserById(userId, { password });
+      if (error) return json({ error: error.message }, 400);
+
+      return json({ ok: true });
     }
 
     if (body.action === "update_profile") {
