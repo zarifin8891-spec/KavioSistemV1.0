@@ -84,7 +84,10 @@ export default function KavioShell({ children, active }: { children: React.React
     <div className="kavio-shell">
       <aside className="kavio-sidebar">
         <Link href="/dashboard" className="kavio-brand" aria-label="KAVIO">
-          <img src={KAVIO_LOGO_DATA_URI} alt="KAVIO" className="kavio-brand-logo" />
+          <span className="kavio-brand-logo-wrap">
+            <img src={KAVIO_LOGO_DATA_URI} alt="KAVIO" className="kavio-brand-logo" />
+          </span>
+          <span className="kavio-brand-tagline">SATU DATA, SATU KENDALI, SATU HASIL</span>
         </Link>
 
         <nav className="kavio-nav" aria-label="Navigasi KAVIO">
