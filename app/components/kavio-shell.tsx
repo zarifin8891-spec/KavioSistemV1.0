@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
 import { KAVIO_LOGO_DATA_URI } from './kavio-sidebar-logo';
+import { canViewPath, normalizeRole, type KavioRole } from '../../lib/kavio-permissions';
 
 const sections = [
   { title: 'UTAMA', items: [['Beranda', '/dashboard']] },
@@ -41,6 +42,7 @@ export default function KavioShell({ children, active }: { children: React.React
   const pathname = usePathname();
   const router = useRouter();
   const [userEmail, setUserEmail] = useState('');
+  const [role, setRole] = useState<KavioRole>('USER');
   const [today, setToday] = useState('');
   const [title, subtitle] = pageHeader(pathname);
 
@@ -59,8 +61,14 @@ export default function KavioShell({ children, active }: { children: React.React
   useEffect(() => {
     let mounted = true;
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (mounted) setUserEmail(data.user?.email ?? '');
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!mounted) return;
+      setUserEmail(data.user?.email ?? '');
+      if (data.user) {
+        const { data: accessRows } = await supabase.rpc('kavio_get_current_access');
+        const access = accessRows?.[0];
+        if (mounted) setRole(normalizeRole(access?.role));
+      }
     });
     setToday(formatKavioDate(new Date()));
     return () => { mounted = false; };
@@ -82,12 +90,15 @@ export default function KavioShell({ children, active }: { children: React.React
         <nav className="kavio-nav" aria-label="Navigasi KAVIO">
           {sections.map((section) => (
             <div key={section.title} className="kavio-nav-section">
-              {section.items.map(([label, href]) => (
-                <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
-                  <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
-                  <span>{label}</span>
-                </Link>
-              ))}
+              {section.items.map(([label, href]) => {
+                if (!canViewPath(role, href)) return null;
+                return (
+                  <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
+                    <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
             </div>
           ))}
           <button type="button" className="kavio-nav-item kavio-nav-logout" onClick={handleLogout}>
@@ -102,7 +113,7 @@ export default function KavioShell({ children, active }: { children: React.React
               <span className="kavio-sidebar-user-dot" aria-hidden="true">●</span>
               <span>
                 <strong>{userEmail || 'Admin'}</strong>
-                <small>Direktur</small>
+                <small>{role}</small>
               </span>
             </div>
             <div className="kavio-sidebar-date">{today || 'Memuat tanggal...'}</div>
