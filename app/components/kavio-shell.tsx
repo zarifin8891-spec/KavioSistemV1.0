@@ -83,17 +83,10 @@ export default function KavioShell({ children, active }: { children: React.React
           {sections.map((section) => (
             <div key={section.title} className="kavio-nav-section">
               {section.items.map(([label, href]) => (
-                href === '#' ? (
-                  <span key={label} className="kavio-nav-item is-disabled" aria-disabled="true">
-                    <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
-                    <span>{label}</span>
-                  </span>
-                ) : (
-                  <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
-                    <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
-                    <span>{label}</span>
-                  </Link>
-                )
+                <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
+                  <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
+                  <span>{label}</span>
+                </Link>
               ))}
             </div>
           ))}
