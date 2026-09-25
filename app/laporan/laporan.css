@@ -84,62 +84,26 @@
 .laporan-decision-table th:nth-child(1), .laporan-decision-table td:nth-child(1){width:3%}
 .laporan-decision-table th:nth-child(2), .laporan-decision-table td:nth-child(2){width:6%}
 .laporan-decision-table th:nth-child(3), .laporan-decision-table td:nth-child(3){width:5%}
-.laporan-decision-table th:nth-child(4), .laporan-decision-table td:nth-child(4){width:7%}
+.laporan-decision-table th:nth-child(4), .laporan-decision-table td:nth-child(4){width:8%}
 .laporan-decision-table th:nth-child(5), .laporan-decision-table td:nth-child(5){width:8%}
 .laporan-decision-table th:nth-child(6), .laporan-decision-table td:nth-child(6){width:8%}
 .laporan-decision-table th:nth-child(7), .laporan-decision-table td:nth-child(7){width:7%}
 .laporan-decision-table th:nth-child(8), .laporan-decision-table td:nth-child(8){width:7%}
 .laporan-decision-table th:nth-child(9), .laporan-decision-table td:nth-child(9){width:5%}
-.laporan-decision-table th:nth-child(10), .laporan-decision-table td:nth-child(10){width:5%}
-.laporan-decision-table th:nth-child(11), .laporan-decision-table td:nth-child(11){width:7%}
-.laporan-decision-table th:nth-child(12), .laporan-decision-table td:nth-child(12){width:6%}
-.laporan-decision-table th:nth-child(13), .laporan-decision-table td:nth-child(13){width:6%}
-.laporan-decision-table th:nth-child(14), .laporan-decision-table td:nth-child(14){width:7%}
-.laporan-decision-table th:nth-child(15), .laporan-decision-table td:nth-child(15){width:13%}
+.laporan-decision-table th:nth-child(10), .laporan-decision-table td:nth-child(10){width:7%}
+.laporan-decision-table th:nth-child(11), .laporan-decision-table td:nth-child(11){width:8%}
+.laporan-decision-table th:nth-child(12), .laporan-decision-table td:nth-child(12){width:9%}
+.laporan-decision-table th:nth-child(13), .laporan-decision-table td:nth-child(13){width:19%}
 
-
-@media(max-width:1200px){
-  .laporan-filterbar{
-    grid-template-columns:minmax(210px,1.7fr) repeat(4,minmax(120px,1fr)) auto auto;
-  }
+.laporan-decision-table td,
+.laporan-decision-table .laporan-action-cell{
+  min-width:0!important;
 }
 
-@media(max-width:900px){
-  .laporan-filterbar{
-    grid-template-columns:1fr 1fr;
-  }
-  .laporan-filterbar input{
-    grid-column:1 / -1;
-  }
-  .laporan-filterbar .kavio-button{
-    width:100%;
-  }
-}
-
-@media(max-width:560px){
-  .laporan-filterbar{
-    grid-template-columns:1fr;
-    padding:9px 12px 11px;
-  }
-  .laporan-filterbar input{
-    grid-column:auto;
-  }
-}
-
-
-.laporan-date-filter{
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  gap:3px;
-}
-.laporan-date-filter span{
-  font-family:var(--kavio-font)!important;
-  font-size:9px!important;
-  font-weight:400!important;
-  line-height:1.1!important;
-  color:var(--kavio-muted)!important;
-}
-.laporan-date-filter input{
-  margin:0!important;
+.laporan-decision-table .laporan-action-cell{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:break-word!important;
+  word-break:normal!important;
 }
