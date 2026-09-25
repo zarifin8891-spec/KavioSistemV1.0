@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createSpk } from './actions';
+import KavioActionGate from '../../components/KavioActionGate';
 import WeightConfigurator from './WeightConfigurator';
 
 type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string };
@@ -26,12 +27,13 @@ export default function SpkCreatePanel({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="kavio-create-wrap">
-      <button type="button" className="kavio-command-button" onClick={() => setOpen((value) => !value)}>
-        <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span><span>{open ? 'Tutup Form' : 'Tambah SPK'}</span>
-      </button>
+    <KavioActionGate action="SPK_WRITE">
+      <div className="kavio-create-wrap">
+        <button type="button" className="kavio-command-button" onClick={() => setOpen((value) => !value)}>
+          <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span><span>{open ? 'Tutup Form' : 'Tambah SPK'}</span>
+        </button>
 
-      {open && (
+        {open && (
         <section className="kavio-panel kvio-create-panel">
           <div className="kavio-panel-head">
             <div>
@@ -50,7 +52,8 @@ export default function SpkCreatePanel({
             <div className="kavio-actions"><button type="submit" className="kavio-button" disabled={!kavlingRows.length || !kantorRows.length || !mandorRows.length || !kategoriRows.length}>SIMPAN SPK SEBAGAI DRAFT</button></div>
           </form>
         </section>
-      )}
-    </div>
+        )}
+      </div>
+    </KavioActionGate>
   );
 }
