@@ -672,3 +672,131 @@
   .siteplan-list-table th{font-size:11px!important}
   .siteplan-list-table td{font-size:12px!important}
 }
+
+
+/* ============================================================
+   KAVIO Siteplan — compact selected-lot information layout
+   Reduce vertical waste without removing operational information.
+   ============================================================ */
+
+.siteplan-detail .kavio-panel-head{
+  min-height:56px !important;
+  padding:12px 14px !important;
+}
+
+.siteplan-detail-body{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:8px !important;
+  padding:10px 12px !important;
+}
+
+.siteplan-kpi{
+  min-height:54px !important;
+  height:54px !important;
+  padding:8px 10px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+}
+
+.siteplan-kpi span{
+  font-size:9px !important;
+  line-height:1.1 !important;
+}
+.siteplan-kpi strong{
+  margin-top:3px !important;
+  font-size:11px !important;
+  line-height:1.1 !important;
+}
+
+.siteplan-related{
+  padding:8px 12px !important;
+}
+.siteplan-related-title{
+  margin-bottom:6px !important;
+  font-size:12px !important;
+  line-height:1.1 !important;
+}
+
+.siteplan-related-sales .siteplan-related-grid,
+.siteplan-related-spk .siteplan-related-grid{
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:6px 12px !important;
+  align-items:center !important;
+}
+
+.siteplan-related-grid span{
+  font-size:9px !important;
+  line-height:1.05 !important;
+}
+.siteplan-related-grid strong{
+  margin-top:2px !important;
+  font-size:11px !important;
+  line-height:1.1 !important;
+}
+
+.siteplan-related-sales .siteplan-related-actions,
+.siteplan-related-spk .siteplan-related-actions{
+  grid-column:auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:5px !important;
+  margin-top:0 !important;
+}
+
+.siteplan-related-sales .siteplan-related-actions .kavio-button,
+.siteplan-related-spk .siteplan-related-actions .kavio-button{
+  min-height:30px !important;
+  height:30px !important;
+  padding:0 9px !important;
+  font-size:10px !important;
+  white-space:nowrap !important;
+}
+
+.siteplan-related-sales .siteplan-related-actions .kavio-button{
+  width:100% !important;
+}
+
+.siteplan-related-spk .siteplan-related-actions .kavio-button{
+  flex:1 1 auto !important;
+}
+
+@media(max-width:1100px){
+  .siteplan-detail-body{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .siteplan-related-sales .siteplan-related-grid,
+  .siteplan-related-spk .siteplan-related-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+  .siteplan-related-sales .siteplan-related-actions,
+  .siteplan-related-spk .siteplan-related-actions{
+    grid-column:1 / -1 !important;
+  }
+}
+
+@media(max-width:700px){
+  .siteplan-detail-body{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .siteplan-related-sales .siteplan-related-grid,
+  .siteplan-related-spk .siteplan-related-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .siteplan-related-sales .siteplan-related-actions,
+  .siteplan-related-spk .siteplan-related-actions{
+    grid-column:1 / -1 !important;
+  }
+}
+
+@media(max-width:520px){
+  .siteplan-detail-body{
+    grid-template-columns:1fr 1fr !important;
+    gap:7px !important;
+  }
+  .siteplan-kpi{
+    min-height:50px !important;
+    height:50px !important;
+  }
+}
