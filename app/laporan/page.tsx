@@ -45,6 +45,8 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   const q = textParam(params, 'q');
   const status = textParam(params, 'status');
   const payment = textParam(params, 'payment');
+  const dateFrom = textParam(params, 'date_from');
+  const dateTo = textParam(params, 'date_to');
   const spkStatus = textParam(params, 'spk');
   const tipe = textParam(params, 'tipe');
   const kantor = textParam(params, 'kantor');
@@ -129,6 +131,8 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   const filteredSales = activeSales.filter((row) =>
     (!status || row.status_sales === status) &&
     (!payment || row.jenis_pembayaran === payment) &&
+    (!dateFrom || !row.tgl_booking || row.tgl_booking >= dateFrom) &&
+    (!dateTo || !row.tgl_booking || row.tgl_booking <= dateTo) &&
     (
       contains(row.id_sales, q) ||
       contains(row.id_kavling, q) ||
@@ -222,6 +226,8 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
             <input className="laporan-filter-search" name="q" defaultValue={q} placeholder="CARI ID SALES / KAVLING / KONSUMEN..." />
             <select name="status" defaultValue={status}><option value="">SEMUA STATUS</option>{salesStatuses.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
             <select name="payment" defaultValue={payment}><option value="">SEMUA PEMBAYARAN</option>{payments.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
+            <label className="laporan-date-filter"><span>DARI TANGGAL</span><input type="date" name="date_from" defaultValue={dateFrom} /></label>
+            <label className="laporan-date-filter"><span>SAMPAI TANGGAL</span><input type="date" name="date_to" defaultValue={dateTo} /></label>
           </FilterBar>
           <div className="kavio-table-wrap">
             <table className="kavio-table">
