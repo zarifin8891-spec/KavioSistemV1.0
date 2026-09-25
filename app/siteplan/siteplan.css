@@ -562,3 +562,113 @@
     text-shadow:none!important;
   }
 }
+
+
+/* ============================================================
+   KAVIO MAPPING MODE — FINAL TYPOGRAPHY BASELINE
+   Title 16 / Section 13 / Body 12 / Selected value 14 /
+   Status 12 / List 13 / Table 11 / Table body 12 / Badge 9-10
+   ============================================================ */
+
+.siteplan-detail .kavio-panel-title{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:16px!important;
+  font-weight:400!important;
+  line-height:1.2!important;
+}
+.siteplan-detail .kavio-panel-note{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:10px!important;
+  font-weight:400!important;
+  line-height:1.35!important;
+}
+.siteplan-mapping-panel > .siteplan-related-title{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:13px!important;
+  font-weight:400!important;
+  line-height:1.2!important;
+}
+.siteplan-mapping-panel > p{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:12px!important;
+  font-weight:400!important;
+  line-height:1.45!important;
+}
+.siteplan-mapping-selected{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:12px!important;
+  font-weight:400!important;
+  line-height:1.25!important;
+}
+.siteplan-mapping-selected strong{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:14px!important;
+  font-weight:400!important;
+}
+.siteplan-mapping-coords,
+.siteplan-mapping-coords span{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:12px!important;
+  font-weight:400!important;
+  line-height:1.3!important;
+}
+.siteplan-mapping-actions .kavio-button{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:11px!important;
+  font-weight:400!important;
+  min-height:40px!important;
+  height:40px!important;
+}
+.siteplan-mapping-notice{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:11px!important;
+  font-weight:400!important;
+  line-height:1.35!important;
+}
+.siteplan-detail .siteplan-status{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:10px!important;
+  font-weight:400!important;
+}
+
+.siteplan-list-head{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:13px!important;
+  font-weight:400!important;
+}
+.siteplan-list-head small{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:11px!important;
+  font-weight:400!important;
+}
+.siteplan-list-table th{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:11px!important;
+  font-weight:400!important;
+}
+.siteplan-list-table td{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:12px!important;
+  font-weight:400!important;
+}
+.siteplan-list-table .siteplan-status{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:10px!important;
+  font-weight:400!important;
+}
+.siteplan-list-select{
+  font-family:"Arial Narrow",Arial,Helvetica,sans-serif!important;
+  font-size:10px!important;
+  font-weight:400!important;
+}
+
+@media(max-width:560px){
+  .siteplan-detail .kavio-panel-title{font-size:16px!important}
+  .siteplan-mapping-panel > .siteplan-related-title{font-size:13px!important}
+  .siteplan-mapping-panel > p{font-size:12px!important}
+  .siteplan-mapping-selected{font-size:12px!important}
+  .siteplan-mapping-selected strong{font-size:14px!important}
+  .siteplan-list-head{font-size:13px!important}
+  .siteplan-list-table th{font-size:11px!important}
+  .siteplan-list-table td{font-size:12px!important}
+}
