@@ -12,7 +12,7 @@ const sections = [
   { title: 'MASTER DATA', items: [['Master Data', '/master']] },
   { title: 'KAVLING', items: [['Siteplan', '/siteplan'], ['Kavling', '/master/kavling']] },
   { title: 'OPERASIONAL', items: [['Sales', '/master/sales'], ['SPK / Pekerjaan', '/master/spk'], ['Progress', '/progress']] },
-  { title: 'LAPORAN', items: [['Laporan', '#']] },
+  { title: 'LAPORAN', items: [['Laporan', '/laporan']] },
   { title: 'PENGATURAN', items: [['Pengaturan', '#']] },
 ] as const;
 
@@ -23,6 +23,7 @@ const pageHeader = (pathname: string) => {
   if (pathname.startsWith('/master/spk/detail/')) return ['SPK Control Sheet', 'Kontrol pekerjaan, progress, target penyelesaian, dan Curva-S.'];
   if (pathname.startsWith('/master/spk')) return ['Monitoring SPK', 'Kelola SPK, tim pelaksana, target penyelesaian, dan siklus pembangunan kavling.'];
   if (pathname.startsWith('/progress')) return ['Progress Monitoring', 'Pantau progress pembangunan berdasarkan SPK aktif.'];
+  if (pathname.startsWith('/laporan')) return ['Laporan Monitoring', 'Ringkasan penjualan, progress pembangunan, dan kondisi operasional proyek.'];
   if (pathname.startsWith('/master/template-progress')) return ['Template Progress', 'Kelola bobot progress standar berdasarkan tipe rumah.'];
   if (pathname.startsWith('/master/tipe-rumah')) return ['Master Tipe Rumah', 'Kelola referensi tipe rumah dan spesifikasi luas.'];
   if (pathname.startsWith('/master/kategori-pekerjaan')) return ['Master Kategori Pekerjaan', 'Kelola kategori pekerjaan dan bobot pembangunan.'];
@@ -48,6 +49,7 @@ export default function KavioShell({ children, active }: { children: React.React
     pathname.startsWith('/master/spk') ? '/master/spk' :
     pathname.startsWith('/master/kavling') ? '/master/kavling' :
     pathname.startsWith('/progress') ? '/progress' :
+    pathname.startsWith('/laporan') ? '/laporan' :
     pathname.startsWith('/dashboard') ? '/dashboard' :
     pathname === '/master' || pathname.startsWith('/master/') ? '/master' :
     active;
