@@ -58,25 +58,28 @@ export default function LoginPage() {
         style={{
           width: '100%',
           maxWidth: 460,
-          padding: 26px 30px 28px,
+          padding: '26px 30px 28px',
           border: `1px solid rgba(216,180,90,.34)`,
           borderRadius: 18,
           background: 'linear-gradient(180deg, rgba(18,49,80,.98), rgba(7,30,55,.98))',
           boxShadow: '0 18px 55px rgba(0,0,0,.30)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-          <img
-            src={KAVIO_LOGO_DATA_URI}
-            alt="KAVIO — Satu Data, Satu Kendali, Satu Hasil"
-            style={{
-              display: 'block',
-              width: 'min(100%, 330px)',
-              height: 'auto',
-              maxHeight: 150,
-              objectFit: 'contain',
-            }}
-          />
+        <div style={{ marginBottom: 20, textAlign: 'center' }}>
+          <div style={{ width: 'min(100%, 330px)', height: 112, margin: '0 auto', overflow: 'hidden' }}>
+            <img
+              src={KAVIO_LOGO_DATA_URI}
+              alt="KAVIO"
+              style={{
+                display: 'block',
+                width: '100%',
+                height: 'auto',
+              }}
+            />
+          </div>
+          <div style={{ marginTop: 6, color: '#16B9EE', fontSize: 11, lineHeight: 1.15, letterSpacing: .2, whiteSpace: 'nowrap' }}>
+            SATU DATA, SATU KENDALI, SATU HASIL
+          </div>
         </div>
 
         <div style={{ marginBottom: 20 }}>
