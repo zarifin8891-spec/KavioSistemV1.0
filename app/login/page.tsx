@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../lib/supabase/client';
+import { KAVIO_LOGO_DATA_URI } from '../components/kavio-sidebar-logo';
 
 const colors = {
   navy: '#04182F',
@@ -64,27 +65,18 @@ export default function LoginPage() {
           boxShadow: '0 18px 55px rgba(0,0,0,.30)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 30 }}>
-          <div
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 26 }}>
+          <img
+            src={KAVIO_LOGO_DATA_URI}
+            alt="KAVIO — Satu Data, Satu Kendali, Satu Hasil"
             style={{
-              width: 46,
-              height: 46,
-              display: 'grid',
-              placeItems: 'center',
-              border: `2px solid ${colors.gold}`,
-              borderRadius: 9,
-              background: 'rgba(216,180,90,.07)',
-              color: colors.champagne,
-              fontSize: 24,
-              fontWeight: 900,
+              display: 'block',
+              width: 'min(100%, 340px)',
+              height: 'auto',
+              maxHeight: 150,
+              objectFit: 'contain',
             }}
-          >
-            K
-          </div>
-          <div>
-            <div style={{ color: colors.champagne, fontWeight: 900, letterSpacing: 2.4, fontSize: 19 }}>KAVIO</div>
-            <div style={{ color: colors.muted, fontSize: 9, letterSpacing: 1.4, marginTop: 3 }}>MONITOR V1.0</div>
-          </div>
+          />
         </div>
 
         <div style={{ marginBottom: 24 }}>
