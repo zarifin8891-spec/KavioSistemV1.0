@@ -1,4 +1,4 @@
-.laporan-page{display:grid;gap:14px}.laporan-selector .kavio-panel-head{padding-bottom:12px}.laporan-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px 14px 14px}.laporan-tab{display:flex;flex-direction:column;gap:5px;padding:12px 13px;border:1px solid var(--kavio-line);border-radius:9px;background:rgba(4,24,47,.20);color:var(--kavio-ivory);text-decoration:none;transition:background .14s ease,border-color .14s ease}.laporan-tab:hover,.laporan-tab.is-active{background:rgba(240,212,138,.07);border-color:var(--kavio-gold-dark)}.laporan-tab span{font-family:var(--kavio-font);font-size:13px;font-weight:400;line-height:1.2;color:var(--kavio-champagne)}.laporan-tab small{font-family:var(--kavio-font);font-size:11px;font-weight:400;line-height:1.35;color:var(--kavio-muted)}.laporan-page .kavio-table-wrap{width:100%}.laporan-page .kavio-table td:last-child{white-space:normal;min-width:220px}.laporan-page .kavio-table .kavio-badge{font-size:10px!important}@media(max-width:900px){.laporan-tabs{grid-template-columns:1fr 1fr}}@media(max-width:560px){.laporan-tabs{grid-template-columns:1fr}}
+.laporan-page{display:grid;gap:14px}.laporan-selector .kavio-panel-head{padding-bottom:12px}.laporan-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px 14px 14px}.laporan-tab{display:flex;flex-direction:column;gap:5px;padding:12px 13px;border:1px solid var(--kavio-line);border-radius:9px;background:rgba(4,24,47,.20);color:var(--kavio-ivory);text-decoration:none;transition:background .14s ease,border-color .14s ease}.laporan-tab:hover,.laporan-tab.is-active{background:rgba(240,212,138,.07);border-color:var(--kavio-gold-dark)}.laporan-tab span{font-family:var(--kavio-font);font-size:13px;font-weight:400;line-height:1.2;color:var(--kavio-champagne)}.laporan-tab small{font-family:var(--kavio-font);font-size:11px;font-weight:400;line-height:1.35;color:var(--kavio-muted)}.laporan-page .kavio-table-wrap{width:100%}.laporan-page .kavio-table .kavio-badge{font-size:10px!important}@media(max-width:900px){.laporan-tabs{grid-template-columns:1fr 1fr}}@media(max-width:560px){.laporan-tabs{grid-template-columns:1fr}}
 
 /* KAVIO Laporan — filter controls and compact report reading area */
 .laporan-filterbar{
@@ -47,10 +47,56 @@
   font-size:10px!important;
 }
 .laporan-action-cell{
-  min-width:260px;
+  min-width:0;
   white-space:normal!important;
   line-height:1.35!important;
+  overflow-wrap:anywhere;
 }
+
+.laporan-decision-table{
+  width:100%;
+  table-layout:fixed;
+}
+
+.laporan-decision-table th{
+  white-space:normal!important;
+  line-height:1.1!important;
+  overflow-wrap:normal;
+  vertical-align:middle;
+  padding-left:8px!important;
+  padding-right:8px!important;
+}
+
+.laporan-decision-table td{
+  padding-left:8px!important;
+  padding-right:8px!important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.laporan-decision-table .laporan-action-cell{
+  white-space:normal!important;
+  overflow:visible;
+  text-overflow:clip;
+}
+
+.laporan-decision-table th:nth-child(1), .laporan-decision-table td:nth-child(1){width:3%}
+.laporan-decision-table th:nth-child(2), .laporan-decision-table td:nth-child(2){width:6%}
+.laporan-decision-table th:nth-child(3), .laporan-decision-table td:nth-child(3){width:5%}
+.laporan-decision-table th:nth-child(4), .laporan-decision-table td:nth-child(4){width:7%}
+.laporan-decision-table th:nth-child(5), .laporan-decision-table td:nth-child(5){width:8%}
+.laporan-decision-table th:nth-child(6), .laporan-decision-table td:nth-child(6){width:8%}
+.laporan-decision-table th:nth-child(7), .laporan-decision-table td:nth-child(7){width:7%}
+.laporan-decision-table th:nth-child(8), .laporan-decision-table td:nth-child(8){width:7%}
+.laporan-decision-table th:nth-child(9), .laporan-decision-table td:nth-child(9){width:5%}
+.laporan-decision-table th:nth-child(10), .laporan-decision-table td:nth-child(10){width:5%}
+.laporan-decision-table th:nth-child(11), .laporan-decision-table td:nth-child(11){width:7%}
+.laporan-decision-table th:nth-child(12), .laporan-decision-table td:nth-child(12){width:6%}
+.laporan-decision-table th:nth-child(13), .laporan-decision-table td:nth-child(13){width:6%}
+.laporan-decision-table th:nth-child(14), .laporan-decision-table td:nth-child(14){width:7%}
+.laporan-decision-table th:nth-child(15), .laporan-decision-table td:nth-child(15){width:13%}
+
 
 @media(max-width:1200px){
   .laporan-filterbar{
