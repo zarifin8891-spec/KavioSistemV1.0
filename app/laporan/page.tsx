@@ -62,8 +62,6 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   const mandor = textParam(params, 'mandor');
   const health = textParam(params, 'health');
   const priority = textParam(params, 'priority');
-  const operasional = textParam(params, 'operasional');
-  const ritme = textParam(params, 'ritme');
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -181,12 +179,9 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   const filteredDecision = decisionWithCode.filter((row) =>
     (!health || row.health_level === health) &&
     (!priority || row.prioritas_tindakan === priority) &&
-    (!operasional || row.status_operasional === operasional) &&
-    (!ritme || row.status_ritme === ritme) &&
     (
       contains(row.id_spk, q) ||
       contains(row.id_kavling, q) ||
-      contains(row.status_operasional, q) ||
       contains(row.health_level, q)
     )
   );
@@ -199,8 +194,6 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   const mandorOptions = [...new Set(progressRows.map((row) => row.id_mandor).filter(Boolean))].sort();
   const healthOptions = [...new Set(decisionRows.map((row) => row.health_level).filter(Boolean))].sort();
   const priorityOptions = [...new Set(decisionRows.map((row) => row.prioritas_tindakan).filter(Boolean))].sort();
-  const operationalOptions = [...new Set(decisionRows.map((row) => row.status_operasional).filter(Boolean))].sort();
-  const rhythmOptions = [...new Set(decisionRows.map((row) => row.status_ritme).filter(Boolean))].sort();
 
   const filterHref = (overrides: Record<string, string>) => {
     const next = new URLSearchParams();
@@ -296,15 +289,13 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
             <input className="laporan-filter-search" name="q" defaultValue={q} placeholder="CARI ID SPK / KAVLING / HEALTH..." />
             <select name="health" defaultValue={health}><option value="">SEMUA HEALTH</option>{healthOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select>
             <select name="priority" defaultValue={priority}><option value="">SEMUA PRIORITAS</option>{priorityOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select>
-            <select name="operasional" defaultValue={operasional}><option value="">SEMUA OPERASIONAL</option>{operationalOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select>
-            <select name="ritme" defaultValue={ritme}><option value="">SEMUA RITME</option>{rhythmOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select>
           </FilterBar>
           <div className="kavio-table-wrap">
-            <table className="kavio-table">
-              <thead><tr><th>NO</th><th>SPK</th><th>KAVLING</th><th>TANGGAL SPK</th><th>TARGET SELESAI</th><th>UPDATE TERAKHIR</th><th>PROGRESS AKTUAL</th><th>TARGET PROGRESS</th><th>GAP</th><th>SISA HARI</th><th>PERIODE TERAKHIR</th><th>OPERASIONAL</th><th>RITME</th><th>HEALTH SCORE</th><th>HEALTH</th><th>PRIORITAS</th><th>TINDAKAN</th></tr></thead>
+            <table className="kavio-table laporan-decision-table">
+              <thead><tr><th>NO</th><th>SPK</th><th>KAVLING</th><th>TANGGAL SPK</th><th>TARGET SELESAI</th><th>UPDATE TERAKHIR</th><th>PROGRESS AKTUAL</th><th>TARGET PROGRESS</th><th>GAP</th><th>SISA HARI</th><th>PERIODE TERAKHIR</th><th>HEALTH SCORE</th><th>HEALTH</th><th>PRIORITAS</th><th>TINDAKAN</th></tr></thead>
               <tbody>
                 {filteredDecision.map((row,index) => <tr key={row.id_spk}><td>{index+1}</td><td>{row.displayId}</td><td>{row.id_kavling}</td><td>{formatKavioDate(row.tgl_spk)}</td><td>{formatKavioDate(row.tgl_target_selesai)}</td><td>{formatKavioDate(row.tanggal_update_terakhir)}</td><td>{pct(row.progress_aktual)}</td><td>{pct(row.progress_seharusnya)}</td><td>{pct(row.gap_progress)}</td><td>{row.sisa_hari ?? '—'}</td><td>{pct(row.progress_periode_terakhir)}</td><td>{row.status_operasional || '—'}</td><td>{row.status_ritme || '—'}</td><td>{row.health_score ?? '—'}</td><td><span className="kavio-badge">{row.health_level || '—'}</span></td><td><span className="kavio-badge">{row.prioritas_tindakan || '—'}</span></td><td className="laporan-action-cell">{row.action_rekomendasi || '—'}</td></tr>)}
-                {!filteredDecision.length && <tr><td colSpan={17} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
+                {!filteredDecision.length && <tr><td colSpan={15} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
               </tbody>
             </table>
           </div>
