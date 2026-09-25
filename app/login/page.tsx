@@ -77,7 +77,7 @@ export default function LoginPage() {
               }}
             />
           </div>
-          <div style={{ marginTop: 6, color: '#16B9EE', fontSize: 9, fontWeight: 400, lineHeight: 1.05, letterSpacing: .05, textAlign: 'center', whiteSpace: 'nowrap' }}>
+          <div style={{ width: '49%', margin: '1px 0 0 auto', color: '#16B9EE', fontSize: 9, fontWeight: 400, lineHeight: 1.05, letterSpacing: .05, textAlign: 'center', whiteSpace: 'nowrap' }}>
             SATU DATA, SATU KENDALI, SATU HASIL
           </div>
         </div>
