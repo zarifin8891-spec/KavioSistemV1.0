@@ -54,8 +54,9 @@
 }
 
 .laporan-decision-table{
-  width:100%;
-  table-layout:fixed;
+  width:100%!important;
+  min-width:0!important;
+  table-layout:fixed!important;
 }
 
 .laporan-decision-table th{
@@ -63,47 +64,28 @@
   line-height:1.1!important;
   overflow-wrap:normal;
   vertical-align:middle;
-  padding-left:8px!important;
-  padding-right:8px!important;
+  padding:5px 4px!important;
+  text-align:center;
 }
 
 .laporan-decision-table td{
-  padding-left:8px!important;
-  padding-right:8px!important;
+  min-width:0!important;
+  padding:6px 4px!important;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
+  text-align:center;
 }
 
-.laporan-decision-table .laporan-action-cell{
-  white-space:normal!important;
-  overflow:visible;
-  text-overflow:clip;
-}
-
-.laporan-decision-table th:nth-child(1), .laporan-decision-table td:nth-child(1){width:3%}
-.laporan-decision-table th:nth-child(2), .laporan-decision-table td:nth-child(2){width:6%}
-.laporan-decision-table th:nth-child(3), .laporan-decision-table td:nth-child(3){width:5%}
-.laporan-decision-table th:nth-child(4), .laporan-decision-table td:nth-child(4){width:8%}
-.laporan-decision-table th:nth-child(5), .laporan-decision-table td:nth-child(5){width:8%}
-.laporan-decision-table th:nth-child(6), .laporan-decision-table td:nth-child(6){width:8%}
-.laporan-decision-table th:nth-child(7), .laporan-decision-table td:nth-child(7){width:7%}
-.laporan-decision-table th:nth-child(8), .laporan-decision-table td:nth-child(8){width:7%}
-.laporan-decision-table th:nth-child(9), .laporan-decision-table td:nth-child(9){width:5%}
-.laporan-decision-table th:nth-child(10), .laporan-decision-table td:nth-child(10){width:7%}
-.laporan-decision-table th:nth-child(11), .laporan-decision-table td:nth-child(11){width:8%}
-.laporan-decision-table th:nth-child(12), .laporan-decision-table td:nth-child(12){width:9%}
-.laporan-decision-table th:nth-child(13), .laporan-decision-table td:nth-child(13){width:19%}
-
-.laporan-decision-table td,
 .laporan-decision-table .laporan-action-cell{
   min-width:0!important;
-}
-
-.laporan-decision-table .laporan-action-cell{
   white-space:normal!important;
   overflow:visible!important;
   text-overflow:clip!important;
   overflow-wrap:break-word!important;
   word-break:normal!important;
+  text-align:left;
+  line-height:1.2!important;
 }
+
+.laporan-decision-table-wrap{overflow-x:hidden!important;}
