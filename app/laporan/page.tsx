@@ -290,6 +290,21 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
           </FilterBar>
           <div className="kavio-table-wrap">
             <table className="kavio-table laporan-decision-table">
+              <colgroup>
+                <col style={{ width: '3%' }} />
+                <col style={{ width: '7%' }} />
+                <col style={{ width: '5%' }} />
+                <col style={{ width: '7%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '7%' }} />
+                <col style={{ width: '7%' }} />
+                <col style={{ width: '6%' }} />
+                <col style={{ width: '7%' }} />
+                <col style={{ width: '7%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '20%' }} />
+              </colgroup>
               <thead><tr><th>NO</th><th>SPK</th><th>KAVLING</th><th>TANGGAL SPK</th><th>TARGET SELESAI</th><th>UPDATE TERAKHIR</th><th>PROGRESS AKTUAL</th><th>TARGET PROGRESS</th><th>SISA HARI</th><th>HEALTH SCORE</th><th>HEALTH</th><th>PRIORITAS</th><th>TINDAKAN</th></tr></thead>
               <tbody>
                 {filteredDecision.map((row,index) => <tr key={row.id_spk}><td>{index+1}</td><td>{row.displayId}</td><td>{row.id_kavling}</td><td>{formatKavioDate(row.tgl_spk)}</td><td>{formatKavioDate(row.tgl_target_selesai)}</td><td>{formatKavioDate(row.tanggal_update_terakhir)}</td><td>{pct(row.progress_aktual)}</td><td>{pct(row.progress_seharusnya)}</td><td>{row.sisa_hari ?? '—'}</td><td>{row.health_score ?? '—'}</td><td><span className="kavio-badge">{row.health_level || '—'}</span></td><td><span className="kavio-badge">{row.prioritas_tindakan || '—'}</span></td><td className="laporan-action-cell">{row.action_rekomendasi || '—'}</td></tr>)}
