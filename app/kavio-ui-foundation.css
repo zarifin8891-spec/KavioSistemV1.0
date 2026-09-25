@@ -68,6 +68,90 @@ body { margin: 0; }
   .kavio-content { padding:0 14px 18px !important; }
 }
 
+/* ============================================================
+   KAVIO GLOBAL TABLE FOUNDATION
+   Shared typography for every operational/master-data table.
+   Modules should inherit these tokens instead of defining their own.
+   ============================================================ */
+
+:root {
+  --kavio-font-table-title: 13px;
+  --kavio-font-table-subtitle: 11px;
+  --kavio-font-table-head: 11px;
+  --kavio-font-table-body: 12px;
+  --kavio-font-table-button: 11px;
+  --kavio-font-table-badge: 10px;
+}
+
+.kavio-table-title,
+.kavio-section-title,
+.kavio-table-header-title {
+  font-family:var(--kavio-font)!important;
+  font-size:var(--kavio-font-table-title)!important;
+  font-weight:400!important;
+  line-height:1.2!important;
+}
+
+.kavio-table-subtitle,
+.kavio-section-subtitle,
+.kavio-table-header-note {
+  font-family:var(--kavio-font)!important;
+  font-size:var(--kavio-font-table-subtitle)!important;
+  font-weight:400!important;
+  line-height:1.35!important;
+}
+
+.kavio-table,
+.kavio-table th,
+.kavio-table td {
+  font-family:var(--kavio-font)!important;
+}
+
+.kavio-table {
+  font-size:var(--kavio-font-table-body)!important;
+}
+
+.kavio-table th {
+  font-size:var(--kavio-font-table-head)!important;
+  font-weight:400!important;
+}
+
+.kavio-table td {
+  font-size:var(--kavio-font-table-body)!important;
+  font-weight:400!important;
+}
+
+.kavio-table td .kavio-button,
+.kavio-table td .kavio-command-button,
+.kavio-table td button,
+.kavio-table td a.kavio-button,
+.kavio-table td a.kavio-command-button {
+  font-family:var(--kavio-font)!important;
+  font-size:var(--kavio-font-table-button)!important;
+  font-weight:400!important;
+}
+
+.kavio-table .kavio-badge,
+.kavio-table .kavio-status,
+.kavio-table .status-badge,
+.kavio-table .badge,
+.kavio-table .salesBadge,
+.kavio-table .siteplan-status {
+  font-family:var(--kavio-font)!important;
+  font-size:var(--kavio-font-table-badge)!important;
+  font-weight:400!important;
+}
+
+.kavio-table-actions,
+.kavio-table-actions .kavio-button,
+.kavio-table-actions .kavio-command-button,
+.kavio-table-actions button,
+.kavio-table-actions a {
+  font-family:var(--kavio-font)!important;
+  font-size:var(--kavio-font-table-button)!important;
+  font-weight:400!important;
+}
+
 /* Standard component vocabulary */
 .kavio-panel { background: linear-gradient(180deg,rgba(18,49,80,.98),rgba(7,30,55,.98)); border:1px solid var(--kavio-line); border-radius:14px; box-shadow:0 10px 26px rgba(0,0,0,.16); overflow:hidden; }
 .kavio-panel-head { padding:13px 16px; border-bottom:1px solid rgba(216,180,90,.16); display:flex; align-items:center; justify-content:space-between; gap:12px; }
