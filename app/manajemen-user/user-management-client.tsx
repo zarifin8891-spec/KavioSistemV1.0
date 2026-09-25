@@ -201,19 +201,6 @@ export default function UserManagementClient() {
   return (
     <main className="manajemen-user-page">
       <section className="kavio-panel">
-        <div className="kavio-panel-head">
-          <div>
-            <h2 className="kavio-panel-title">DAFTAR PENGGUNA</h2>
-            <div className="kavio-panel-note">Kelola akun, nama pengguna, dan role akses KAVIO.</div>
-          </div>
-          <div className="manajemen-user-head-actions">
-            <span className="kavio-badge">{filteredRows.length} USER</span>
-            <button type="button" className="kavio-command-button" onClick={() => { resetForm(); setShowCreate(true); }}>
-              + TAMBAH USER
-            </button>
-          </div>
-        </div>
-
         <div className="manajemen-user-toolbar">
           <input
             className="manajemen-user-search"
@@ -224,6 +211,12 @@ export default function UserManagementClient() {
           <button type="button" className="kavio-button secondary" onClick={loadUsers} disabled={loading}>
             {loading ? 'MEMUAT...' : 'REFRESH'}
           </button>
+          <div className="manajemen-user-toolbar-actions">
+            <span className="kavio-badge">{filteredRows.length} USER</span>
+            <button type="button" className="kavio-command-button" onClick={() => { resetForm(); setShowCreate(true); }}>
+              + TAMBAH USER
+            </button>
+          </div>
         </div>
 
         {message && <div className="manajemen-user-alert success">{message}</div>}
