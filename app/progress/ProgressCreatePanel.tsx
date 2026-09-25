@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createProgressUpdate } from './actions';
+import KavioActionGate from '../components/KavioActionGate';
 
 type Config = { id_kategori: string; bobot_final: number | string };
 type Category = { id_kategori: string; nama_kategori: string; urutan: number };
@@ -22,8 +23,9 @@ export default function ProgressCreatePanel({
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="progress-create-wrap">
-      {!open && (
+    <KavioActionGate action="PROGRESS_WRITE">
+      <div className="progress-create-wrap">
+        {!open && (
         <button type="button" className="kavio-command-button" onClick={() => setOpen(true)}>
           <span className="kavio-command-icon" aria-hidden="true">+</span><span>Input Progress</span>
         </button>
@@ -50,7 +52,8 @@ export default function ProgressCreatePanel({
             <div className="kavio-actions"><button type="submit" className="kavio-button progress-submit-button" disabled={!configs.length}>SIMPAN PROGRESS PERIODE</button></div>
           </form>
         </section>
-      )}
-    </div>
+        )}
+      </div>
+    </KavioActionGate>
   );
 }
