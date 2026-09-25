@@ -381,7 +381,21 @@ export default function UserManagementClient() {
                     aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
                     title={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
                   >
-                    {showPassword ? '◉' : '◌'}
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      {showPassword ? (
+                        <>
+                          <path d="M3 3l18 18" />
+                          <path d="M10.6 10.6a3 3 0 0 0 4 4" />
+                          <path d="M9.9 4.3A12.3 12.3 0 0 1 12 4c5.4 0 9.5 4 10.5 8-0.4 1.5-1.3 2.9-2.5 4.1" />
+                          <path d="M6.2 6.2C4.4 7.5 2.9 9.5 1.5 12c1 4 5.1 8 10.5 8 1.4 0 2.7-.3 3.9-.8" />
+                        </>
+                      ) : (
+                        <>
+                          <path d="M1.5 12S5.1 4 12 4s10.5 8 10.5 8S18.9 20 12 20 1.5 12 1.5 12Z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </>
+                      )}
+                    </svg>
                   </button>
                 </div>
               </label>
