@@ -10,10 +10,13 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
-  const [{ data: kavling, error: kavlingError }, { data: tipeRumah, error: tipeError }] = await Promise.all([
+  const [{ data: kavling, error: kavlingError }, { data: tipeRumah, error: tipeError }, { data: writeAccess }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling,blok,no_kavling,id_tipe,status_kavling,status_aktif,luas_tanah_standar,luas_tanah_real,kelebihan_tanah,harga_standar,harga_tanah_meter,harga_jual').order('blok').order('no_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe').eq('status_aktif',true).order('nama_tipe'),
+    supabase.rpc('kavio_can_action', { p_action: 'MASTER_WRITE' }),
   ]);
+
+  const canWrite = writeAccess === true;
   const rows = kavling ?? [];
   const tipeRows = tipeRumah ?? [];
   const tipeMap = new Map(tipeRows.map((t) => [t.id_tipe,t.nama_tipe]));
@@ -26,10 +29,10 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
     <section className="kavio-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DAFTAR KAVLING</h2><div className="kavio-panel-note">Inventory kavling dan lifecycle pembangunan proyek.</div></div><span className="kavio-badge">{rows.length} DATA</span></div>
       <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>NO</th><th>ID KAVLING</th><th>BLOK</th><th>NOMOR</th><th>TIPE RUMAH</th><th>L. TANAH</th><th>KELEBIHAN</th><th>HARGA STANDAR</th><th>HARGA TANAH/M²</th><th>HARGA JUAL</th><th>STATUS KAVLING</th><th>STATUS DATA</th><th>AKSI</th></tr></thead><tbody>
-        {rows.map((row,i)=><tr key={row.id_kavling}><td>{i+1}</td><td className="master-highlight">{row.id_kavling}</td><td>{row.blok}</td><td>{row.no_kavling}</td><td>{tipeMap.get(row.id_tipe)??row.id_tipe}</td><td>{Number(row.luas_tanah_real).toFixed(2)} m²</td><td>{Number(row.kelebihan_tanah).toFixed(2)} m²</td><td>{formatRupiah(row.harga_standar)}</td><td>{formatRupiah(row.harga_tanah_meter)}</td><td>{formatRupiah(row.harga_jual)}</td><td><span className="master-status">{row.status_kavling}</span></td><td><span className={`master-status ${row.status_aktif?'active':'inactive'}`}>{row.status_aktif?'AKTIF':'NONAKTIF'}</span></td><td><div className="kavio-inline-actions"><a href={'/master/kavling?edit=' + encodeURIComponent(row.id_kavling)} className="kavio-button secondary">EDIT</a><form action={toggleKavling}><input type="hidden" name="id_kavling" value={row.id_kavling}/><input type="hidden" name="status_aktif" value={String(row.status_aktif)}/><button type="submit" className="kavio-button secondary">{row.status_aktif?'NONAKTIFKAN':'AKTIFKAN'}</button></form></div></td></tr>)}
+        {rows.map((row,i)=><tr key={row.id_kavling}><td>{i+1}</td><td className="master-highlight">{row.id_kavling}</td><td>{row.blok}</td><td>{row.no_kavling}</td><td>{tipeMap.get(row.id_tipe)??row.id_tipe}</td><td>{Number(row.luas_tanah_real).toFixed(2)} m²</td><td>{Number(row.kelebihan_tanah).toFixed(2)} m²</td><td>{formatRupiah(row.harga_standar)}</td><td>{formatRupiah(row.harga_tanah_meter)}</td><td>{formatRupiah(row.harga_jual)}</td><td><span className="master-status">{row.status_kavling}</span></td><td><span className={`master-status ${row.status_aktif?'active':'inactive'}`}>{row.status_aktif?'AKTIF':'NONAKTIF'}</span></td><td>{canWrite ? <div className="kavio-inline-actions"><a href={'/master/kavling?edit=' + encodeURIComponent(row.id_kavling)} className="kavio-button secondary">EDIT</a><form action={toggleKavling}><input type="hidden" name="id_kavling" value={row.id_kavling}/><input type="hidden" name="status_aktif" value={String(row.status_aktif)}/><button type="submit" className="kavio-button secondary">{row.status_aktif?'NONAKTIFKAN':'AKTIFKAN'}</button></form></div> : <span>—</span>}</td></tr>)}
         {!rows.length&&<tr><td colSpan={13} className="kavio-empty">BELUM ADA DATA KAVLING.</td></tr>}
       </tbody></table></div>
-      {editRow && <section className="kavio-panel kavling-edit-panel">
+      {canWrite && editRow && <section className="kavio-panel kavling-edit-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">EDIT DATA KAVLING — {editRow.id_kavling}</h2><div className="kavio-panel-note">ID kavling dan status lifecycle tetap dikendalikan sistem. Data lokasi, tipe, luas tanah, dan harga dapat diperbarui.</div></div><a href="/master/kavling" className="kavio-button secondary">BATAL</a></div>
       <form action={updateKavling} className="kavio-form kavio-panel-body">
         <input type="hidden" name="id_kavling" value={editRow.id_kavling}/>
@@ -47,7 +50,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
     </section>}
       <div className="master-table-foot">LIFECYCLE: AVAILABLE → BOOKING / BUILDING → READY_STOCK / SOLD</div>
     </section>
-    <KavioCreatePanel buttonLabel="+ TAMBAH KAVLING" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE." badge="INVENTORY">
+    {canWrite && <KavioCreatePanel buttonLabel="+ TAMBAH KAVLING" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE." badge="INVENTORY">
       <form action={createKavling} className="kavio-form kavio-panel-body">
         <label className="kavio-field"><span>ID KAVLING</span><input name="id_kavling" placeholder="A-11" required/></label>
         <label className="kavio-field"><span>BLOK</span><input name="blok" placeholder="A" required/></label>
@@ -59,7 +62,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
         <label className="kavio-field"><span>HARGA TANAH / M²</span><input name="harga_tanah_meter" type="number" min="0" step="1000" placeholder="0" required/></label>
         <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN KAVLING</button></div>
       </form>
-    </KavioCreatePanel>
+    </KavioCreatePanel>}
   </main>;
 }
 
