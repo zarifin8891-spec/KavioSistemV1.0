@@ -57,8 +57,8 @@ export default function LoginPage() {
       <section
         style={{
           width: '100%',
-          maxWidth: 460,
-          padding: '26px 30px 28px',
+          maxWidth: 350,
+          padding: '20px 22px 22px',
           border: `1px solid rgba(216,180,90,.34)`,
           borderRadius: 18,
           background: 'linear-gradient(180deg, rgba(18,49,80,.98), rgba(7,30,55,.98))',
@@ -66,7 +66,7 @@ export default function LoginPage() {
         }}
       >
         <div style={{ marginBottom: 20, textAlign: 'center' }}>
-          <div style={{ width: 'min(100%, 330px)', height: 112, margin: '0 auto', overflow: 'hidden' }}>
+          <div style={{ width: 'min(100%, 286px)', height: 82, margin: '0 auto', overflow: 'hidden' }}>
             <img
               src={KAVIO_LOGO_DATA_URI}
               alt="KAVIO"
@@ -77,16 +77,12 @@ export default function LoginPage() {
               }}
             />
           </div>
-          <div style={{ marginTop: 6, color: '#16B9EE', fontSize: 11, lineHeight: 1.15, letterSpacing: .2, whiteSpace: 'nowrap' }}>
+          <div style={{ marginTop: 6, color: '#16B9EE', fontSize: 9, fontWeight: 400, lineHeight: 1.05, letterSpacing: .05, textAlign: 'center', whiteSpace: 'nowrap' }}>
             SATU DATA, SATU KENDALI, SATU HASIL
           </div>
         </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <h1 style={{ margin: 0, color: colors.ivory, fontSize: 30, lineHeight: 1.12 }}>Masuk ke KAVIO</h1>
-        </div>
-
-        <form onSubmit={handleLogin} style={{ display: 'grid', gap: 13 }}>
+        <form onSubmit={handleLogin} style={{ display: 'grid', gap: 10 }}>
           <label style={{ display: 'grid', gap: 7, color: colors.ivory, fontSize: 11, fontWeight: 800 }}>
             <span>EMAIL</span>
             <input
@@ -98,12 +94,12 @@ export default function LoginPage() {
               placeholder="nama@perusahaan.com"
               style={{
                 width: '100%',
-                padding: '12px 13px',
+                padding: '10px 12px',
                 border: '1px solid rgba(232,204,122,.48)',
                 borderRadius: 9,
                 background: 'linear-gradient(180deg, #344C69, #293F5B)',
                 color: colors.ivory,
-                fontSize: 14,
+                fontSize: 12,
                 outline: 'none',
               }}
             />
@@ -152,18 +148,18 @@ export default function LoginPage() {
             disabled={loading}
             style={{
               marginTop: 3,
-              padding: '12px 15px',
+              padding: '10px 13px',
               border: 0,
               borderRadius: 9,
               background: `linear-gradient(180deg, ${colors.champagne}, ${colors.gold})`,
               color: '#0B1D3A',
-              fontWeight: 900,
+              fontWeight: 400,
               fontSize: 14,
               cursor: loading ? 'wait' : 'pointer',
               opacity: loading ? 0.6 : 1,
             }}
           >
-            {loading ? 'Memproses...' : 'Masuk ke KAVIO'}
+            {loading ? 'Memproses...' : 'Masuk'}
           </button>
         </form>
 
