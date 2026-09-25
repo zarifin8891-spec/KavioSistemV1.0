@@ -136,3 +136,33 @@
     justify-content:flex-end;
   }
 }
+
+.manajemen-user-password-field{
+  position:relative;
+  width:100%;
+}
+.manajemen-user-password-field input{
+  width:100%;
+  padding-right:40px!important;
+}
+.manajemen-user-eye-button{
+  position:absolute;
+  top:50%;
+  right:8px;
+  width:28px;
+  height:28px;
+  transform:translateY(-50%);
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--kavio-muted);
+  font-family:var(--kavio-font);
+  font-size:14px;
+  line-height:1;
+  cursor:pointer;
+}
+.manajemen-user-eye-button:hover{
+  color:var(--kavio-champagne);
+}
