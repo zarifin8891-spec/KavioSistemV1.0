@@ -82,7 +82,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
       .order('id_kavling'),
     supabase
       .from('v_decision_engine')
-      .select('id_spk,id_kavling,id_tipe,tgl_spk,tgl_target_selesai,status_spk,is_active,progress_aktual,progress_seharusnya,gap_progress,sisa_hari,tanggal_update_terakhir,progress_periode_terakhir,status_operasional,status_ritme,prioritas_tindakan,action_rekomendasi,health_score,health_level,health_description')
+      .select('id_spk,id_kavling,id_tipe,tgl_spk,tgl_target_selesai,status_spk,is_active,progress_aktual,progress_seharusnya,sisa_hari,tanggal_update_terakhir,status_operasional,status_ritme,prioritas_tindakan,action_rekomendasi,health_score,health_level,health_description')
       .order('id_kavling'),
   ]);
 
@@ -120,10 +120,8 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
     is_active: boolean | null;
     progress_aktual: number | string | null;
     progress_seharusnya: number | string | null;
-    gap_progress: number | string | null;
     sisa_hari: number | null;
     tanggal_update_terakhir: string | null;
-    progress_periode_terakhir: number | string | null;
     status_operasional: string | null;
     status_ritme: string | null;
     prioritas_tindakan: string | null;
@@ -294,7 +292,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
             <table className="kavio-table laporan-decision-table">
               <thead><tr><th>NO</th><th>SPK</th><th>KAVLING</th><th>TANGGAL SPK</th><th>TARGET SELESAI</th><th>UPDATE TERAKHIR</th><th>PROGRESS AKTUAL</th><th>TARGET PROGRESS</th><th>GAP</th><th>SISA HARI</th><th>PERIODE TERAKHIR</th><th>HEALTH SCORE</th><th>HEALTH</th><th>PRIORITAS</th><th>TINDAKAN</th></tr></thead>
               <tbody>
-                {filteredDecision.map((row,index) => <tr key={row.id_spk}><td>{index+1}</td><td>{row.displayId}</td><td>{row.id_kavling}</td><td>{formatKavioDate(row.tgl_spk)}</td><td>{formatKavioDate(row.tgl_target_selesai)}</td><td>{formatKavioDate(row.tanggal_update_terakhir)}</td><td>{pct(row.progress_aktual)}</td><td>{pct(row.progress_seharusnya)}</td><td>{pct(row.gap_progress)}</td><td>{row.sisa_hari ?? '—'}</td><td>{pct(row.progress_periode_terakhir)}</td><td>{row.status_operasional || '—'}</td><td>{row.status_ritme || '—'}</td><td>{row.health_score ?? '—'}</td><td><span className="kavio-badge">{row.health_level || '—'}</span></td><td><span className="kavio-badge">{row.prioritas_tindakan || '—'}</span></td><td className="laporan-action-cell">{row.action_rekomendasi || '—'}</td></tr>)}
+                {filteredDecision.map((row,index) => <tr key={row.id_spk}><td>{index+1}</td><td>{row.displayId}</td><td>{row.id_kavling}</td><td>{formatKavioDate(row.tgl_spk)}</td><td>{formatKavioDate(row.tgl_target_selesai)}</td><td>{formatKavioDate(row.tanggal_update_terakhir)}</td><td>{pct(row.progress_aktual)}</td><td>{pct(row.progress_seharusnya)}</td><td>{row.sisa_hari ?? '—'}</td><td>{row.health_score ?? '—'}</td><td><span className="kavio-badge">{row.health_level || '—'}</span></td><td><span className="kavio-badge">{row.prioritas_tindakan || '—'}</span></td><td className="laporan-action-cell">{row.action_rekomendasi || '—'}</td></tr>)}
                 {!filteredDecision.length && <tr><td colSpan={15} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
               </tbody>
             </table>
