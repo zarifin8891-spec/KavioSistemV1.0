@@ -125,6 +125,9 @@ function polygonCenter(points: [number, number][]) {
 
 export default function SiteplanClient({ kavlings, sales, spks, progressUpdates, savedMappings, activeSiteplan, siteplanSrc }: Props) {
   const fallbackSiteplanSrc = '/siteplan/siteplan-clean-source.png';
+  const processingSiteplanSrc = activeSiteplan?.id
+    ? `/api/siteplan-image?id=${encodeURIComponent(activeSiteplan.id)}`
+    : fallbackSiteplanSrc;
   const router = useRouter();
   const siteplanWidth = activeSiteplan?.image_width || SITEPLAN_VIEWBOX.width;
   const siteplanHeight = activeSiteplan?.image_height || SITEPLAN_VIEWBOX.height;
@@ -143,6 +146,9 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   const [uploadingSiteplan, setUploadingSiteplan] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  // Keep the visible Siteplan on the signed Storage URL, but process Auto Detect
+  // from the same-origin API image so browser canvas access is never cross-origin tainted.
+  const processingImageRef = useRef<HTMLImageElement | null>(null);
   const savedMap = useMemo(() => Object.fromEntries(localSavedMappings.map((row) => [row.id_kavling, row])), [localSavedMappings]);
   const activeMap = useMemo(() => ({ ...SITEPLAN_MAP, ...savedMap }), [savedMap]);
   const rows = useMemo(() => kavlings.filter((row) => Boolean(activeMap[row.id_kavling])), [kavlings, activeMap]);
@@ -170,7 +176,12 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   );
 
   const handleAutoDetect = async (event: React.MouseEvent<SVGSVGElement>) => {
-    if (!mappingMode || !selectedId || !svgRef.current || !imageRef.current) return;
+    if (!mappingMode || !selectedId || !svgRef.current || !processingImageRef.current) return;
+    const processingImage = processingImageRef.current;
+    if (!processingImage?.naturalWidth || !processingImage.naturalHeight) {
+      setMappingNotice('Gambar pemrosesan Siteplan belum siap. Tunggu sampai Siteplan selesai dimuat lalu coba lagi.');
+      return;
+    }
 
     event.preventDefault();
     event.stopPropagation();
@@ -185,8 +196,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
     const svgX = Math.max(0, Math.min(siteplanWidth, point.x));
     const svgY = Math.max(0, Math.min(siteplanHeight, point.y));
-    const naturalX = (svgX / Math.max(1, siteplanWidth)) * imageRef.current.naturalWidth;
-    const naturalY = (svgY / Math.max(1, siteplanHeight)) * imageRef.current.naturalHeight;
+    const naturalX = (svgX / Math.max(1, siteplanWidth)) * processingImage.naturalWidth;
+    const naturalY = (svgY / Math.max(1, siteplanHeight)) * processingImage.naturalHeight;
     setAutoDetectSeed([svgX, svgY]);
 
     try {
@@ -198,12 +209,12 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
         .filter((row) => row.id_kavling !== selectedId)
         .map((row) => row.polygon);
 
-      const result = await detectLotPolygon(imageRef.current, naturalX, naturalY, {
+      const result = await detectLotPolygon(processingImage, naturalX, naturalY, {
         conflictPolygons: existingPolygons,
       });
 
-      const scaleX = siteplanWidth / imageRef.current.naturalWidth;
-      const scaleY = siteplanHeight / imageRef.current.naturalHeight;
+      const scaleX = siteplanWidth / processingImage.naturalWidth;
+      const scaleY = siteplanHeight / processingImage.naturalHeight;
       const polygon = result.polygon.map(([x, y]) => [Math.round(x * scaleX), Math.round(y * scaleY)] as [number, number]);
       const label = [Math.round(result.label[0] * scaleX), Math.round(result.label[1] * scaleY)] as [number, number];
 
@@ -454,36 +465,21 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                   image.dataset.fallbackApplied = '1';
                   image.src = fallbackSiteplanSrc;
                 }}
-                onLoad={(event) => {
-                  const image = event.currentTarget;
-                  // Some invalid/empty uploaded PNGs can return HTTP 200 but render only a blank canvas.
-                  // Detect an almost entirely white/transparent image and fall back to the known-good Siteplan source.
-                  if (image.dataset.blankChecked === '1' || image.dataset.fallbackApplied === '1') return;
-                  image.dataset.blankChecked = '1';
-                  try {
-                    const canvas = document.createElement('canvas');
-                    const sampleSize = 32;
-                    canvas.width = sampleSize;
-                    canvas.height = sampleSize;
-                    const context = canvas.getContext('2d', { willReadFrequently: true });
-                    if (!context || !image.naturalWidth || !image.naturalHeight) return;
-                    context.drawImage(image, 0, 0, sampleSize, sampleSize);
-                    const pixels = context.getImageData(0, 0, sampleSize, sampleSize).data;
-                    let nonWhiteOrTransparent = 0;
-                    for (let i = 0; i < pixels.length; i += 4) {
-                      const alpha = pixels[i + 3];
-                      const isWhite = pixels[i] > 245 && pixels[i + 1] > 245 && pixels[i + 2] > 245;
-                      if (alpha > 10 && !isWhite) nonWhiteOrTransparent += 1;
-                    }
-                    if (nonWhiteOrTransparent < 4) {
-                      image.dataset.fallbackApplied = '1';
-                      image.src = fallbackSiteplanSrc;
-                    }
-                  } catch {
-                    // Keep the active image when the browser blocks canvas inspection.
-                  }
-                }}
               />
+               <img
+                 ref={processingImageRef}
+                 src={processingSiteplanSrc}
+                 alt=""
+                 aria-hidden="true"
+                 onError={() => setMappingNotice('Gambar pemrosesan Siteplan tidak dapat dimuat. Auto Detect membutuhkan gambar lokal dari API Siteplan.')}
+                 style={{
+                   position: 'absolute',
+                   width: 1,
+                   height: 1,
+                   opacity: 0,
+                   pointerEvents: 'none',
+                 }}
+               />
             <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}
             onMouseMove={handleMapMouseMove}
             onMouseUp={handleMapMouseUp}
