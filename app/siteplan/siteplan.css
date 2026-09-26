@@ -490,6 +490,9 @@
 .siteplan-click-surface {
   pointer-events:all !important;
 }
+.siteplan-overlay.is-mapping .siteplan-polygon.is-selected {
+  pointer-events:none !important;
+}
 .siteplan-overlay.is-mapping .siteplan-polygon.is-selected polygon,
 .siteplan-overlay.is-mapping .siteplan-polygon.is-selected text {
   pointer-events:none !important;
