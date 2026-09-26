@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
+import { requireKavioAction } from '../../../lib/kavio-permissions-server';
 
 const VALID_STATUS = ['BOOKING', 'DP', 'PROSES_KPR', 'AKAD', 'BATAL'] as const;
 const VALID_PAYMENT = ['KPR', 'CASH', 'CASH_BERTAHAP'] as const;
@@ -14,6 +15,7 @@ export async function createSales(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('SALES_WRITE', '/master/sales?error=');
   const idKavling = text(formData.get('id_kavling'));
   const namaKonsumen = text(formData.get('nama_konsumen'));
   const alamatKonsumen = text(formData.get('alamat_konsumen')) || null;
@@ -103,6 +105,7 @@ export async function updateSalesInfo(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('SALES_WRITE', '/master/sales?error=');
 
   const idSales = text(formData.get('id_sales'));
   const namaKonsumen = text(formData.get('nama_konsumen'));
@@ -147,6 +150,7 @@ export async function saveSalesBiaya(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('SALES_WRITE', '/master/sales?error=');
 
   const idSales = text(formData.get('id_sales'));
   if (!idSales) return detailError('', 'ID SALES TIDAK VALID');
@@ -202,6 +206,7 @@ export async function deactivateSales(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('SALES_WRITE', '/master/sales?error=');
   const idSales = text(formData.get('id_sales')); if (!idSales) return redirectError('ID SALES TIDAK VALID');
   const { data: sales, error } = await supabase.from('sales').select('id_sales,id_kavling,status_sales,status_aktif').eq('id_sales', idSales).maybeSingle();
   if (error || !sales) return redirectError(error?.message ?? 'DATA SALES TIDAK DITEMUKAN');
