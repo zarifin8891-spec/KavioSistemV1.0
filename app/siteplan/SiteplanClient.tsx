@@ -124,6 +124,7 @@ function polygonCenter(points: [number, number][]) {
 }
 
 export default function SiteplanClient({ kavlings, sales, spks, progressUpdates, savedMappings, activeSiteplan, siteplanSrc }: Props) {
+  const fallbackSiteplanSrc = '/siteplan/siteplan-clean-source.png';
   const router = useRouter();
   const siteplanWidth = activeSiteplan?.image_width || SITEPLAN_VIEWBOX.width;
   const siteplanHeight = activeSiteplan?.image_height || SITEPLAN_VIEWBOX.height;
@@ -442,7 +443,47 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
           <div className="siteplan-viewport">
             <div className="siteplan-stage" style={{ width: '100%', aspectRatio: siteplanAspect }}>
               <div className="siteplan-map-layer">
-              <img ref={imageRef} src={siteplanSrc} alt={activeSiteplan?.nama_siteplan || 'Siteplan aktif'} className="siteplan-image" />
+              <img
+                ref={imageRef}
+                src={siteplanSrc}
+                alt={activeSiteplan?.nama_siteplan || 'Siteplan aktif'}
+                className="siteplan-image"
+                onError={(event) => {
+                  const image = event.currentTarget;
+                  if (image.dataset.fallbackApplied === '1') return;
+                  image.dataset.fallbackApplied = '1';
+                  image.src = fallbackSiteplanSrc;
+                }}
+                onLoad={(event) => {
+                  const image = event.currentTarget;
+                  // Some invalid/empty uploaded PNGs can return HTTP 200 but render only a blank canvas.
+                  // Detect an almost entirely white/transparent image and fall back to the known-good Siteplan source.
+                  if (image.dataset.blankChecked === '1' || image.dataset.fallbackApplied === '1') return;
+                  image.dataset.blankChecked = '1';
+                  try {
+                    const canvas = document.createElement('canvas');
+                    const sampleSize = 32;
+                    canvas.width = sampleSize;
+                    canvas.height = sampleSize;
+                    const context = canvas.getContext('2d', { willReadFrequently: true });
+                    if (!context || !image.naturalWidth || !image.naturalHeight) return;
+                    context.drawImage(image, 0, 0, sampleSize, sampleSize);
+                    const pixels = context.getImageData(0, 0, sampleSize, sampleSize).data;
+                    let nonWhiteOrTransparent = 0;
+                    for (let i = 0; i < pixels.length; i += 4) {
+                      const alpha = pixels[i + 3];
+                      const isWhite = pixels[i] > 245 && pixels[i + 1] > 245 && pixels[i + 2] > 245;
+                      if (alpha > 10 && !isWhite) nonWhiteOrTransparent += 1;
+                    }
+                    if (nonWhiteOrTransparent < 4) {
+                      image.dataset.fallbackApplied = '1';
+                      image.src = fallbackSiteplanSrc;
+                    }
+                  } catch {
+                    // Keep the active image when the browser blocks canvas inspection.
+                  }
+                }}
+              />
             <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}
             onMouseMove={handleMapMouseMove}
             onMouseUp={handleMapMouseUp}
