@@ -316,7 +316,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
 
   const handleMapMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
     if (draggingPointIndex === null || !mappingMode || !selectedId) return;
-    const point = getSvgPoint(event);
+    const point = getSvgPointFromClient(event.clientX, event.clientY);
     if (!point) return;
 
     setMappingPoints((points) =>
