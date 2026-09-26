@@ -493,7 +493,6 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                   height={siteplanHeight}
                   fill="transparent"
                   pointerEvents="all"
-                  onClick={handleMapClick}
                 />
               )}
               {rows.map((row) => {
