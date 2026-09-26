@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
+import { requireKavioAction } from '../../../lib/kavio-permissions-server';
 
 function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
@@ -17,6 +18,7 @@ export async function createTipeRumah(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/tipe-rumah?error=');
 
   const idTipe = text(formData.get('id_tipe'));
   const namaTipe = text(formData.get('nama_tipe'));
@@ -53,6 +55,7 @@ export async function toggleTipeRumah(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/tipe-rumah?error=');
 
   const idTipe = text(formData.get('id_tipe'));
   const statusAktif = text(formData.get('status_aktif')) === 'true';
