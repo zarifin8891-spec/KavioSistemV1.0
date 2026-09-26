@@ -175,16 +175,13 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     [rows],
   );
 
-  const handleAutoDetect = async (event: React.MouseEvent<SVGSVGElement>) => {
+  const handleAutoDetect = async (clientX: number, clientY: number) => {
     if (!mappingMode || !selectedId || !svgRef.current || !processingImageRef.current) return;
     const processingImage = processingImageRef.current;
     if (!processingImage?.naturalWidth || !processingImage.naturalHeight) {
       setMappingNotice('Gambar pemrosesan Siteplan belum siap. Tunggu sampai Siteplan selesai dimuat lalu coba lagi.');
       return;
     }
-
-    event.preventDefault();
-    event.stopPropagation();
 
     const svg = svgRef.current;
     const matrix = svg.getScreenCTM();
@@ -193,7 +190,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       return;
     }
 
-    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    const point = new DOMPoint(clientX, clientY).matrixTransform(matrix.inverse());
     const svgX = Math.max(0, Math.min(siteplanWidth, point.x));
     const svgY = Math.max(0, Math.min(siteplanHeight, point.y));
     const naturalX = (svgX / Math.max(1, siteplanWidth)) * processingImage.naturalWidth;
@@ -227,33 +224,42 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     }
   };
 
-  const getSvgPoint = (event: React.MouseEvent<SVGSVGElement | SVGCircleElement>) => {
+  const getSvgPointFromClient = (clientX: number, clientY: number) => {
     const svg = svgRef.current;
     if (!svg) return null;
-    const matrix = svg.getScreenCTM();
-    if (!matrix) return null;
-    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+    const rect = svg.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
     return [
-      Math.max(0, Math.min(siteplanWidth, Math.round(point.x))),
-      Math.max(0, Math.min(siteplanHeight, Math.round(point.y))),
+      Math.max(0, Math.min(siteplanWidth, Math.round(((clientX - rect.left) / rect.width) * siteplanWidth))),
+      Math.max(0, Math.min(siteplanHeight, Math.round(((clientY - rect.top) / rect.height) * siteplanHeight))),
     ] as [number, number];
   };
 
-  const handleMapClick = (event: React.MouseEvent<SVGSVGElement>) => {
+  // Mapping input is handled at the SVG capture phase so child polygons/text
+  // cannot swallow the click. Existing polygon selection remains handled by
+  // the normal click handlers below.
+  const handleMapPointerDownCapture = (event: React.PointerEvent<SVGSVGElement>) => {
     if (!mappingMode || !selectedId || !svgRef.current) return;
 
+    const target = event.target as Element | null;
+    if (target?.closest('.siteplan-map-point')) return;
+
+    const lotGroup = target?.closest('.siteplan-polygon') as SVGGElement | null;
+    if (lotGroup && lotGroup.dataset.kavlingId && lotGroup.dataset.kavlingId !== selectedId) return;
+
     if (autoDetectArmed) {
-      void handleAutoDetect(event);
+      event.preventDefault();
+      event.stopPropagation();
+      void handleAutoDetect(event.clientX, event.clientY);
       return;
     }
 
-    // Once the polygon is completed (including Auto Detect), clicking the
-    // interior must not create a rogue extra vertex. Edit via the handles.
     if (polygonFinished) return;
 
-    const point = getSvgPoint(event);
+    const point = getSvgPointFromClient(event.clientX, event.clientY);
     if (!point) return;
 
+    event.preventDefault();
     setMappingPoints((points) => [...points, point]);
     setAutoDetectSeed(point);
   };
@@ -480,7 +486,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                    pointerEvents: 'none',
                  }}
                />
-            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onClick={handleMapClick}
+            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onPointerDownCapture={handleMapPointerDownCapture}
             onMouseMove={handleMapMouseMove}
             onMouseUp={handleMapMouseUp}
             onMouseLeave={handleMapMouseUp}>
@@ -507,6 +513,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                     role="button"
                     tabIndex={0}
                     aria-label={`Pilih kavling ${row.id_kavling}`}
+                    data-kavling-id={row.id_kavling}
                     onClick={(event) => {
                       if (mappingMode) {
                         if (selectedId !== row.id_kavling) {
