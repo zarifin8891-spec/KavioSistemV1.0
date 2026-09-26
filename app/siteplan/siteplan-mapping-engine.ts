@@ -51,6 +51,50 @@ function pixelStats(data: Uint8ClampedArray, index: number) {
  * Text inside a lot is harmless here: flood-fill finds the connected WHITE
  * face containing the click, and the outer boundary of that face is used.
  */
+async function buildWhiteFaceMask(imageData: ImageData): Promise<PixelMask> {
+  const { width, height, data } = imageData;
+  const raw = new Uint8Array(width * height);
+
+  // A lot face in the supplied Siteplan is the near-white paper area.
+  // Roads, landscape, annotations and CAD linework are intentionally treated
+  // as barriers. This is fundamentally safer than asking a radial ray to
+  // decide whether a dark line is a lot boundary or a road edge.
+  for (let i = 0, p = 0; i < raw.length; i += 1, p += 4) {
+    const { gray, chroma } = pixelStats(data, p);
+    raw[i] = gray >= 248 && chroma <= 10 ? 0 : 1;
+  }
+
+  // Close one-pixel anti-aliased gaps in parcel outlines. Keep this narrow so
+  // adjacent white lots do not get swallowed into one component.
+  const dilated = new Uint8Array(raw.length);
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      let blocked = 0;
+      for (let oy = -1; oy <= 1 && !blocked; oy += 1) {
+        for (let ox = -1; ox <= 1; ox += 1) {
+          const nx = x + ox;
+          const ny = y + oy;
+          if (
+            nx >= 0 &&
+            nx < width &&
+            ny >= 0 &&
+            ny < height &&
+            raw[ny * width + nx]
+          ) {
+            blocked = 1;
+            break;
+          }
+        }
+      }
+      dilated[y * width + x] = blocked;
+    }
+    if (y > 0 && y % 96 === 0) await yieldToBrowser();
+  }
+
+  return { width, height, data: dilated };
+}
+
 async function buildInkBarrierMask(imageData: ImageData): Promise<PixelMask> {
   const { width, height, data } = imageData;
   const raw = new Uint8Array(width * height);
@@ -674,68 +718,72 @@ export async function detectLotPolygon(
 
   const localData = context.getImageData(x0, y0, x1 - x0, y1 - y0);
 
-  // Primary detector: trace the closest coherent line surrounding the clicked face.
-  // Unlike raw pixel contours, it immediately returns geometric corner candidates.
-  let polygon = radialTracePolygon(
-    localData.data,
-    localData.width,
-    localData.height,
+  // Primary detector: identify the connected near-white face containing the
+  // click. A lot is a face bounded by its drawing, so this method naturally
+  // ignores long road edges that happen to be closer to the click.
+  let polygon: MappingPoint[] | null = null;
+
+  const faceMask = await buildWhiteFaceMask(localData);
+  const localSeed = findOpenSeed(
+    faceMask,
     clickX - x0,
     clickY - y0,
-  )?.map(([x, y]) => [x + x0, y + y0] as MappingPoint) ?? null;
+    18,
+  );
 
-  // Fallback retains the proven flood-fill concept for drawings where radial
-  // tracing is inconclusive.
-  if (!polygon) {
-    const barrier = await buildInkBarrierMask(localData);
-    const localSeed = findOpenSeed(
-      barrier,
-      clickX - x0,
-      clickY - y0,
-      18,
-    );
+  if (localSeed) {
+    const component = await floodComponent(faceMask, localSeed);
 
-    if (localSeed) {
-      const component = await floodComponent(barrier, localSeed);
+    const touchesCrop =
+      component.minX <= 1 ||
+      component.minY <= 1 ||
+      component.maxX >= localData.width - 2 ||
+      component.maxY >= localData.height - 2;
 
-      const touchesCrop =
-        component.minX <= 1 ||
-        component.minY <= 1 ||
-        component.maxX >= localData.width - 2 ||
-        component.maxY >= localData.height - 2;
+    const areaRatio =
+      component.area /
+      Math.max(1, localData.width * localData.height);
 
-      const areaRatio =
-        component.area /
-        Math.max(1, localData.width * localData.height);
+    if (!touchesCrop && component.area >= 150 && areaRatio < 0.20) {
+      const boundary = collectOuterBoundary(
+        component,
+        localData.width,
+        localData.height,
+      );
 
-      if (!touchesCrop && component.area >= 150 && areaRatio < 0.20) {
-        const boundary = collectOuterBoundary(
-          component,
-          localData.width,
-          localData.height,
+      if (boundary.length >= 6) {
+        const sourceBoundary = boundary.map(
+          ([x, y]) => [x + x0, y + y0] as MappingPoint,
         );
 
-        if (boundary.length >= 6) {
-          const sourceBoundary = boundary.map(
-            ([x, y]) => [x + x0, y + y0] as MappingPoint,
-          );
+        const candidate = simplifyToVertexBudget(
+          simplifyClosed(sourceBoundary, 4),
+          10,
+        );
 
-          const candidate = simplifyToVertexBudget(
-            simplifyClosed(sourceBoundary, 4),
-            10,
-          );
+        const click: MappingPoint = [
+          Math.round(clickX),
+          Math.round(clickY),
+        ];
 
-          const click: MappingPoint = [
-            Math.round(clickX),
-            Math.round(clickY),
-          ];
-
-          if (candidate.length >= 4 && pointInPolygon(click, candidate)) {
-            polygon = candidate;
-          }
+        if (candidate.length >= 4 && pointInPolygon(click, candidate)) {
+          polygon = candidate;
         }
       }
     }
+  }
+
+  // Controlled fallback for drawings where the lot face is not clean white.
+  // Radial tracing is deliberately secondary because roads and other CAD
+  // linework can look like parcel boundaries to a radial detector.
+  if (!polygon) {
+    polygon = radialTracePolygon(
+      localData.data,
+      localData.width,
+      localData.height,
+      clickX - x0,
+      clickY - y0,
+    )?.map(([x, y]) => [x + x0, y + y0] as MappingPoint) ?? null;
   }
 
   if (!polygon) {
