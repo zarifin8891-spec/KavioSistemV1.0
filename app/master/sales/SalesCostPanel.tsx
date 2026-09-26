@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { saveSalesBiaya } from './actions';
+import KavioActionGate from '../../components/KavioActionGate';
 
 type Cost = { jenis_biaya: string; nominal: number | string };
 
@@ -45,7 +46,7 @@ export default function SalesCostPanel({
           <div className="kavio-panel-note">Biaya tambahan tersimpan terpisah dari harga jual dasar dan otomatis masuk ke total harga.</div>
         </div>
       </div>
-      <form action={saveSalesBiaya} className="kavio-panel-body">
+      <KavioActionGate action="SALES_WRITE"><form action={saveSalesBiaya} className="kavio-panel-body">
         <input type="hidden" name="id_sales" value={idSales} />
         <div className="sales-costs-grid">
           {ITEMS.map(([label, name]) => (
@@ -68,7 +69,7 @@ export default function SalesCostPanel({
           <div><span>TOTAL HARGA SALES</span><strong>{money(totalHarga)}</strong></div>
         </div>
         <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN BIAYA</button></div>
-      </form>
+      </form></KavioActionGate>
     </section>
   );
 }
