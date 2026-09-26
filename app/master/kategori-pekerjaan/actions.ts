@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
+import { requireKavioAction } from '../../../lib/kavio-permissions-server';
 
 function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
@@ -17,6 +18,7 @@ export async function createKategoriPekerjaan(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/kategori-pekerjaan?error=');
 
   const idKategori = text(formData.get('id_kategori'));
   const namaKategori = text(formData.get('nama_kategori'));
@@ -49,6 +51,7 @@ export async function toggleKategoriPekerjaan(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/kategori-pekerjaan?error=');
 
   const idKategori = text(formData.get('id_kategori'));
   const statusAktif = text(formData.get('status_aktif')) === 'true';
