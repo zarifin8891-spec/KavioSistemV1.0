@@ -366,7 +366,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     setMappingPoints((points) => points.slice(0, -1));
   };
 
-    const uploadNewSiteplan = async () => {
+  const uploadNewSiteplan = async () => {
     if (!uploadFile) return;
     if (!/^image\/(png|jpeg|webp)$/.test(uploadFile.type)) {
       setMappingNotice('Untuk upload langsung ke Siteplan KAVIO, gunakan PNG, JPG/JPEG, atau WEBP.');
@@ -380,45 +380,168 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) throw new Error('Sesi login tidak ditemukan.');
 
-      const { count } = await supabase
+      // Keep the current Siteplan intact until the new file has been uploaded,
+      // decoded successfully, inserted, and activated.
+      const { data: oldSiteplans, error: oldSiteplansError } = await supabase
         .from('siteplan_versions')
-        .select('id', { count: 'exact', head: true });
-      const version = `REV.${String((count ?? 0) + 1).padStart(2, '0')}`;
+        .select('id,versi,file_path,is_active')
+        .order('created_at', { ascending: false });
+
+      if (oldSiteplansError) throw oldSiteplansError;
+
+      const currentActive = (oldSiteplans ?? []).find((row) => row.is_active);
+      const versionMatch = currentActive?.versi?.match(/^REV\.(\d+)$/i);
+      const nextRevision = versionMatch
+        ? Number(versionMatch[1]) + 1
+        : 1;
+      const version = `REV.${String(nextRevision).padStart(2, '0')}`;
+
       const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]+/g, '-');
       const filePath = `${user.id}/${Date.now()}-${safeName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('siteplans')
-        .upload(filePath, uploadFile, { contentType: uploadFile.type, upsert: false });
+        .upload(filePath, uploadFile, {
+          contentType: uploadFile.type,
+          upsert: false,
+        });
+
       if (uploadError) throw uploadError;
 
-      const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
-        const img = new Image();
-        const url = URL.createObjectURL(uploadFile);
-        img.onload = () => { URL.revokeObjectURL(url); resolve({ width: img.naturalWidth, height: img.naturalHeight }); };
-        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Ukuran gambar Siteplan tidak dapat dibaca.')); };
-        img.src = url;
-      });
+      let newSiteplanId: string | null = null;
 
-      await supabase.from('siteplan_versions').update({ is_active: false }).eq('is_active', true);
-      const { error: insertError } = await supabase.from('siteplan_versions').insert({
-        nama_siteplan: uploadFile.name.replace(/\.[^.]+$/, ''),
-        versi: version,
-        file_name: uploadFile.name,
-        file_path: filePath,
-        mime_type: uploadFile.type,
-        file_size: uploadFile.size,
-        image_width: dimensions.width,
-        image_height: dimensions.height,
-        is_active: true,
-        uploaded_by: user.id,
-        activated_at: new Date().toISOString(),
-      });
-      if (insertError) throw insertError;
+      try {
+        const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+          const img = new Image();
+          const url = URL.createObjectURL(uploadFile);
 
-      setUploadFile(null);
-      setMappingNotice(`Siteplan ${version} berhasil diaktifkan. Mapping lama tetap aman karena sekarang terikat ke versi sebelumnya.`);
-      router.refresh();
+          img.onload = () => {
+            URL.revokeObjectURL(url);
+            if (!img.naturalWidth || !img.naturalHeight) {
+              reject(new Error('Ukuran gambar Siteplan tidak dapat dibaca.'));
+              return;
+            }
+            resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          };
+
+          img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error('Gambar Siteplan tidak dapat dibaca oleh browser.'));
+          };
+
+          img.src = url;
+        });
+
+        // Insert the new version first, but keep it inactive until the file has
+        // passed browser decoding and the database row exists.
+        const { data: inserted, error: insertError } = await supabase
+          .from('siteplan_versions')
+          .insert({
+            nama_siteplan: uploadFile.name.replace(/\.[^.]+$/, ''),
+            versi: version,
+            file_name: uploadFile.name,
+            file_path: filePath,
+            mime_type: uploadFile.type,
+            file_size: uploadFile.size,
+            image_width: dimensions.width,
+            image_height: dimensions.height,
+            is_active: false,
+            uploaded_by: user.id,
+          })
+          .select('id')
+          .single();
+
+        if (insertError || !inserted?.id) {
+          throw insertError ?? new Error('Siteplan baru gagal disimpan.');
+        }
+
+        newSiteplanId = inserted.id;
+
+        // Switch the active pointer only after the new Siteplan is safely stored.
+        const { error: deactivateError } = await supabase
+          .from('siteplan_versions')
+          .update({ is_active: false })
+          .eq('is_active', true);
+
+        if (deactivateError) throw deactivateError;
+
+        const { error: activateError } = await supabase
+          .from('siteplan_versions')
+          .update({
+            is_active: true,
+            activated_at: new Date().toISOString(),
+          })
+          .eq('id', newSiteplanId);
+
+        if (activateError) throw activateError;
+
+        // From this point the new Siteplan is operational. Old mappings are no
+        // longer needed because KAVIO intentionally keeps only the current
+        // Siteplan and its mappings.
+        const oldIds = (oldSiteplans ?? [])
+          .map((row) => row.id)
+          .filter((id): id is string => Boolean(id) && id !== newSiteplanId);
+
+        if (oldIds.length) {
+          const { error: mappingDeleteError } = await supabase
+            .from('siteplan_kavling_mapping')
+            .delete()
+            .in('siteplan_version_id', oldIds);
+
+          if (mappingDeleteError) {
+            throw new Error(
+              `Siteplan baru sudah aktif, tetapi mapping Siteplan lama gagal dibersihkan: ${mappingDeleteError.message}`,
+            );
+          }
+
+          const { error: versionDeleteError } = await supabase
+            .from('siteplan_versions')
+            .delete()
+            .in('id', oldIds);
+
+          if (versionDeleteError) {
+            throw new Error(
+              `Siteplan baru sudah aktif, tetapi data Siteplan lama gagal dibersihkan: ${versionDeleteError.message}`,
+            );
+          }
+
+          const oldPaths = (oldSiteplans ?? [])
+            .filter((row) => row.id !== newSiteplanId && row.file_path)
+            .map((row) => row.file_path as string);
+
+          if (oldPaths.length) {
+            const { error: storageDeleteError } = await supabase.storage
+              .from('siteplans')
+              .remove(oldPaths);
+
+            if (storageDeleteError) {
+              setMappingNotice(
+                `Siteplan ${version} berhasil diaktifkan. Data lama sudah dibersihkan dari database, tetapi beberapa file lama di Storage belum terhapus: ${storageDeleteError.message}`,
+              );
+            }
+          }
+        }
+
+        setUploadFile(null);
+        if (!mappingNotice.includes('Storage belum terhapus')) {
+          setMappingNotice(
+            `Siteplan ${version} berhasil diaktifkan. Siteplan dan mapping lama sudah dibersihkan.`,
+          );
+        }
+        router.refresh();
+      } catch (error) {
+        // If the new DB row was created but activation/cleanup failed, do not
+        // leave an orphaned version behind when possible.
+        if (newSiteplanId) {
+          await supabase
+            .from('siteplan_versions')
+            .delete()
+            .eq('id', newSiteplanId);
+        }
+
+        await supabase.storage.from('siteplans').remove([filePath]);
+        throw error;
+      }
     } catch (error) {
       setMappingNotice(error instanceof Error ? error.message : 'Upload Siteplan gagal.');
     } finally {
