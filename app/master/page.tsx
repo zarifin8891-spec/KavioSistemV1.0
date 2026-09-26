@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
+import { canViewPath, normalizeRole } from '../../lib/kavio-permissions';
 
 const masterLinks = [
   { href: '/master/tipe-rumah', title: 'Tipe Rumah', desc: 'Kelola referensi tipe rumah dan spesifikasi luas.', icon: '⌂' },
@@ -17,10 +18,14 @@ export default async function MasterPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
+  const { data: accessRows } = await supabase.rpc('kavio_get_current_access');
+  const role = normalizeRole(accessRows?.[0]?.role);
+  const visibleLinks = masterLinks.filter((item) => canViewPath(role, item.href));
+
   return (
     <main className="master-hub">
       <section className="master-card-grid">
-        {masterLinks.map((item) => (
+        {visibleLinks.map((item) => (
           <Link key={item.href} href={item.href} className="master-card">
             <span className="master-card-icon">{item.icon}</span>
             <span className="master-card-title">{item.title}</span>
