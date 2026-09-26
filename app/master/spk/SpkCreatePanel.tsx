@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { createSpk } from './actions';
 import KavioActionGate from '../../components/KavioActionGate';
 import WeightConfigurator from './WeightConfigurator';
@@ -25,6 +25,11 @@ export default function SpkCreatePanel({
   mandorRows: Mandor[];
 }) {
   const [open, setOpen] = useState(false);
+  const [selectedKantor, setSelectedKantor] = useState('');
+  const filteredMandorRows = useMemo(
+    () => mandorRows.filter((item) => item.id_kantor === selectedKantor),
+    [mandorRows, selectedKantor],
+  );
 
   return (
     <KavioActionGate action="SPK_WRITE">
@@ -46,10 +51,10 @@ export default function SpkCreatePanel({
             <WeightConfigurator kavlingRows={kavlingRows} kategoriRows={kategoriRows} templateRows={templateRows} />
             <label className="kavio-field"><span>TANGGAL SPK</span><input name="tgl_spk" type="date" required /></label>
             <label className="kavio-field"><span>TARGET SELESAI</span><input name="tgl_target_selesai" type="date" required /></label>
-            <label className="kavio-field"><span>KANTOR / PELAKSANA</span><select name="id_kantor" required defaultValue=""><option value="" disabled>PILIH KANTOR</option>{kantorRows.map((item) => <option key={item.id_kantor} value={item.id_kantor}>{item.nama_kantor_pelaksana}</option>)}</select></label>
-            <label className="kavio-field"><span>MANDOR</span><select name="id_mandor" required defaultValue=""><option value="" disabled>PILIH MANDOR</option>{mandorRows.map((item) => <option key={item.id_mandor} value={item.id_mandor}>{item.nama_mandor} — {item.id_kantor}</option>)}</select></label>
+            <label className="kavio-field"><span>KANTOR / PELAKSANA</span><select name="id_kantor" required defaultValue="" onChange={(event) => setSelectedKantor(event.target.value)}><option value="" disabled>PILIH KANTOR</option>{kantorRows.map((item) => <option key={item.id_kantor} value={item.id_kantor}>{item.nama_kantor_pelaksana}</option>)}</select></label>
+            <label className="kavio-field"><span>MANDOR</span><select name="id_mandor" required defaultValue=""><option value="" disabled>PILIH MANDOR</option>{filteredMandorRows.map((item) => <option key={item.id_mandor} value={item.id_mandor}>{item.nama_mandor}</option>)}</select></label>
             <div className="kavio-form-note"><strong>ATURAN:</strong> Satu kavling hanya boleh memiliki satu SPK. Jika sudah ada SPK DRAFT, sistem menggunakan record tersebut, memperbarui datanya, lalu mengaktifkannya. SPK baru hanya untuk kavling AVAILABLE atau BOOKING. Saat aktif, kavling menjadi BUILDING. Mandor harus berasal dari kantor yang dipilih dan tipe rumah SPK mengikuti kavling.</div>
-            <div className="kavio-actions"><button type="submit" className="kavio-button" disabled={!kavlingRows.length || !kantorRows.length || !mandorRows.length || !kategoriRows.length}>SIMPAN SPK SEBAGAI DRAFT</button></div>
+            <div className="kavio-actions"><button type="submit" className="kavio-button" disabled={!kavlingRows.length || !kantorRows.length || !filteredMandorRows.length || !kategoriRows.length}>SIMPAN SPK SEBAGAI DRAFT</button></div>
           </form>
         </section>
         )}
