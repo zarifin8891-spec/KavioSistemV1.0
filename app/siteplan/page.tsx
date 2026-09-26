@@ -94,6 +94,7 @@ export default async function SiteplanPage() {
           nama_siteplan: activeSiteplan.nama_siteplan,
           versi: activeSiteplan.versi,
           file_name: activeSiteplan.file_name,
+          file_path: activeSiteplan.file_path,
           image_width: activeSiteplan.image_width,
           image_height: activeSiteplan.image_height,
         } : null}
