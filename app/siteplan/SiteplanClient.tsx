@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
 import { SITEPLAN_MAP, SITEPLAN_VIEWBOX } from './siteplan-map';
@@ -146,6 +146,23 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   // Keep the visible Siteplan on the signed Storage URL, but process Auto Detect
   // from the same-origin API image so browser canvas access is never cross-origin tainted.
   const processingImageRef = useRef<HTMLImageElement | null>(null);
+
+  // A Siteplan version is a hard boundary for both mapping state and the
+  // decoded image used by Auto Detect. When the active version changes, never
+  // keep the previous version's local polygons or decoded image in memory.
+  useEffect(() => {
+    setLocalSavedMappings(savedMappings);
+  }, [savedMappings]);
+
+  useEffect(() => {
+    processingImageRef.current = null;
+    setMappingPoints([]);
+    setPolygonFinished(false);
+    setAutoDetectSeed(null);
+    setAutoDetectArmed(false);
+    setDraggingPointIndex(null);
+    setMappingNotice('');
+  }, [activeSiteplan?.id]);
   const savedMap = useMemo(() => Object.fromEntries(localSavedMappings.map((row) => [row.id_kavling, row])), [localSavedMappings]);
   // A newly uploaded Siteplan must start from its own version-scoped mappings.
   // Never overlay the old built-in geometry onto a different uploaded drawing.
