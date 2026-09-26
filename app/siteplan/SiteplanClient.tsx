@@ -150,7 +150,12 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   // from the same-origin API image so browser canvas access is never cross-origin tainted.
   const processingImageRef = useRef<HTMLImageElement | null>(null);
   const savedMap = useMemo(() => Object.fromEntries(localSavedMappings.map((row) => [row.id_kavling, row])), [localSavedMappings]);
-  const activeMap = useMemo(() => ({ ...SITEPLAN_MAP, ...savedMap }), [savedMap]);
+  // A newly uploaded Siteplan must start from its own version-scoped mappings.
+  // Never overlay the old built-in geometry onto a different uploaded drawing.
+  const activeMap = useMemo(
+    () => (activeSiteplan?.id ? savedMap : { ...SITEPLAN_MAP, ...savedMap }),
+    [activeSiteplan?.id, savedMap],
+  );
   const rows = useMemo(() => kavlings.filter((row) => Boolean(activeMap[row.id_kavling])), [kavlings, activeMap]);
   const unmappedRows = useMemo(() => kavlings.filter((row) => !activeMap[row.id_kavling]), [kavlings, activeMap]);
   const selected = selectedId ? kavlings.find((row) => row.id_kavling === selectedId) ?? null : null;
@@ -177,29 +182,64 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
 
   const handleAutoDetect = async (clientX: number, clientY: number) => {
     if (!mappingMode || !selectedId || !svgRef.current || !processingImageRef.current) return;
+
     const processingImage = processingImageRef.current;
-    if (!processingImage?.naturalWidth || !processingImage.naturalHeight) {
-      setMappingNotice('Gambar pemrosesan Siteplan belum siap. Tunggu sampai Siteplan selesai dimuat lalu coba lagi.');
-      return;
-    }
-
-    const svg = svgRef.current;
-    const matrix = svg.getScreenCTM();
-    if (!matrix) {
-      setMappingNotice('Koordinat Siteplan belum siap. Coba klik lagi.');
-      return;
-    }
-
-    const point = new DOMPoint(clientX, clientY).matrixTransform(matrix.inverse());
-    const svgX = Math.max(0, Math.min(siteplanWidth, point.x));
-    const svgY = Math.max(0, Math.min(siteplanHeight, point.y));
-    const naturalX = (svgX / Math.max(1, siteplanWidth)) * processingImage.naturalWidth;
-    const naturalY = (svgY / Math.max(1, siteplanHeight)) * processingImage.naturalHeight;
-    setAutoDetectSeed([svgX, svgY]);
 
     try {
+      // The processing image is version-specific and same-origin. Wait for the
+      // actual image resource before giving it to canvas; this prevents an
+      // intermittent "not ready" failure immediately after Siteplan upload/refresh.
+      if (!processingImage.complete || !processingImage.naturalWidth || !processingImage.naturalHeight) {
+        setMappingNotice('Menyiapkan gambar Siteplan untuk Auto Detect...');
+        await new Promise<void>((resolve, reject) => {
+          const onLoad = () => {
+            cleanup();
+            resolve();
+          };
+          const onError = () => {
+            cleanup();
+            reject(new Error('Gambar pemrosesan Siteplan tidak dapat dimuat. Silakan refresh halaman lalu coba lagi.'));
+          };
+          const cleanup = () => {
+            processingImage.removeEventListener('load', onLoad);
+            processingImage.removeEventListener('error', onError);
+          };
+          processingImage.addEventListener('load', onLoad, { once: true });
+          processingImage.addEventListener('error', onError, { once: true });
+        });
+      }
+
+      if (!processingImage.naturalWidth || !processingImage.naturalHeight) {
+        throw new Error('Ukuran gambar Siteplan belum tersedia untuk Auto Detect.');
+      }
+
+      if (typeof processingImage.decode === 'function') {
+        try {
+          await processingImage.decode();
+        } catch {
+          // Some browsers report a decode race even though the image is usable.
+          // Canvas will perform the final validation below.
+        }
+      }
+
+      const svg = svgRef.current;
+      if (!svg) return;
+
+      // Use exactly the same SVG coordinate system as manual mapping. This is
+      // critical when the uploaded Siteplan has a different aspect ratio.
+      const matrix = svg.getScreenCTM();
+      if (!matrix) {
+        throw new Error('Koordinat Siteplan belum siap. Coba klik lagi.');
+      }
+
+      const point = new DOMPoint(clientX, clientY).matrixTransform(matrix.inverse());
+      const svgX = Math.max(0, Math.min(siteplanWidth, point.x));
+      const svgY = Math.max(0, Math.min(siteplanHeight, point.y));
+      const naturalX = (svgX / Math.max(1, siteplanWidth)) * processingImage.naturalWidth;
+      const naturalY = (svgY / Math.max(1, siteplanHeight)) * processingImage.naturalHeight;
+      setAutoDetectSeed([svgX, svgY]);
+
       setMappingNotice(`Mendeteksi batas ${selectedId} dari titik (${Math.round(svgX)}, ${Math.round(svgY)})...`);
-      // Let React paint the feedback before the image-processing work starts.
       await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
 
       const existingPolygons = localSavedMappings
