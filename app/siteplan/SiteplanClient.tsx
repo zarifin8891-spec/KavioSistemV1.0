@@ -63,7 +63,7 @@ type ProgressUpdate = {
 
 type SavedMapping = { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null; siteplan_version_id?: string | null };
 
-type ActiveSiteplan = { id: string; nama_siteplan: string; versi: string; file_name: string; image_width?: number | null; image_height?: number | null };
+type ActiveSiteplan = { id: string; nama_siteplan: string; versi: string; file_name: string; file_path?: string | null; image_width?: number | null; image_height?: number | null };
 
 type Props = {
   kavlings: Kavling[];
@@ -125,9 +125,6 @@ function polygonCenter(points: [number, number][]) {
 
 export default function SiteplanClient({ kavlings, sales, spks, progressUpdates, savedMappings, activeSiteplan, siteplanSrc }: Props) {
   const fallbackSiteplanSrc = '/siteplan/siteplan-clean-source.png';
-  const processingSiteplanSrc = activeSiteplan?.id
-    ? `/api/siteplan-image?id=${encodeURIComponent(activeSiteplan.id)}`
-    : fallbackSiteplanSrc;
   const router = useRouter();
   const siteplanWidth = activeSiteplan?.image_width || SITEPLAN_VIEWBOX.width;
   const siteplanHeight = activeSiteplan?.image_height || SITEPLAN_VIEWBOX.height;
@@ -184,20 +181,19 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     const cached = processingImageRef.current;
     if (cached?.naturalWidth && cached.naturalHeight) return cached;
 
-    const response = await fetch(processingSiteplanSrc, {
-      credentials: 'same-origin',
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      const detail = (await response.text()).trim();
-      throw new Error(
-        `Gambar pemrosesan Siteplan gagal dimuat (HTTP ${response.status}).${detail ? ` ${detail}` : ''}`,
-      );
+    const filePath = activeSiteplan?.file_path;
+    if (!filePath) {
+      throw new Error('File Siteplan aktif tidak ditemukan.');
     }
 
-    const blob = await response.blob();
-    if (!blob.size) throw new Error('Gambar pemrosesan Siteplan kosong.');
+    const supabase = createClient();
+    const { data: blob, error } = await supabase.storage
+      .from('siteplans')
+      .download(filePath);
+
+    if (error || !blob) {
+      throw new Error(error?.message || 'File Siteplan aktif tidak dapat diunduh.');
+    }
 
     const objectUrl = URL.createObjectURL(blob);
     try {
