@@ -409,6 +409,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       if (uploadError) throw uploadError;
 
       let newSiteplanId: string | null = null;
+      let newSiteplanActivated = false;
 
       try {
         const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
@@ -432,8 +433,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
           img.src = url;
         });
 
-        // Insert the new version first, but keep it inactive until the file has
-        // passed browser decoding and the database row exists.
+        // New file is stored as an inactive version first. The old Siteplan
+        // remains untouched until this point has succeeded.
         const { data: inserted, error: insertError } = await supabase
           .from('siteplan_versions')
           .insert({
@@ -457,7 +458,6 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
 
         newSiteplanId = inserted.id;
 
-        // Switch the active pointer only after the new Siteplan is safely stored.
         const { error: deactivateError } = await supabase
           .from('siteplan_versions')
           .update({ is_active: false })
@@ -474,13 +474,16 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
           .eq('id', newSiteplanId);
 
         if (activateError) throw activateError;
+        newSiteplanActivated = true;
 
-        // From this point the new Siteplan is operational. Old mappings are no
-        // longer needed because KAVIO intentionally keeps only the current
-        // Siteplan and its mappings.
+        // KAVIO intentionally keeps only the current Siteplan. Once the new
+        // Siteplan is active, old mappings and old version records can be
+        // removed without affecting the operational Siteplan.
         const oldIds = (oldSiteplans ?? [])
           .map((row) => row.id)
           .filter((id): id is string => Boolean(id) && id !== newSiteplanId);
+
+        let cleanupWarning = '';
 
         if (oldIds.length) {
           const { error: mappingDeleteError } = await supabase
@@ -489,49 +492,54 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
             .in('siteplan_version_id', oldIds);
 
           if (mappingDeleteError) {
-            throw new Error(
-              `Siteplan baru sudah aktif, tetapi mapping Siteplan lama gagal dibersihkan: ${mappingDeleteError.message}`,
-            );
-          }
+            cleanupWarning =
+              `Mapping Siteplan lama belum terhapus: ${mappingDeleteError.message}`;
+          } else {
+            const { error: versionDeleteError } = await supabase
+              .from('siteplan_versions')
+              .delete()
+              .in('id', oldIds);
 
-          const { error: versionDeleteError } = await supabase
-            .from('siteplan_versions')
-            .delete()
-            .in('id', oldIds);
+            if (versionDeleteError) {
+              cleanupWarning =
+                `Data Siteplan lama belum terhapus: ${versionDeleteError.message}`;
+            } else {
+              const oldPaths = (oldSiteplans ?? [])
+                .filter((row) => row.id !== newSiteplanId && row.file_path)
+                .map((row) => row.file_path as string);
 
-          if (versionDeleteError) {
-            throw new Error(
-              `Siteplan baru sudah aktif, tetapi data Siteplan lama gagal dibersihkan: ${versionDeleteError.message}`,
-            );
-          }
+              if (oldPaths.length) {
+                const { error: storageDeleteError } = await supabase.storage
+                  .from('siteplans')
+                  .remove(oldPaths);
 
-          const oldPaths = (oldSiteplans ?? [])
-            .filter((row) => row.id !== newSiteplanId && row.file_path)
-            .map((row) => row.file_path as string);
-
-          if (oldPaths.length) {
-            const { error: storageDeleteError } = await supabase.storage
-              .from('siteplans')
-              .remove(oldPaths);
-
-            if (storageDeleteError) {
-              setMappingNotice(
-                `Siteplan ${version} berhasil diaktifkan. Data lama sudah dibersihkan dari database, tetapi beberapa file lama di Storage belum terhapus: ${storageDeleteError.message}`,
-              );
+                if (storageDeleteError) {
+                  cleanupWarning =
+                    `File Siteplan lama di Storage belum semuanya terhapus: ${storageDeleteError.message}`;
+                }
+              }
             }
           }
         }
 
         setUploadFile(null);
-        if (!mappingNotice.includes('Storage belum terhapus')) {
-          setMappingNotice(
-            `Siteplan ${version} berhasil diaktifkan. Siteplan dan mapping lama sudah dibersihkan.`,
-          );
-        }
+        setMappingNotice(
+          cleanupWarning
+            ? `Siteplan ${version} berhasil diaktifkan. ${cleanupWarning}`
+            : `Siteplan ${version} berhasil diaktifkan. Siteplan dan mapping lama sudah dibersihkan.`,
+        );
         router.refresh();
       } catch (error) {
-        // If the new DB row was created but activation/cleanup failed, do not
-        // leave an orphaned version behind when possible.
+        // Before the new Siteplan becomes active, preserve the old active
+        // Siteplan if anything fails. Once activation succeeds, never roll
+        // back the new Siteplan because it is already the operational version.
+        if (!newSiteplanActivated && currentActive?.id) {
+          await supabase
+            .from('siteplan_versions')
+            .update({ is_active: true })
+            .eq('id', currentActive.id);
+        }
+
         if (newSiteplanId) {
           await supabase
             .from('siteplan_versions')
@@ -542,6 +550,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
         await supabase.storage.from('siteplans').remove([filePath]);
         throw error;
       }
+
     } catch (error) {
       setMappingNotice(error instanceof Error ? error.message : 'Upload Siteplan gagal.');
     } finally {
