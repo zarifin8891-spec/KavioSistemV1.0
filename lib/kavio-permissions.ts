@@ -9,26 +9,22 @@ export const ROLE_MENU_ACCESS: Record<KavioRole, string[]> = {
   USER: ['/dashboard', '/master', '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/laporan'],
 };
 
-export const ROLE_ACTION_ACCESS: Record<KavioRole, string[]> = {
-  DIREKTUR: ['MASTER_WRITE', 'SALES_WRITE', 'SPK_WRITE', 'PROGRESS_WRITE', 'SITEPLAN_MAP', 'USER_MANAGE'],
-  ADMIN: ['MASTER_WRITE', 'SALES_WRITE', 'SPK_WRITE', 'PROGRESS_WRITE', 'SITEPLAN_MAP', 'USER_MANAGE'],
-  MARKETING: ['SALES_WRITE'],
-  PELAKSANA: ['SPK_WRITE', 'PROGRESS_WRITE'],
-  USER: [],
-};
-
 export function normalizeRole(value: unknown): KavioRole {
   const role = String(value ?? '').toUpperCase();
   return (KAVIO_ROLES as readonly string[]).includes(role) ? role as KavioRole : 'USER';
 }
 
-export function canAction(role: unknown, action: string) {
-  const normalized = normalizeRole(role);
-  return ROLE_ACTION_ACCESS[normalized].includes(action);
-}
-
 export function canViewPath(role: unknown, pathname: string) {
   const normalized = normalizeRole(role);
   const allowed = ROLE_MENU_ACCESS[normalized];
-  return allowed.some((route) => pathname === route || pathname.startsWith(route + '/'));
+
+  return allowed.some((route) => {
+    if (pathname === route) return true;
+
+    // /master is the navigation hub, not a wildcard for every /master/* page.
+    // Child routes must be explicitly listed in ROLE_MENU_ACCESS.
+    if (route === '/master') return false;
+
+    return pathname.startsWith(route + '/');
+  });
 }
