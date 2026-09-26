@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
+import { requireKavioAction } from '../../../lib/kavio-permissions-server';
 
 function text(value: FormDataEntryValue | null) { return String(value ?? '').trim(); }
 function fail(message: string) { redirect(`/master/notaris?error=${encodeURIComponent(message)}`); }
@@ -11,6 +12,7 @@ export async function createNotaris(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/notaris?error=');
   const idNotaris = text(formData.get('id_notaris'));
   const namaNotaris = text(formData.get('nama_notaris'));
   const noIzin = text(formData.get('no_izin')) || null;
@@ -26,6 +28,7 @@ export async function toggleNotaris(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/notaris?error=');
   const idNotaris = text(formData.get('id_notaris'));
   const status = text(formData.get('status_aktif')) === 'true';
   if (!idNotaris) { fail('ID notaris tidak valid'); return; }
