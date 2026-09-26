@@ -180,76 +180,57 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     [rows],
   );
 
-  const handleAutoDetect = async (clientX: number, clientY: number) => {
-    if (!mappingMode || !selectedId || !svgRef.current || !processingImageRef.current) return;
+  const loadProcessingImage = async () => {
+    const cached = processingImageRef.current;
+    if (cached?.naturalWidth && cached.naturalHeight) return cached;
 
-    const processingImage = processingImageRef.current;
+    const response = await fetch(processingSiteplanSrc, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const detail = (await response.text()).trim();
+      throw new Error(
+        `Gambar pemrosesan Siteplan gagal dimuat (HTTP ${response.status}).${detail ? ` ${detail}` : ''}`,
+      );
+    }
+
+    const blob = await response.blob();
+    if (!blob.size) throw new Error('Gambar pemrosesan Siteplan kosong.');
+
+    const objectUrl = URL.createObjectURL(blob);
+    try {
+      const image = new Image();
+      image.decoding = 'async';
+      const loaded = new Promise<HTMLImageElement>((resolve, reject) => {
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Data gambar Siteplan tidak dapat didekode oleh browser.'));
+      });
+      image.src = objectUrl;
+      const ready = await loaded;
+      if (!ready.naturalWidth || !ready.naturalHeight) {
+        throw new Error('Ukuran gambar Siteplan tidak tersedia.');
+      }
+      processingImageRef.current = ready;
+      return ready;
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  };
+
+  const handleAutoDetect = async (clientX: number, clientY: number) => {
+    if (!mappingMode || !selectedId || !svgRef.current) return;
 
     try {
-      // The processing image is version-specific and same-origin. Wait for the
-      // actual image resource before giving it to canvas; this prevents an
-      // intermittent "not ready" failure immediately after Siteplan upload/refresh.
-      if (!processingImage.complete) {
-        setMappingNotice('Menyiapkan gambar Siteplan untuk Auto Detect...');
-        await new Promise<void>((resolve, reject) => {
-          let settled = false;
-          const cleanup = () => {
-            processingImage.removeEventListener('load', onLoad);
-            processingImage.removeEventListener('error', onError);
-          };
-          const resolveOnce = () => {
-            if (settled) return;
-            settled = true;
-            cleanup();
-            resolve();
-          };
-          const rejectOnce = (message: string) => {
-            if (settled) return;
-            settled = true;
-            cleanup();
-            reject(new Error(message));
-          };
-          const onLoad = () => resolveOnce();
-          const onError = () => rejectOnce('Gambar pemrosesan Siteplan tidak dapat dimuat. Silakan refresh halaman lalu coba lagi.');
-
-          processingImage.addEventListener('load', onLoad);
-          processingImage.addEventListener('error', onError);
-
-          // The image can finish between the initial check and listener
-          // registration. Re-check immediately so Auto Detect never hangs.
-          if (processingImage.complete) {
-            if (processingImage.naturalWidth && processingImage.naturalHeight) {
-              resolveOnce();
-            } else {
-              rejectOnce('Gambar pemrosesan Siteplan gagal dimuat. Silakan refresh halaman lalu coba lagi.');
-            }
-          }
-        });
-      } else if (!processingImage.naturalWidth || !processingImage.naturalHeight) {
-        throw new Error('Gambar pemrosesan Siteplan gagal dimuat. Silakan refresh halaman lalu coba lagi.');
-      }
-
-      if (!processingImage.naturalWidth || !processingImage.naturalHeight) {
-        throw new Error('Ukuran gambar Siteplan belum tersedia untuk Auto Detect.');
-      }
-
-      if (typeof processingImage.decode === 'function') {
-        try {
-          await processingImage.decode();
-        } catch {
-          // Some browsers report a decode race even though the image is usable.
-          // Canvas will perform the final validation below.
-        }
-      }
+      setMappingNotice('Menyiapkan gambar Siteplan untuk Auto Detect...');
+      const processingImage = await loadProcessingImage();
 
       const svg = svgRef.current;
-      if (!svg) return;
-
-      // Use exactly the same SVG coordinate system as manual mapping. This is
-      // critical when the uploaded Siteplan has a different aspect ratio.
       const matrix = svg.getScreenCTM();
       if (!matrix) {
-        throw new Error('Koordinat Siteplan belum siap. Coba klik lagi.');
+        setMappingNotice('Koordinat Siteplan belum siap. Coba klik lagi.');
+        return;
       }
 
       const point = new DOMPoint(clientX, clientY).matrixTransform(matrix.inverse());
@@ -273,7 +254,6 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       const scaleX = siteplanWidth / processingImage.naturalWidth;
       const scaleY = siteplanHeight / processingImage.naturalHeight;
       const polygon = result.polygon.map(([x, y]) => [Math.round(x * scaleX), Math.round(y * scaleY)] as [number, number]);
-      const label = [Math.round(result.label[0] * scaleX), Math.round(result.label[1] * scaleY)] as [number, number];
 
       setMappingPoints(polygon);
       setPolygonFinished(true);
@@ -532,20 +512,6 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                   image.src = fallbackSiteplanSrc;
                 }}
               />
-               <img
-                 ref={processingImageRef}
-                 src={processingSiteplanSrc}
-                 alt=""
-                 aria-hidden="true"
-                 onError={() => setMappingNotice('Gambar pemrosesan Siteplan tidak dapat dimuat. Auto Detect membutuhkan gambar lokal dari API Siteplan.')}
-                 style={{
-                   position: 'absolute',
-                   width: 1,
-                   height: 1,
-                   opacity: 0,
-                   pointerEvents: 'none',
-                 }}
-               />
             <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onPointerDownCapture={handleMapPointerDownCapture}
             onMouseMove={handleMapMouseMove}
             onMouseUp={handleMapMouseUp}
