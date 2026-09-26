@@ -43,18 +43,9 @@ Deno.serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceRoleKey);
 
-    const { data: managerProfile, error: managerError } = await admin
-      .from("user_profiles")
-      .select("role,status_aktif")
-      .eq("user_id", authData.user.id)
-      .maybeSingle();
+    const { data: canManageUsers, error: permissionError } = await userClient.rpc("kavio_can_action", { p_action: "USER_MANAGE" });
 
-    if (
-      managerError ||
-      !managerProfile ||
-      managerProfile.status_aktif !== true ||
-      !["DIREKTUR", "ADMIN"].includes(managerProfile.role)
-    ) {
+    if (permissionError || canManageUsers !== true) {
       return json({ error: "Akses ditolak." }, 403);
     }
 
