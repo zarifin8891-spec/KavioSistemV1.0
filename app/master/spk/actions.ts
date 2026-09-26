@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
+import { requireKavioAction } from '../../../lib/kavio-permissions-server';
 
 function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
@@ -23,6 +24,7 @@ export async function createSpk(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('SPK_WRITE', '/master/spk?error=');
 
   const idKavling = text(formData.get('id_kavling'));
   const tglSpk = text(formData.get('tgl_spk'));
@@ -166,6 +168,7 @@ export async function activateSpk(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('SPK_WRITE', '/master/spk?error=');
 
   const idSpk = text(formData.get('id_spk'));
   if (!idSpk) errorRedirect('ID SPK tidak valid');
@@ -185,6 +188,7 @@ export async function deactivateSpk(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('SPK_WRITE', '/master/spk?error=');
 
   const idSpk = text(formData.get('id_spk'));
   if (!idSpk) errorRedirect('ID SPK tidak valid');
