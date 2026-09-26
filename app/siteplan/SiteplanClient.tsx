@@ -189,24 +189,44 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
       // The processing image is version-specific and same-origin. Wait for the
       // actual image resource before giving it to canvas; this prevents an
       // intermittent "not ready" failure immediately after Siteplan upload/refresh.
-      if (!processingImage.complete || !processingImage.naturalWidth || !processingImage.naturalHeight) {
+      if (!processingImage.complete) {
         setMappingNotice('Menyiapkan gambar Siteplan untuk Auto Detect...');
         await new Promise<void>((resolve, reject) => {
-          const onLoad = () => {
-            cleanup();
-            resolve();
-          };
-          const onError = () => {
-            cleanup();
-            reject(new Error('Gambar pemrosesan Siteplan tidak dapat dimuat. Silakan refresh halaman lalu coba lagi.'));
-          };
+          let settled = false;
           const cleanup = () => {
             processingImage.removeEventListener('load', onLoad);
             processingImage.removeEventListener('error', onError);
           };
-          processingImage.addEventListener('load', onLoad, { once: true });
-          processingImage.addEventListener('error', onError, { once: true });
+          const resolveOnce = () => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            resolve();
+          };
+          const rejectOnce = (message: string) => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            reject(new Error(message));
+          };
+          const onLoad = () => resolveOnce();
+          const onError = () => rejectOnce('Gambar pemrosesan Siteplan tidak dapat dimuat. Silakan refresh halaman lalu coba lagi.');
+
+          processingImage.addEventListener('load', onLoad);
+          processingImage.addEventListener('error', onError);
+
+          // The image can finish between the initial check and listener
+          // registration. Re-check immediately so Auto Detect never hangs.
+          if (processingImage.complete) {
+            if (processingImage.naturalWidth && processingImage.naturalHeight) {
+              resolveOnce();
+            } else {
+              rejectOnce('Gambar pemrosesan Siteplan gagal dimuat. Silakan refresh halaman lalu coba lagi.');
+            }
+          }
         });
+      } else if (!processingImage.naturalWidth || !processingImage.naturalHeight) {
+        throw new Error('Gambar pemrosesan Siteplan gagal dimuat. Silakan refresh halaman lalu coba lagi.');
       }
 
       if (!processingImage.naturalWidth || !processingImage.naturalHeight) {
