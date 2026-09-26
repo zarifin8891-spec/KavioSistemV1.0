@@ -48,14 +48,16 @@ export async function GET(request: Request) {
   }
 
   const contentType = siteplan.mime_type || upstream.headers.get('content-type') || 'application/octet-stream';
-  const body = await upstream.arrayBuffer();
 
-  return new NextResponse(body, {
+  // Proxy the Storage response as a stream. Do not re-buffer/reconstruct the
+  // image in the Next.js response; the browser must receive the original bytes
+  // unchanged so PNG/JPEG/WEBP decoding remains reliable.
+  return new NextResponse(upstream.body, {
     status: 200,
     headers: {
       'Content-Type': contentType,
-      'Content-Length': String(body.byteLength),
-      'Cache-Control': 'private, max-age=300',
+      'Cache-Control': 'no-store',
+      'Content-Disposition': 'inline',
       'X-Content-Type-Options': 'nosniff',
     },
   });
