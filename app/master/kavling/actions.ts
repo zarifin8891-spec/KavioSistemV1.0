@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
+import { requireKavioAction } from '../../../lib/kavio-permissions-server';
 
 const VALID_STATUS = ['AVAILABLE', 'BOOKING', 'SOLD', 'BUILDING', 'READY_STOCK', 'COMPLETED'] as const;
 type KavlingStatus = (typeof VALID_STATUS)[number];
@@ -19,6 +20,7 @@ export async function createKavling(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/kavling?error=');
 
   const idKavling = text(formData.get('id_kavling'));
   const blok = text(formData.get('blok'));
@@ -72,6 +74,7 @@ export async function updateKavling(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/kavling?error=');
 
   const idKavling = text(formData.get('id_kavling'));
   const blok = text(formData.get('blok'));
@@ -128,6 +131,7 @@ export async function toggleKavling(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/kavling?error=');
 
   const idKavling = text(formData.get('id_kavling'));
   const statusAktif = text(formData.get('status_aktif')) === 'true';
