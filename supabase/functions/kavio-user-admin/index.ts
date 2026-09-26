@@ -146,15 +146,44 @@ Deno.serve(async (req) => {
       const userId = String(body.user_id ?? "").trim();
       const role = String(body.role ?? "").trim().toUpperCase();
       const nama = String(body.nama ?? "").trim();
+      const statusAktif = body.status_aktif === true;
 
       if (!userId) return json({ error: "User ID wajib." }, 400);
       if (!allowedRoles.has(role)) return json({ error: "Role tidak valid." }, 400);
-      if (userId === authData.user.id && (role !== "DIREKTUR" && role !== "ADMIN" || body.status_aktif !== true)) {
+      if (userId === authData.user.id && (role !== "DIREKTUR" && role !== "ADMIN" || !statusAktif)) {
         return json({ error: "Akun yang sedang digunakan tidak boleh kehilangan akses Manajemen User." }, 400);
       }
 
       const { data: target, error: targetError } = await admin.auth.admin.getUserById(userId);
       if (targetError || !target.user) return json({ error: "User tidak ditemukan." }, 404);
+
+      const { data: targetProfile, error: profileReadError } = await admin
+        .from("user_profiles")
+        .select("role,status_aktif")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (profileReadError) return json({ error: profileReadError.message }, 400);
+
+      const targetWasManager =
+        targetProfile?.status_aktif === true &&
+        ["DIREKTUR", "ADMIN"].includes(targetProfile.role);
+
+      const targetWillBeManager =
+        statusAktif && ["DIREKTUR", "ADMIN"].includes(role);
+
+      if (targetWasManager && !targetWillBeManager) {
+        const { count, error: managerCountError } = await admin
+          .from("user_profiles")
+          .select("user_id", { count: "exact", head: true })
+          .eq("status_aktif", true)
+          .in("role", ["DIREKTUR", "ADMIN"]);
+
+        if (managerCountError) return json({ error: managerCountError.message }, 400);
+        if ((count ?? 0) <= 1) {
+          return json({ error: "Tidak dapat menonaktifkan atau menurunkan role manager terakhir." }, 400);
+        }
+      }
 
       const { error } = await admin
         .from("user_profiles")
@@ -162,7 +191,7 @@ Deno.serve(async (req) => {
           user_id: userId,
           nama: nama || null,
           role,
-          status_aktif: Boolean(body.status_aktif),
+          status_aktif: statusAktif,
           updated_at: new Date().toISOString(),
         });
 
