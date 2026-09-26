@@ -12,14 +12,18 @@ export default function ProgressCreatePanel({
   tglSpk,
   configs,
   categories,
+  completedCategoryIds,
 }: {
   idSpk: string;
   tglSpk: string;
   configs: Config[];
   categories: Category[];
+  completedCategoryIds: string[];
 }) {
   const [open, setOpen] = useState(false);
   const categoryMap = new Map(categories.map((row) => [row.id_kategori, row]));
+  const completedSet = new Set(completedCategoryIds);
+  const availableConfigs = configs.filter((config) => !completedSet.has(config.id_kategori));
   const today = new Date().toISOString().slice(0, 10);
 
   return (
@@ -45,11 +49,11 @@ export default function ProgressCreatePanel({
           <form action={createProgressUpdate} className="kavio-form progress-input-form">
             <input type="hidden" name="id_spk" value={idSpk} />
             <label className="kavio-field"><span>TANGGAL UPDATE</span><input type="date" name="tanggal_update" min={tglSpk} defaultValue={today} required /></label>
-            <label className="kavio-field"><span>KATEGORI PEKERJAAN</span><select name="id_kategori" defaultValue="" required><option value="" disabled>PILIH KATEGORI</option>{configs.map((config) => { const category = categoryMap.get(config.id_kategori); return <option key={config.id_kategori} value={config.id_kategori}>{category?.urutan ?? ''}. {category?.nama_kategori ?? config.id_kategori} — BOBOT {(Number(config.bobot_final) * 100).toFixed(2)}%</option>; })}</select></label>
+            <label className="kavio-field"><span>KATEGORI PEKERJAAN</span><select name="id_kategori" defaultValue="" required><option value="" disabled>PILIH KATEGORI</option>{availableConfigs.map((config) => { const category = categoryMap.get(config.id_kategori); return <option key={config.id_kategori} value={config.id_kategori}>{category?.urutan ?? ''}. {category?.nama_kategori ?? config.id_kategori} — BOBOT {(Number(config.bobot_final) * 100).toFixed(2)}%</option>; })}</select></label>
             <label className="kavio-field"><span>PROGRESS PERIODE (%)</span><input type="number" name="progress_periode" min="0" max="100" step="0.01" placeholder="CONTOH: 8" required /></label>
             <label className="kavio-field"><span>KETERANGAN</span><input name="keterangan" placeholder="KETERANGAN PEKERJAAN (OPSIONAL)" /></label>
-            <div className="kavio-form-note"><strong>PENTING:</strong> Nilai 0–100% adalah progress untuk periode tersebut. Riwayat tetap disimpan dan akumulasi kategori dihitung sistem.</div>
-            <div className="kavio-actions"><button type="submit" className="kavio-button progress-submit-button" disabled={!configs.length}>SIMPAN PROGRESS PERIODE</button></div>
+            <div className="kavio-form-note"><strong>PENTING:</strong> Nilai 0–100% adalah progress untuk periode tersebut. Riwayat tetap disimpan dan akumulasi kategori dihitung sistem.{availableConfigs.length ? "" : " Seluruh kategori sudah mencapai 100%."}</div>
+            <div className="kavio-actions"><button type="submit" className="kavio-button progress-submit-button" disabled={!availableConfigs.length}>SIMPAN PROGRESS PERIODE</button></div>
           </form>
         </section>
         )}
