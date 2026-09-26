@@ -440,7 +440,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     const { data, error } = await supabase
       .from('siteplan_kavling_mapping')
       .upsert(payload)
-      .select('id_kavling,polygon,label')
+      .select('id_kavling,polygon,label,siteplan_version_id')
       .single();
     if (error) {
       setMappingNotice(`Gagal menyimpan: ${error.message}`);
