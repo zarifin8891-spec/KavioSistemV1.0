@@ -638,6 +638,12 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
           <div className="kavio-kpi-value kavio-dashboard-kpi-value">{counts.BUILDING || 0}</div>
           <div className="kavio-kpi-note kavio-dashboard-kpi-note">Kavling sedang dibangun</div>
         </div>
+        <div className="kavio-kpi kavio-dashboard-kpi">
+          <div className="kavio-kpi-icon kavio-dashboard-kpi-icon" aria-hidden="true">●</div>
+          <div className="kavio-kpi-label kavio-dashboard-kpi-label">SOLD</div>
+          <div className="kavio-kpi-value kavio-dashboard-kpi-value">{counts.SOLD || 0}</div>
+          <div className="kavio-kpi-note kavio-dashboard-kpi-note">Kavling sudah AKAD</div>
+        </div>
       </section>
 
       <section className="siteplan-layout">
