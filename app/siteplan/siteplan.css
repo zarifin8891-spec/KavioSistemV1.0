@@ -918,64 +918,48 @@
 @media(max-width:700px){.siteplan-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 
 
-/* KAVIO SITEPLAN — LEGEND 2 ROWS x 3 + READABLE FONT */
+/* ============================================================
+   KAVIO SITEPLAN — FINAL LEGEND + LOT LIST
+   Single source of truth for the current Siteplan presentation.
+   ============================================================ */
+
+/* Legend: 3 columns x 180px, typography fixed at 11px. */
 .siteplan-legend{
   display:grid !important;
-  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-  gap:6px !important;
+  grid-template-columns:repeat(3,180px) !important;
+  width:548px !important;
+  min-width:548px !important;
+  max-width:548px !important;
+  gap:4px !important;
+  justify-content:end !important;
   align-items:stretch !important;
 }
 .siteplan-legend-item{
-  min-height:30px !important;
-  padding:5px 10px !important;
-  gap:7px !important;
+  width:180px !important;
+  min-width:180px !important;
+  max-width:180px !important;
+  min-height:23px !important;
+  box-sizing:border-box !important;
+  padding:3px 5px !important;
+  gap:5px !important;
   justify-content:center !important;
   font-size:11px !important;
   line-height:1.1 !important;
 }
 .siteplan-legend-item i{
-  width:11px !important;
-  height:11px !important;
-  flex:0 0 11px !important;
+  width:9px !important;
+  height:9px !important;
+  flex:0 0 9px !important;
 }
 .siteplan-legend-item strong{
   font-size:11px !important;
 }
-@media(max-width:700px){
-  .siteplan-legend{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
-}
-@media(max-width:480px){
-  .siteplan-legend{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
-}
 
-/* KAVIO SITEPLAN — LOT LIST WITH CONSUMER + SPK STATUS */
-.siteplan-list-table{
-  min-width:1280px !important;
+/* Lot list: keep the full information set, but compact the three
+   columns that consume the most horizontal space. */
+.siteplan-list-table-wrap{
+  overflow-x:hidden !important;
 }
-.siteplan-list-table th:nth-child(8),
-.siteplan-list-table td:nth-child(8){width:125px !important}
-.siteplan-list-table th:nth-child(9),
-.siteplan-list-table td:nth-child(9){width:190px !important}
-.siteplan-list-table th:nth-child(10),
-.siteplan-list-table td:nth-child(10){width:115px !important}
-.siteplan-list-table th:nth-child(11),
-.siteplan-list-table td:nth-child(11){width:95px !important}
-.siteplan-list-table th:nth-child(12),
-.siteplan-list-table td:nth-child(12){width:82px !important}
-
-
-/* KAVIO SITEPLAN — FINAL COMPACT LEGEND + LOT LIST */
-.siteplan-legend{gap:4px !important}
-.siteplan-legend-item{
-  min-height:23px !important;
-  padding:3px 7px !important;
-  gap:5px !important;
-  font-size:10px !important;
-}
-.siteplan-legend-item i{width:9px !important;height:9px !important;flex-basis:9px !important}
-.siteplan-legend-item strong{font-size:10px !important}
-
-.siteplan-list-table-wrap{overflow-x:hidden !important}
 .siteplan-list-table{
   width:100% !important;
   min-width:0 !important;
@@ -987,7 +971,10 @@
   padding-right:5px !important;
 }
 .siteplan-list-table th:first-child,
-.siteplan-list-table td:first-child{width:34px !important;padding-left:4px !important}
+.siteplan-list-table td:first-child{
+  width:34px !important;
+  padding-left:4px !important;
+}
 .siteplan-list-table th:nth-child(2),
 .siteplan-list-table td:nth-child(2){width:78px !important}
 .siteplan-list-table th:nth-child(3),
@@ -995,80 +982,51 @@
 .siteplan-list-table th:nth-child(4),
 .siteplan-list-table td:nth-child(4){width:58px !important}
 .siteplan-list-table th:nth-child(5),
-.siteplan-list-table td:nth-child(5){width:105px !important}
-.siteplan-list-table th:nth-child(6),
-.siteplan-list-table td:nth-child(6){width:78px !important}
-.siteplan-list-table th:nth-child(7),
-.siteplan-list-table td:nth-child(7){width:76px !important}
-.siteplan-list-table th:nth-child(8),
-.siteplan-list-table td:nth-child(8){width:95px !important}
-.siteplan-list-table th:nth-child(9),
-.siteplan-list-table td:nth-child(9){width:145px !important;overflow:hidden;text-overflow:ellipsis}
-.siteplan-list-table th:nth-child(10),
-.siteplan-list-table td:nth-child(10){width:82px !important}
-.siteplan-list-table th:nth-child(11),
-.siteplan-list-table td:nth-child(11){width:72px !important}
-.siteplan-list-table th:nth-child(12),
-.siteplan-list-table td:nth-child(12){width:62px !important;padding-right:5px !important}
-.siteplan-list-table .siteplan-list-select{padding-left:6px !important;padding-right:6px !important}
-
-
-/* KAVIO SITEPLAN — FINAL LEGEND WIDTH + COMPACT CORE COLUMNS */
-.siteplan-legend{
-  gap:3px !important;
-}
-.siteplan-legend-item{
-  min-height:23px !important;
-  padding:3px 5px !important;
-  gap:5px !important;
-  font-size:11px !important;
-}
-.siteplan-legend-item i{
-  width:9px !important;
-  height:9px !important;
-  flex-basis:9px !important;
-}
-.siteplan-legend-item strong{
-  font-size:11px !important;
-}
-
-/* Compact only the wide operational columns:
-   TIPE RUMAH / L. TANAH / KELEBIHAN.
-   Keep the other columns unchanged. */
-.siteplan-list-table th:nth-child(5),
 .siteplan-list-table td:nth-child(5){width:82px !important}
 .siteplan-list-table th:nth-child(6),
 .siteplan-list-table td:nth-child(6){width:62px !important}
 .siteplan-list-table th:nth-child(7),
 .siteplan-list-table td:nth-child(7){width:62px !important}
+.siteplan-list-table th:nth-child(8),
+.siteplan-list-table td:nth-child(8){width:95px !important}
 .siteplan-list-table th:nth-child(9),
-.siteplan-list-table td:nth-child(9){width:125px !important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.siteplan-list-table td:nth-child(9){
+  width:125px !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.siteplan-list-table th:nth-child(10),
+.siteplan-list-table td:nth-child(10){width:82px !important}
+.siteplan-list-table th:nth-child(11),
+.siteplan-list-table td:nth-child(11){width:72px !important}
+.siteplan-list-table th:nth-child(12),
+.siteplan-list-table td:nth-child(12){
+  width:62px !important;
+  padding-right:5px !important;
+}
+.siteplan-list-table .siteplan-list-select{
+  padding-left:6px !important;
+  padding-right:6px !important;
+}
 
-
-/* KAVIO SITEPLAN — LEGEND FIXED WIDTH 180PX */
-.siteplan-legend{
-  grid-template-columns:repeat(3,180px) !important;
-  gap:4px !important;
-  justify-content:end !important;
-}
-.siteplan-legend-item{
-  width:180px !important;
-  min-width:180px !important;
-  max-width:180px !important;
-  box-sizing:border-box !important;
-  font-size:11px !important;
-}
-.siteplan-legend-item strong{
-  font-size:11px !important;
-}
+/* Responsive fallback: preserve readability on small screens. */
 @media(max-width:700px){
   .siteplan-legend{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
     justify-content:start !important;
-    grid-template-columns:repeat(3,180px) !important;
+  }
+  .siteplan-legend-item{
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
   }
 }
 @media(max-width:480px){
   .siteplan-legend{
-    grid-template-columns:repeat(2,180px) !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
   }
 }
