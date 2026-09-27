@@ -53,8 +53,9 @@
   font-size:11px !important;
 }
 
-/* Lot list: keep the full information set, but compact the three
-   columns that consume the most horizontal space. */
+/* Siteplan lot-list width rules only.
+   Typography, row height, header spacing, badges and buttons inherit
+   the shared KAVIO Global Table Foundation. */
 .siteplan-list-table-wrap{
   overflow-x:hidden !important;
 }
@@ -63,64 +64,8 @@
   min-width:0 !important;
   table-layout:fixed !important;
 }
-.siteplan-list-table,
-.siteplan-list-table th,
-.siteplan-list-table td{
-  font-family:var(--kavio-font) !important;
-}
-.siteplan-list-table{
-  font-size:var(--kavio-font-table-body) !important;
-}
-.siteplan-list-table th{
-  height:34px !important;
-  padding-top:7px !important;
-  padding-bottom:7px !important;
-  text-align:left !important;
-  vertical-align:middle !important;
-  font-size:var(--kavio-font-table-head) !important;
-  font-weight:400 !important;
-  line-height:1.2 !important;
-  white-space:nowrap !important;
-}
-.siteplan-list-table td{
-  min-height:36px !important;
-  padding-top:6px !important;
-  padding-bottom:6px !important;
-  text-align:left !important;
-  vertical-align:middle !important;
-  font-size:var(--kavio-font-table-body) !important;
-  font-weight:400 !important;
-  line-height:1.2 !important;
-  white-space:nowrap !important;
-}
-.siteplan-list-table .siteplan-status{
-  display:inline-flex !important;
-  align-items:center !important;
-  height:26px !important;
-  min-height:26px !important;
-  padding:3px 7px !important;
-  font-size:var(--kavio-font-table-badge) !important;
-  line-height:1 !important;
-  font-weight:400 !important;
-}
-.siteplan-list-table .siteplan-list-select{
-  height:30px !important;
-  min-height:30px !important;
-  padding:0 7px !important;
-  font-size:var(--kavio-font-table-button) !important;
-  line-height:1 !important;
-  font-weight:400 !important;
-}
-.siteplan-list-table th,
-.siteplan-list-table td{
-  padding-left:5px !important;
-  padding-right:5px !important;
-}
 .siteplan-list-table th:first-child,
-.siteplan-list-table td:first-child{
-  width:34px !important;
-  padding-left:4px !important;
-}
+.siteplan-list-table td:first-child{width:34px !important}
 .siteplan-list-table th:nth-child(2),
 .siteplan-list-table td:nth-child(2){width:78px !important}
 .siteplan-list-table th:nth-child(3),
@@ -147,10 +92,7 @@
 .siteplan-list-table th:nth-child(11),
 .siteplan-list-table td:nth-child(11){width:72px !important}
 .siteplan-list-table th:nth-child(12),
-.siteplan-list-table td:nth-child(12){
-  width:62px !important;
-  padding-right:5px !important;
-}
+.siteplan-list-table td:nth-child(12){width:62px !important}
 .siteplan-list-table .siteplan-list-select{
   padding-left:6px !important;
   padding-right:6px !important;
