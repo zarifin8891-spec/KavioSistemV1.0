@@ -194,6 +194,23 @@ body { margin: 0; }
 .kavio-button.secondary,button.kavio-button.secondary { background:transparent !important; color:var(--kavio-champagne) !important; border-color:var(--kavio-gold-dark) !important; }
 .kavio-button:disabled { opacity:.45; cursor:not-allowed; }
 
+.kavio-create-panel > .kavio-panel-head {
+  align-items:center !important;
+}
+.kavio-create-head-actions {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex:0 0 auto;
+}
+.kavio-create-head-actions > .kavio-command-button,
+.kavio-create-head-actions > .kavio-button {
+  margin:0 !important;
+  min-height:34px !important;
+  height:34px !important;
+  padding:0 12px !important;
+}
 .kavio-create-wrap { width:100%; margin-top:11px; display:grid; gap:10px; }
 .kavio-create-wrap > .kavio-command-button { justify-self:end; }
 .kavio-create-panel { width:100%; }
