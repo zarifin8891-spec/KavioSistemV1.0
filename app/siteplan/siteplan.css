@@ -923,21 +923,21 @@
    Single source of truth for the current Siteplan presentation.
    ============================================================ */
 
-/* Legend: 3 columns x 180px, typography fixed at 11px. */
+/* Legend: 3 columns x 135px, typography fixed at 11px. */
 .siteplan-legend{
   display:grid !important;
-  grid-template-columns:repeat(3,180px) !important;
-  width:548px !important;
-  min-width:548px !important;
-  max-width:548px !important;
+  grid-template-columns:repeat(3,135px) !important;
+  width:413px !important;
+  min-width:413px !important;
+  max-width:413px !important;
   gap:4px !important;
   justify-content:end !important;
   align-items:stretch !important;
 }
 .siteplan-legend-item{
-  width:180px !important;
-  min-width:180px !important;
-  max-width:180px !important;
+  width:135px !important;
+  min-width:135px !important;
+  max-width:135px !important;
   min-height:23px !important;
   box-sizing:border-box !important;
   padding:3px 5px !important;
