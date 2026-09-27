@@ -186,6 +186,21 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   );
   const listRows = mappingMode ? kavlings : visibleRows;
 
+  const salesByKavling = useMemo(
+    () => Object.fromEntries(sales.map((sale) => [sale.id_kavling, sale])),
+    [sales],
+  );
+
+  const spksByKavling = useMemo(
+    () => Object.fromEntries(
+      spks
+        .slice()
+        .sort((a, b) => Number(Boolean(b.is_active)) - Number(Boolean(a.is_active)))
+        .map((spk) => [spk.id_kavling, spk]),
+    ),
+    [spks],
+  );
+
   const counts = useMemo(
     () => STATUS_LIST.reduce<Record<string, number>>((acc, status) => {
       acc[status] = rows.filter((row) => row.status_kavling === status).length;
@@ -880,6 +895,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                     <th>L. TANAH</th>
                     <th>KELEBIHAN</th>
                     <th>STATUS KAVLING</th>
+                    <th>KONSUMEN</th>
+                    <th>STATUS SPK</th>
                     <th>STATUS DATA</th>
                     <th>AKSI</th>
                   </tr>
@@ -895,6 +912,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                       <td>{row.luas_tanah_real != null ? `${Number(row.luas_tanah_real).toFixed(2)} m²` : '—'}</td>
                       <td>{row.kelebihan_tanah != null ? `${Number(row.kelebihan_tanah).toFixed(2)} m²` : '—'}</td>
                       <td><span className={`siteplan-status status-${statusClass(row.status_kavling)}`}>{row.status_kavling || 'AVAILABLE'}</span></td>
+                      <td>{salesByKavling[row.id_kavling]?.nama_konsumen || '—'}</td>
+                      <td>{spksByKavling[row.id_kavling]?.status_spk || '—'}</td>
                       <td><span className={`siteplan-status ${row.status_aktif === false ? 'status-inactive-data' : ''}`}>{row.status_aktif === false ? 'NONAKTIF' : 'AKTIF'}</span></td>
                       <td>
                         <button type="button" className="kavio-button secondary siteplan-list-select" onClick={() => {
@@ -912,7 +931,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                     </tr>
                   ))}
                   {!listRows.length && (
-                    <tr><td colSpan={10} className="kavio-empty">BELUM ADA DATA KAVLING.</td></tr>
+                    <tr><td colSpan={12} className="kavio-empty">BELUM ADA DATA KAVLING.</td></tr>
                   )}
                 </tbody>
               </table>
