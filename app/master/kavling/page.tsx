@@ -23,9 +23,22 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
   const editRow = params.edit ? rows.find((row) => row.id_kavling === params.edit) : null;
   const pageError = params.error ?? kavlingError?.message ?? tipeError?.message;
 
+  const statusCounts = rows.reduce<Record<string, number>>((acc, row) => {
+    const status = String(row.status_kavling ?? 'AVAILABLE').toUpperCase();
+    acc[status] = (acc[status] ?? 0) + 1;
+    return acc;
+  }, {});
   return <main className="master-simple-page kavling-page">
     {pageError && <div className="kavio-alert error">{pageError}</div>}
     {params.success && <div className="kavio-alert success">{params.success}</div>}
+    <section className="kavio-kpi-grid kavling-kpi-grid" aria-label="Ringkasan Inventory Kavling">
+      <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">⌂</div><div className="kavio-kpi-label">TOTAL KAVLING</div><div className="kavio-kpi-value">{rows.length}</div><div className="kavio-kpi-note">Seluruh inventory kavling</div></div>
+      <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">◇</div><div className="kavio-kpi-label">AVAILABLE</div><div className="kavio-kpi-value">{statusCounts.AVAILABLE ?? 0}</div><div className="kavio-kpi-note">Siap ditawarkan</div></div>
+      <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">▣</div><div className="kavio-kpi-label">BOOKING</div><div className="kavio-kpi-value">{statusCounts.BOOKING ?? 0}</div><div className="kavio-kpi-note">Sedang proses penjualan</div></div>
+      <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">⌂</div><div className="kavio-kpi-label">BUILDING</div><div className="kavio-kpi-value">{statusCounts.BUILDING ?? 0}</div><div className="kavio-kpi-note">Sedang dibangun</div></div>
+      <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">✓</div><div className="kavio-kpi-label">READY STOCK</div><div className="kavio-kpi-value">{statusCounts.READY_STOCK ?? 0}</div><div className="kavio-kpi-note">Pembangunan selesai</div></div>
+      <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">●</div><div className="kavio-kpi-label">SOLD</div><div className="kavio-kpi-value">{statusCounts.SOLD ?? 0}</div><div className="kavio-kpi-note">Sudah akad / terjual</div></div>
+    </section>
     <section className="kavio-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DAFTAR KAVLING</h2><div className="kavio-panel-note">Inventory kavling dan lifecycle pembangunan proyek.</div></div><span className="kavio-badge">{rows.length} DATA</span></div>
       <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>NO</th><th>ID KAVLING</th><th>BLOK</th><th>NOMOR</th><th>TIPE RUMAH</th><th>L. TANAH</th><th>KELEBIHAN</th><th>HARGA STANDAR</th><th>HARGA TANAH/M²</th><th>HARGA JUAL</th><th>STATUS KAVLING</th><th>STATUS DATA</th><th>AKSI</th></tr></thead><tbody>
@@ -48,7 +61,6 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
         <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN PERUBAHAN KAVLING</button></div>
       </form>
     </section>}
-      <div className="master-table-foot">LIFECYCLE: AVAILABLE → BOOKING / BUILDING → READY_STOCK / SOLD</div>
     </section>
     {canWrite && <KavioCreatePanel buttonLabel="+ TAMBAH KAVLING" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE." badge="INVENTORY">
       <form action={createKavling} className="kavio-form kavio-panel-body">
