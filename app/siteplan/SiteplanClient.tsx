@@ -821,8 +821,10 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
               <div className="siteplan-mapping-panel">
               <div className="siteplan-related-title">CALIBRATION / MAPPING</div>
               <p>Pilih kavling, lalu klik titik-titik sudut kavling langsung pada gambar. Titik yang dibuat menjadi polygon kerja sementara.</p>
-              <div className="siteplan-mapping-selected">KAVLING: <strong>{selected?.id_kavling || '—'}</strong></div>
-              <div className="siteplan-mapping-coords">{mappingPoints.length ? mappingPoints.map(([x, y], i) => <span key={i}>P{i + 1}: {x}, {y}</span>) : <span>Belum ada titik. Klik sudut kavling pada gambar.</span>}</div>
+              <div className="siteplan-mapping-meta-row">
+                <div className="siteplan-mapping-selected">KAVLING: <strong>{selected?.id_kavling || '—'}</strong></div>
+                <div className="siteplan-mapping-coords">{mappingPoints.length ? mappingPoints.map(([x, y], i) => <span key={i}>P{i + 1}: {x}, {y}</span>) : <span>Belum ada titik. Klik sudut kavling pada gambar.</span>}</div>
+              </div>
               <div className="siteplan-mapping-actions">
                 <button type="button" className={`kavio-button ${autoDetectArmed ? 'primary' : 'secondary'}`} onClick={() => { setAutoDetectArmed((value) => !value); setMappingNotice(autoDetectArmed ? 'Auto Detect dibatalkan.' : 'AUTO DETECT aktif. Klik sekali di bagian putih/tengah kavling yang dipilih.'); }} disabled={!selectedId}>AUTO DETECT POLYGON</button>
                 <button type="button" className="kavio-button secondary" onClick={loadCurrentMapping} disabled={!selectedId}>MUAT POLYGON SAAT INI</button>
