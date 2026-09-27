@@ -962,3 +962,52 @@
 .siteplan-list-table td:nth-child(11){width:95px !important}
 .siteplan-list-table th:nth-child(12),
 .siteplan-list-table td:nth-child(12){width:82px !important}
+
+
+/* KAVIO SITEPLAN — FINAL COMPACT LEGEND + LOT LIST */
+.siteplan-legend{gap:4px !important}
+.siteplan-legend-item{
+  min-height:23px !important;
+  padding:3px 7px !important;
+  gap:5px !important;
+  font-size:10px !important;
+}
+.siteplan-legend-item i{width:9px !important;height:9px !important;flex-basis:9px !important}
+.siteplan-legend-item strong{font-size:10px !important}
+
+.siteplan-list-table-wrap{overflow-x:hidden !important}
+.siteplan-list-table{
+  width:100% !important;
+  min-width:0 !important;
+  table-layout:fixed !important;
+}
+.siteplan-list-table th,
+.siteplan-list-table td{
+  padding-left:5px !important;
+  padding-right:5px !important;
+}
+.siteplan-list-table th:first-child,
+.siteplan-list-table td:first-child{width:34px !important;padding-left:4px !important}
+.siteplan-list-table th:nth-child(2),
+.siteplan-list-table td:nth-child(2){width:78px !important}
+.siteplan-list-table th:nth-child(3),
+.siteplan-list-table td:nth-child(3){width:52px !important}
+.siteplan-list-table th:nth-child(4),
+.siteplan-list-table td:nth-child(4){width:58px !important}
+.siteplan-list-table th:nth-child(5),
+.siteplan-list-table td:nth-child(5){width:105px !important}
+.siteplan-list-table th:nth-child(6),
+.siteplan-list-table td:nth-child(6){width:78px !important}
+.siteplan-list-table th:nth-child(7),
+.siteplan-list-table td:nth-child(7){width:76px !important}
+.siteplan-list-table th:nth-child(8),
+.siteplan-list-table td:nth-child(8){width:95px !important}
+.siteplan-list-table th:nth-child(9),
+.siteplan-list-table td:nth-child(9){width:145px !important;overflow:hidden;text-overflow:ellipsis}
+.siteplan-list-table th:nth-child(10),
+.siteplan-list-table td:nth-child(10){width:82px !important}
+.siteplan-list-table th:nth-child(11),
+.siteplan-list-table td:nth-child(11){width:72px !important}
+.siteplan-list-table th:nth-child(12),
+.siteplan-list-table td:nth-child(12){width:62px !important;padding-right:5px !important}
+.siteplan-list-table .siteplan-list-select{padding-left:6px !important;padding-right:6px !important}
