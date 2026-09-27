@@ -4,9 +4,9 @@ export type KavioRole = typeof KAVIO_ROLES[number];
 export const ROLE_MENU_ACCESS: Record<KavioRole, string[]> = {
   DIREKTUR: ['/dashboard', '/master', '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/laporan', '/manajemen-user'],
   ADMIN: ['/dashboard', '/master', '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/laporan', '/manajemen-user'],
-  MARKETING: ['/dashboard', '/master', '/siteplan', '/master/kavling', '/master/sales', '/laporan'],
-  PELAKSANA: ['/dashboard', '/master', '/siteplan', '/master/kavling', '/master/spk', '/progress', '/laporan'],
-  USER: ['/dashboard', '/master', '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/laporan'],
+  MARKETING: ['/dashboard', '/siteplan', '/master/kavling', '/master/sales', '/laporan'],
+  PELAKSANA: ['/dashboard', '/siteplan', '/master/kavling', '/master/spk', '/progress', '/laporan'],
+  USER: ['/dashboard', '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/laporan'],
 };
 
 export function normalizeRole(value: unknown): KavioRole {
