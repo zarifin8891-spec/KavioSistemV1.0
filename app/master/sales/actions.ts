@@ -97,7 +97,7 @@ export async function createSales(formData: FormData) {
     }
   }
 
-  revalidatePath('/master/sales'); revalidatePath('/master/sales/detail'); revalidatePath('/master/kavling'); revalidatePath('/master/spk'); revalidatePath('/dashboard');
+  revalidatePath('/master/sales'); revalidatePath('/master/sales/detail'); revalidatePath('/master/kavling'); revalidatePath('/siteplan'); revalidatePath('/master/spk'); revalidatePath('/dashboard');
   redirect(`/master/sales?success=${encodeURIComponent('SALES BERHASIL DISIMPAN')}`);
 }
 
