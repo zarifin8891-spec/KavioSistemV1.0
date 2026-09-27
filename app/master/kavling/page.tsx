@@ -62,7 +62,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
       </form>
     </section>}
     </section>
-    {canWrite && <KavioCreatePanel triggerTargetId="kavling-add-action" openTriggerTargetId="kavling-create-action" buttonLabel="+ TAMBAH KAVLING" closeLabel="× TUTUP FORM" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE.">
+    {canWrite && <KavioCreatePanel triggerTargetId="kavling-add-action" buttonLabel="+ TAMBAH KAVLING" closeLabel="× TUTUP FORM" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE.">
       <form action={createKavling} className="kavio-form kavio-panel-body">
         <label className="kavio-field"><span>ID KAVLING</span><input name="id_kavling" placeholder="A-11" required/></label>
         <label className="kavio-field"><span>BLOK</span><input name="blok" placeholder="A" required/></label>
