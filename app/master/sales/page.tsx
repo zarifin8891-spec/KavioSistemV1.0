@@ -73,7 +73,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
       <section className="kavio-panel sales-list-panel">
         <div className="kavio-panel-head sales-list-head">
           <div><h2 className="kavio-panel-title">DAFTAR SALES</h2><div className="kavio-panel-note">Satu kavling hanya memiliki satu Sales aktif. Detail konsumen tersedia melalui tombol DETAIL.</div></div>
-          <span className="kavio-badge">{filteredSales.length}{filteredSales.length !== sales.length ? ` / ${sales.length}` : ''} DATA</span>
+          <div id="sales-add-action" className="sales-add-action" aria-label="Aksi tambah sales" />
         </div>
 
         <form method="get" className="sales-filter-row">
@@ -106,7 +106,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
         </div>
         <div className="sales-table-foot"><span>MENAMPILKAN {filteredSales.length} DARI {sales.length} DATA</span><span>SALES AKTIF: {active.length}</span></div>
       </section>
-      <SalesCreatePanel kavlings={saleable} tipeMap={types} banks={banks} notaries={notaries} />
+      <SalesCreatePanel kavlings={saleable} tipeMap={types} banks={banks} notaries={notaries} triggerTargetId="sales-add-action" />
     </section>
   </main>;
 }
