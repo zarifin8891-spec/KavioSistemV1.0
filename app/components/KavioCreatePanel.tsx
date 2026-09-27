@@ -11,6 +11,7 @@ export default function KavioCreatePanel({
   badge,
   children,
   triggerTargetId,
+  headerActions,
 }: {
   buttonLabel: string;
   closeLabel?: string;
@@ -19,6 +20,7 @@ export default function KavioCreatePanel({
   badge?: string;
   children: React.ReactNode;
   triggerTargetId?: string;
+  headerActions?: React.ReactNode;
 }) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
@@ -47,7 +49,10 @@ export default function KavioCreatePanel({
                 {note && <div className="kavio-panel-note">{note}</div>}
               </div>
               {badge && <span className="kavio-badge">{badge}</span>}
-              {trigger}
+              <div className="kavio-create-head-actions">
+                {trigger}
+                {headerActions}
+              </div>
             </div>
             {children}
           </section>
