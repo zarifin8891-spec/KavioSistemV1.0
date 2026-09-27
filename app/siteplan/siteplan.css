@@ -885,3 +885,34 @@
   font-size:10px!important;
   font-weight:400!important;
 }
+
+/* KAVIO SITEPLAN — SOLID STATUS LEGEND */
+.siteplan-legend{gap:6px!important;align-items:center!important}
+.siteplan-legend-item{min-height:26px!important;padding:4px 9px!important;gap:6px!important;border:1px solid rgba(4,24,47,.45)!important;border-radius:6px!important;color:#04182F!important;font-size:9px!important;font-weight:400!important}
+.siteplan-legend-item i{width:10px!important;height:10px!important;flex:0 0 10px!important;border:1px solid rgba(4,24,47,.38)!important;border-radius:2px!important}
+.siteplan-legend-item strong{color:inherit!important;font-weight:700!important}
+.siteplan-legend-item.status-available{background:#fff!important}
+.siteplan-legend-item.status-booking{background:#3B82F6!important;color:#fff!important}
+.siteplan-legend-item.status-building{background:#F97316!important;color:#fff!important}
+.siteplan-legend-item.status-ready_stock{background:#22C55E!important;color:#04182F!important}
+.siteplan-legend-item.status-sold{background:#EF4444!important;color:#fff!important}
+.siteplan-legend-item.status-completed{background:#A855F7!important;color:#fff!important}
+.siteplan-legend-item.status-available i{background:#fff!important}
+.siteplan-legend-item.status-booking i{background:#3B82F6!important;border-color:rgba(255,255,255,.75)!important}
+.siteplan-legend-item.status-building i{background:#F97316!important;border-color:rgba(255,255,255,.75)!important}
+.siteplan-legend-item.status-ready_stock i{background:#22C55E!important}
+.siteplan-legend-item.status-sold i{background:#EF4444!important;border-color:rgba(255,255,255,.75)!important}
+.siteplan-legend-item.status-completed i{background:#A855F7!important;border-color:rgba(255,255,255,.75)!important}
+.siteplan-legend-item.is-active{border-color:var(--kavio-gold)!important;box-shadow:0 0 0 1px var(--kavio-gold)!important;filter:brightness(1.06)!important}
+.siteplan-polygon.status-available polygon{fill:#fff!important}
+.siteplan-polygon.status-booking polygon{fill:#3B82F6!important}
+.siteplan-polygon.status-building polygon{fill:#F97316!important}
+.siteplan-polygon.status-ready_stock polygon{fill:#22C55E!important}
+.siteplan-polygon.status-sold polygon{fill:#EF4444!important}
+.siteplan-polygon.status-completed polygon{fill:#A855F7!important}
+.siteplan-lot-label.status-available{fill:#04182F!important}
+.siteplan-lot-label.status-booking,.siteplan-lot-label.status-building,.siteplan-lot-label.status-sold,.siteplan-lot-label.status-completed{fill:#fff!important}
+.siteplan-lot-label.status-ready_stock{fill:#04182F!important}
+.siteplan-kpi-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+@media(max-width:1100px){.siteplan-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:700px){.siteplan-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
