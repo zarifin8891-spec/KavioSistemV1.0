@@ -879,12 +879,15 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
           )}
 
           <div className="siteplan-list">
-            <div className="siteplan-list-head">
-              <span>DAFTAR KAVLING</span>
-              <small>{listRows.length} data</small>
+            <div className="siteplan-list-head kavio-panel-head">
+              <div>
+                <h2 className="kavio-panel-title">DAFTAR KAVLING</h2>
+                <div className="kavio-panel-note">Inventory kavling dan lifecycle pembangunan proyek.</div>
+              </div>
+              <span className="kavio-badge">{listRows.length} DATA</span>
             </div>
-            {<div className="siteplan-list-table-wrap">
-              <table className="siteplan-list-table">
+            {<div className="siteplan-list-table-wrap kavio-table-wrap">
+              <table className="kavio-table siteplan-list-table">
                 <thead>
                   <tr>
                     <th>NO</th>
