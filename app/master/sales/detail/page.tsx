@@ -27,9 +27,9 @@ export default async function SalesDetailPage({searchParams}:{searchParams:Searc
  return <main className="master-simple-page sales-detail-page">
    {p.error&&<div className="kavio-alert error">{p.error}</div>}{p.success&&<div className="kavio-alert success">{p.success}</div>}
    <section className="kavio-panel">
-     <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DATA SALES — {s.id_kavling}</h2><div className="kavio-panel-note">Informasi konsumen, status penjualan, pembayaran, dan data akad.</div></div></div>
+     <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DATA SALES — {s.id_kavling}</h2><div className="kavio-panel-note">Informasi konsumen, status penjualan, pembayaran, dan data akad.</div></div><KavioActionGate action="SALES_WRITE"><button type="submit" form="sales-info-form" className="kavio-button">SIMPAN PERUBAHAN</button></KavioActionGate></div>
      <KavioActionGate action="SALES_WRITE">
-       <form action={updateSalesInfo} className="kavio-form">
+       <form id="sales-info-form" action={updateSalesInfo} className="kavio-form">
        <input type="hidden" name="id_sales" value={s.id_sales}/>
        <label className="kavio-field"><span>NAMA KONSUMEN</span><input name="nama_konsumen" defaultValue={s.nama_konsumen}/></label>
        <label className="kavio-field"><span>HP KONSUMEN</span><input name="hp_konsumen" type="tel" inputMode="tel" defaultValue={s.hp_konsumen??''}/></label>
@@ -42,7 +42,7 @@ export default async function SalesDetailPage({searchParams}:{searchParams:Searc
        <label className="kavio-field"><span>TARGET AKAD</span><input type="date" name="target_akad" defaultValue={s.target_akad??''}/></label>
        <label className="kavio-field"><span>TANGGAL AKAD</span><input type="date" name="tgl_akad" defaultValue={s.tgl_akad??''}/></label>
        <label className="kavio-field"><span>NOTARIS AKAD</span><select name="id_notaris" defaultValue={s.id_notaris??''}><option value="">PILIH NOTARIS</option>{nr.map(x=><option key={x.id_notaris} value={x.id_notaris}>{x.nama_notaris}</option>)}</select></label>
-       <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN PERUBAHAN</button></div>
+       
        </form>
      </KavioActionGate>
    </section>
@@ -52,15 +52,15 @@ export default async function SalesDetailPage({searchParams}:{searchParams:Searc
    </KavioActionGate>
 
    {(s.jenis_pembayaran==='KPR'||s.status_sales==='PROSES_KPR')&&<section className="kavio-panel">
-     <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PROSES KPR</h2><div className="kavio-panel-note">Setiap tahap disimpan sebagai histori proses KPR.</div></div><span className="kavio-badge">{kr.length} UPDATE</span></div>
+     <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PROSES KPR</h2><div className="kavio-panel-note">Setiap tahap disimpan sebagai histori proses KPR.</div></div><div className="sales-kpr-head-actions"><span className="kavio-badge">{kr.length} UPDATE</span><KavioActionGate action="SALES_WRITE"><button type="submit" form="sales-kpr-form" className="kavio-button">SIMPAN UPDATE KPR</button></KavioActionGate></div></div>
+     
      <div className="sales-kpr-grid kavio-panel-body">{STAGES.map(([key,label])=>{const row=kprMap.get(key);return <div key={key} className={`sales-kpr-stage ${row?'is-done':''}`}><div className="sales-kpr-stage-title">{label}</div><div className="sales-kpr-stage-date">{row ? formatKavioDate(row.tanggal_update) : 'BELUM UPDATE'}</div><div className="sales-kpr-stage-note">{row?.keterangan??'—'}</div></div>})}</div>
      <KavioActionGate action="SALES_WRITE">
-       <form action={upsertKprProgress} className="kavio-form kavio-panel-body">
+       <form id="sales-kpr-form" action={upsertKprProgress} className="kavio-form kavio-panel-body">
        <input type="hidden" name="id_sales" value={s.id_sales}/>
        <label className="kavio-field"><span>TAHAP</span><select name="tahap" defaultValue="KELENGKAPAN_DATA">{STAGES.map(x=><option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>
        <label className="kavio-field"><span>TANGGAL UPDATE</span><input type="date" name="tanggal_update" required/></label>
        <label className="kavio-field sales-span-2"><span>KETERANGAN</span><input name="keterangan" placeholder="CATATAN PROSES KPR"/></label>
-         <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN UPDATE KPR</button></div>
        </form>
      </KavioActionGate>
    </section>}
