@@ -13,12 +13,55 @@
    ============================================================ */
 
 .sales-detail-page > .kavio-panel > form.kavio-form {
-  padding:12px 14px 14px !important;
-  gap:12px 14px !important;
+  padding:10px 14px 12px !important;
+  gap:10px 12px !important;
 }
 
-.sales-detail-page > .kavio-panel > form.kavio-form .kavio-actions {
-  padding-top:4px !important;
+.sales-detail-page > .kavio-panel > .kavio-panel-head {
+  align-items:center !important;
+}
+
+.sales-detail-page > .kavio-panel > .kavio-panel-head .kavio-button,
+.sales-detail-page .sales-cost-panel > .kavio-panel-head .kavio-button {
+  flex:0 0 auto !important;
+  min-height:34px !important;
+  height:34px !important;
+  padding:0 12px !important;
+}
+
+.sales-cost-panel > form.kavio-panel-body {
+  padding:10px 14px 12px !important;
+}
+
+.sales-cost-panel .sales-costs-grid {
+  gap:8px !important;
+}
+
+.sales-cost-panel .sales-cost-summary {
+  margin-top:9px !important;
+  gap:8px !important;
+}
+
+.sales-cost-panel .sales-cost-summary > div {
+  padding:7px 9px !important;
+}
+
+.sales-detail-page .sales-kpr-head-actions {
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  flex:0 0 auto !important;
+}
+
+.sales-detail-page .sales-kpr-head-actions .kavio-button {
+  min-height:34px !important;
+  height:34px !important;
+  padding:0 11px !important;
+}
+
+.sales-detail-page .sales-kpr-grid + .kavio-form {
+  padding:10px 14px 12px !important;
+  gap:10px 12px !important;
 }
 
 .sales-kpr-grid {
@@ -106,7 +149,13 @@
 
 @media(max-width:560px){
   .sales-detail-page > .kavio-panel > form.kavio-form {
-    padding:10px 12px 12px !important;
+    padding:9px 12px 10px !important;
+  }
+
+  .sales-detail-page .sales-kpr-head-actions {
+    width:100% !important;
+    justify-content:flex-end !important;
+    margin-top:6px !important;
   }
 
   .sales-kpr-grid {
