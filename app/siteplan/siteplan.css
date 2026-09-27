@@ -1043,3 +1043,32 @@
 .siteplan-list-table td:nth-child(7){width:62px !important}
 .siteplan-list-table th:nth-child(9),
 .siteplan-list-table td:nth-child(9){width:125px !important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+
+/* KAVIO SITEPLAN — LEGEND FIXED WIDTH 180PX */
+.siteplan-legend{
+  grid-template-columns:repeat(3,180px) !important;
+  gap:4px !important;
+  justify-content:end !important;
+}
+.siteplan-legend-item{
+  width:180px !important;
+  min-width:180px !important;
+  max-width:180px !important;
+  box-sizing:border-box !important;
+  font-size:11px !important;
+}
+.siteplan-legend-item strong{
+  font-size:11px !important;
+}
+@media(max-width:700px){
+  .siteplan-legend{
+    justify-content:start !important;
+    grid-template-columns:repeat(3,180px) !important;
+  }
+}
+@media(max-width:480px){
+  .siteplan-legend{
+    grid-template-columns:repeat(2,180px) !important;
+  }
+}
