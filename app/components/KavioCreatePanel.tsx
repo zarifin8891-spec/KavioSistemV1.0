@@ -72,6 +72,10 @@ export default function KavioCreatePanel({
               {note && <div className="kavio-panel-note">{note}</div>}
             </div>
             {badge && <span className="kavio-badge">{badge}</span>}
+            <div className="kavio-create-head-actions">
+              {trigger}
+              {headerActions}
+            </div>
           </div>
           {children}
         </section>
