@@ -1,6 +1,57 @@
 /* Sales module presentation hooks. Global KAVIO foundation owns shared header, form, table, and command styles. */
 .kavio-shell:has(.sales-page) .kavio-search { display:none !important; }
 
+/* SALES MANAGEMENT — create controls live in section headers. */
+.sales-page .sales-list-head{
+  align-items:center !important;
+}
+.sales-page .sales-add-action{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  flex:0 0 auto !important;
+  min-width:0 !important;
+}
+.sales-page .sales-add-action .kavio-command-button{
+  margin:0 !important;
+}
+.sales-page .sales-create-wrap{
+  width:100% !important;
+  margin-top:10px !important;
+}
+.sales-page .sales-create-panel .kavio-panel-head{
+  align-items:center !important;
+}
+.sales-page .sales-create-head-actions{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
+  flex:0 0 auto !important;
+}
+.sales-page .sales-create-head-actions .kavio-command-button,
+.sales-page .sales-create-head-actions .kavio-button{
+  margin:0 !important;
+  min-height:34px !important;
+  height:34px !important;
+  padding:0 12px !important;
+}
+.sales-page .sales-create-grid{
+  padding:10px 14px 12px !important;
+  gap:10px 12px !important;
+}
+.sales-page .sales-create-grid .sales-costs-block{
+  padding:10px 12px !important;
+}
+.sales-page .sales-create-grid .kavio-actions{
+  display:none !important;
+}
+@media(max-width:700px){
+  .sales-page .sales-create-head-actions{
+    flex-wrap:wrap !important;
+  }
+}
+
 /* The global shell page banner is the only module-level page header. */
 .sales-page .sales-title,
 .sales-page .sales-page-header,
