@@ -40,7 +40,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
       <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">●</div><div className="kavio-kpi-label">SOLD</div><div className="kavio-kpi-value">{statusCounts.SOLD ?? 0}</div><div className="kavio-kpi-note">Sudah akad / terjual</div></div>
     </section>
     <section className="kavio-panel">
-      <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DAFTAR KAVLING</h2><div className="kavio-panel-note">Inventory kavling dan lifecycle pembangunan proyek.</div></div><span className="kavio-badge">{rows.length} DATA</span></div>
+      <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DAFTAR KAVLING</h2><div className="kavio-panel-note">Inventory kavling dan lifecycle pembangunan proyek.</div></div>{canWrite && <div id="kavling-add-action" className="kavling-add-action" aria-label="Aksi tambah kavling" />}</div>
       <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>NO</th><th>ID KAVLING</th><th>BLOK</th><th>NOMOR</th><th>TIPE RUMAH</th><th>L. TANAH</th><th>KELEBIHAN</th><th>HARGA STANDAR</th><th>HARGA TANAH/M²</th><th>HARGA JUAL</th><th>STATUS KAVLING</th><th>STATUS DATA</th><th>AKSI</th></tr></thead><tbody>
         {rows.map((row,i)=><tr key={row.id_kavling}><td>{i+1}</td><td className="master-highlight">{row.id_kavling}</td><td>{row.blok}</td><td>{row.no_kavling}</td><td>{tipeMap.get(row.id_tipe)??row.id_tipe}</td><td>{Number(row.luas_tanah_real).toFixed(2)} m²</td><td>{Number(row.kelebihan_tanah).toFixed(2)} m²</td><td>{formatRupiah(row.harga_standar)}</td><td>{formatRupiah(row.harga_tanah_meter)}</td><td>{formatRupiah(row.harga_jual)}</td><td><span className="master-status">{row.status_kavling}</span></td><td><span className={`master-status ${row.status_aktif?'active':'inactive'}`}>{row.status_aktif?'AKTIF':'NONAKTIF'}</span></td><td>{canWrite ? <div className="kavio-inline-actions"><a href={'/master/kavling?edit=' + encodeURIComponent(row.id_kavling)} className="kavio-button secondary">EDIT</a><form action={toggleKavling}><input type="hidden" name="id_kavling" value={row.id_kavling}/><input type="hidden" name="status_aktif" value={String(row.status_aktif)}/><button type="submit" className="kavio-button secondary">{row.status_aktif?'NONAKTIFKAN':'AKTIFKAN'}</button></form></div> : <span>—</span>}</td></tr>)}
         {!rows.length&&<tr><td colSpan={13} className="kavio-empty">BELUM ADA DATA KAVLING.</td></tr>}
@@ -62,7 +62,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
       </form>
     </section>}
     </section>
-    {canWrite && <KavioCreatePanel buttonLabel="+ TAMBAH KAVLING" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE." badge="INVENTORY">
+    {canWrite && <KavioCreatePanel triggerTargetId="kavling-add-action" buttonLabel="+ TAMBAH KAVLING" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE.">
       <form action={createKavling} className="kavio-form kavio-panel-body">
         <label className="kavio-field"><span>ID KAVLING</span><input name="id_kavling" placeholder="A-11" required/></label>
         <label className="kavio-field"><span>BLOK</span><input name="blok" placeholder="A" required/></label>
