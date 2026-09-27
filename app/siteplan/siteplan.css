@@ -1011,3 +1011,35 @@
 .siteplan-list-table th:nth-child(12),
 .siteplan-list-table td:nth-child(12){width:62px !important;padding-right:5px !important}
 .siteplan-list-table .siteplan-list-select{padding-left:6px !important;padding-right:6px !important}
+
+
+/* KAVIO SITEPLAN — FINAL LEGEND WIDTH + COMPACT CORE COLUMNS */
+.siteplan-legend{
+  gap:3px !important;
+}
+.siteplan-legend-item{
+  min-height:23px !important;
+  padding:3px 5px !important;
+  gap:5px !important;
+  font-size:11px !important;
+}
+.siteplan-legend-item i{
+  width:9px !important;
+  height:9px !important;
+  flex-basis:9px !important;
+}
+.siteplan-legend-item strong{
+  font-size:11px !important;
+}
+
+/* Compact only the wide operational columns:
+   TIPE RUMAH / L. TANAH / KELEBIHAN.
+   Keep the other columns unchanged. */
+.siteplan-list-table th:nth-child(5),
+.siteplan-list-table td:nth-child(5){width:82px !important}
+.siteplan-list-table th:nth-child(6),
+.siteplan-list-table td:nth-child(6){width:62px !important}
+.siteplan-list-table th:nth-child(7),
+.siteplan-list-table td:nth-child(7){width:62px !important}
+.siteplan-list-table th:nth-child(9),
+.siteplan-list-table td:nth-child(9){width:125px !important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
