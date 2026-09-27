@@ -179,6 +179,7 @@ export async function activateSpk(formData: FormData) {
   revalidatePath('/master/spk');
   revalidatePath('/master/kavling');
   revalidatePath('/master/sales');
+  revalidatePath('/siteplan');
   revalidatePath('/dashboard');
   revalidatePath(`/master/spk/detail/${idSpk}`);
   redirect('/master/spk?success=SPK%20berhasil%20diaktifkan%20dan%20status%20kavling%20menjadi%20BUILDING');
@@ -200,6 +201,7 @@ export async function deactivateSpk(formData: FormData) {
   revalidatePath('/master/spk');
   revalidatePath('/master/kavling');
   revalidatePath('/master/sales');
+  revalidatePath('/siteplan');
   revalidatePath('/dashboard');
   revalidatePath(`/master/spk/detail/${idSpk}`);
   redirect(`/master/spk?success=${encodeURIComponent(`SPK selesai. Status kavling menjadi ${finalStatus}`)}`);
