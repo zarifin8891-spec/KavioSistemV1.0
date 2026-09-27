@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useState } from 'react';
 import { createSales } from './actions';
 import KavioActionGate from '../../components/KavioActionGate';
+import KavioCreatePanel from '../../components/KavioCreatePanel';
 
 type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string; harga_jual: number | string };
 type Tipe = { id_tipe: string; nama_tipe: string };
@@ -23,45 +23,22 @@ export default function SalesCreatePanel({
   notaries?: { id_notaris: string; nama_notaris: string }[];
   triggerTargetId?: string;
 }) {
-  const [mounted, setMounted] = useState(false);
-  const [open, setOpen] = useState(false);
   const [payment, setPayment] = useState('KPR');
   const typeMap = new Map(tipeMap.map((row) => [row.id_tipe, row.nama_tipe]));
   const isKpr = payment === 'KPR';
   const [selectedKavling, setSelectedKavling] = useState('');
   const selected = kavlings.find((row) => row.id_kavling === selectedKavling);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const toggleButton = (
-    <button type="button" className="kavio-command-button" onClick={() => setOpen((value) => !value)}>
-      <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span>
-      <span>{open ? 'Tutup Form' : 'Tambah Sales'}</span>
-    </button>
-  );
-
   return (
     <KavioActionGate action="SALES_WRITE">
-      <div className="sales-create-wrap">
-        {!open && triggerTargetId && mounted && document.getElementById(triggerTargetId)
-          ? createPortal(toggleButton, document.getElementById(triggerTargetId)!)
-          : null}
-
-        {open && (
-        <section className="kavio-panel sales-create-panel">
-          <div className="kavio-panel-head">
-            <div>
-              <h2 className="kavio-panel-title">INPUT SALES BARU</h2>
-              <div className="kavio-panel-note">Data awal transaksi penjualan. Data akad diisi saat transaksi benar-benar AKAD.</div>
-            </div>
-            <div className="sales-create-head-actions">
-              {toggleButton}
-              <button type="submit" form="sales-create-form" className="kavio-button">SIMPAN SALES</button>
-            </div>
-          </div>
-
+      <KavioCreatePanel
+        triggerTargetId={triggerTargetId}
+        buttonLabel="+ TAMBAH SALES"
+        closeLabel="× TUTUP FORM"
+        title="INPUT SALES BARU"
+        note="Data awal transaksi penjualan. Data akad diisi saat transaksi benar-benar AKAD."
+        headerActions={<button type="submit" form="sales-create-form" className="kavio-button" disabled={!kavlings.length}>SIMPAN SALES</button>}
+      >
           <form id="sales-create-form" action={createSales} className="kavio-form sales-create-grid">
             <label className="kavio-field"><span>TANGGAL BOOKING</span><input name="tgl_booking" type="date" /></label>
             <label className="kavio-field"><span>KAVLING</span><select name="id_kavling" required value={selectedKavling} onChange={(event) => setSelectedKavling(event.target.value)}><option value="" disabled>PILIH KAVLING</option>{kavlings.map((row) => <option key={row.id_kavling} value={row.id_kavling}>{row.id_kavling} — {typeMap.get(row.id_tipe) ?? row.id_tipe} — {formatRupiah(row.harga_jual)}</option>)}</select></label>
@@ -89,9 +66,7 @@ export default function SalesCreatePanel({
             <div className="sales-contact-note"><span>{isKpr ? 'BANK KPR WAJIB DIISI.' : 'PEMBAYARAN CASH TIDAK MEMERLUKAN BANK.'}</span></div>
 
           </form>
-        </section>
-        )}
-      </div>
+      </KavioCreatePanel>
     </KavioActionGate>
   );
 }
