@@ -72,9 +72,9 @@
   font-size:var(--kavio-font-table-body) !important;
 }
 .siteplan-list-table th{
-  height:38px !important;
-  padding-top:9px !important;
-  padding-bottom:9px !important;
+  height:34px !important;
+  padding-top:7px !important;
+  padding-bottom:7px !important;
   text-align:left !important;
   vertical-align:middle !important;
   font-size:var(--kavio-font-table-head) !important;
@@ -83,19 +83,32 @@
   white-space:nowrap !important;
 }
 .siteplan-list-table td{
-  min-height:42px !important;
-  padding-top:9px !important;
-  padding-bottom:9px !important;
+  min-height:36px !important;
+  padding-top:6px !important;
+  padding-bottom:6px !important;
   text-align:left !important;
   vertical-align:middle !important;
   font-size:var(--kavio-font-table-body) !important;
   font-weight:400 !important;
-  line-height:1.35 !important;
+  line-height:1.2 !important;
   white-space:nowrap !important;
 }
-.siteplan-list-table .siteplan-status,
+.siteplan-list-table .siteplan-status{
+  display:inline-flex !important;
+  align-items:center !important;
+  height:26px !important;
+  min-height:26px !important;
+  padding:3px 7px !important;
+  font-size:var(--kavio-font-table-badge) !important;
+  line-height:1 !important;
+  font-weight:400 !important;
+}
 .siteplan-list-table .siteplan-list-select{
+  height:30px !important;
+  min-height:30px !important;
+  padding:0 7px !important;
   font-size:var(--kavio-font-table-button) !important;
+  line-height:1 !important;
   font-weight:400 !important;
 }
 .siteplan-list-table th,
