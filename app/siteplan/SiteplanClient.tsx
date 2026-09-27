@@ -840,7 +840,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
             </KavioActionGate>
           ) : selected ? (
             <>
-              <div className="siteplan-detail-body">
+              <div className="siteplan-selected-content">
+                <div className="siteplan-detail-body">
                 <div className="siteplan-kpi"><span>KAVLING</span><strong>{selected.id_kavling}</strong></div>
                 <div className="siteplan-kpi"><span>BLOK / NO</span><strong>{selected.blok || '—'} / {selected.no_kavling || '—'}</strong></div>
                 <div className="siteplan-kpi"><span>TIPE</span><strong>{selected.id_tipe || '—'}</strong></div>
@@ -874,6 +875,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                     </div>
                   </div>
                 ) : <div className="siteplan-related-empty">Belum ada SPK aktif untuk kavling ini.</div>}
+              </div>
               </div>
             </>
           ) : (
