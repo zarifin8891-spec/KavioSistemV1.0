@@ -20,6 +20,7 @@ export default function KavioCreatePanel({
   badge?: string;
   children: React.ReactNode;
   triggerTargetId?: string;
+  openTriggerTargetId?: string;
 }) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
