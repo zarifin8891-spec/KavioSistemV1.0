@@ -916,3 +916,49 @@
 .siteplan-kpi-grid{grid-template-columns:repeat(5,minmax(0,1fr))!important}
 @media(max-width:1100px){.siteplan-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:700px){.siteplan-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+
+/* KAVIO SITEPLAN — LEGEND 2 ROWS x 3 + READABLE FONT */
+.siteplan-legend{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:6px !important;
+  align-items:stretch !important;
+}
+.siteplan-legend-item{
+  min-height:30px !important;
+  padding:5px 10px !important;
+  gap:7px !important;
+  justify-content:center !important;
+  font-size:11px !important;
+  line-height:1.1 !important;
+}
+.siteplan-legend-item i{
+  width:11px !important;
+  height:11px !important;
+  flex:0 0 11px !important;
+}
+.siteplan-legend-item strong{
+  font-size:11px !important;
+}
+@media(max-width:700px){
+  .siteplan-legend{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+}
+@media(max-width:480px){
+  .siteplan-legend{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+}
+
+/* KAVIO SITEPLAN — LOT LIST WITH CONSUMER + SPK STATUS */
+.siteplan-list-table{
+  min-width:1280px !important;
+}
+.siteplan-list-table th:nth-child(8),
+.siteplan-list-table td:nth-child(8){width:125px !important}
+.siteplan-list-table th:nth-child(9),
+.siteplan-list-table td:nth-child(9){width:190px !important}
+.siteplan-list-table th:nth-child(10),
+.siteplan-list-table td:nth-child(10){width:115px !important}
+.siteplan-list-table th:nth-child(11),
+.siteplan-list-table td:nth-child(11){width:95px !important}
+.siteplan-list-table th:nth-child(12),
+.siteplan-list-table td:nth-child(12){width:82px !important}
