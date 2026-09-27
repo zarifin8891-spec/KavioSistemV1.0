@@ -314,47 +314,57 @@ body { margin: 0; }
 .progress-selector-button { height:34px !important; min-height:34px !important; padding:0 12px !important; align-self:end !important; }
 .progress-selector-form + * { margin-top:0 !important; }
 
-/* Two-column progress data fit: keep each table inside its half without horizontal scrolling. */
-.progress-data-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; align-items:start; }
+/* Progress data tables — layout-only rules.
+   Typography and row spacing inherit the KAVIO Global Table Foundation. */
+.progress-data-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:12px;
+  align-items:start;
+}
 .progress-data-grid > .kavio-panel { min-width:0; }
 .progress-data-grid .kavio-panel-head { padding:10px 12px; gap:8px; }
-.progress-data-grid .kavio-panel-title { font-size:12px; }
-.progress-data-grid .kavio-panel-note { font-size:9px; }
-.progress-data-grid .progress-table { min-width:0 !important; width:100%; table-layout:fixed; font-size:9.5px; }
-.progress-data-grid .progress-table th { padding:5px 6px; font-size:7.5px; }
-.progress-data-grid .progress-table td { padding:5px 6px; font-size:9.5px; white-space:normal; overflow-wrap:anywhere; }
+
+.progress-data-grid .progress-table {
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  table-layout:fixed !important;
+}
+.progress-data-grid .progress-table th {
+  height:33px !important;
+  padding:6px 8px !important;
+  font-size:var(--kavio-font-table-head) !important;
+  line-height:1.2 !important;
+}
+.progress-data-grid .progress-table td {
+  min-height:34px !important;
+  height:34px !important;
+  padding:5px 8px !important;
+  font-size:var(--kavio-font-table-body) !important;
+  line-height:1.3 !important;
+  white-space:nowrap !important;
+}
 .progress-data-grid .progress-table th:not(:first-child),
 .progress-data-grid .progress-table td:not(:first-child) { text-align:center; }
 .progress-data-grid .progress-table td:first-child { text-align:left; }
-.progress-data-grid .progress-table td:nth-child(2),
-.progress-data-grid .progress-table td:nth-child(3),
-.progress-data-grid .progress-table td:nth-child(4) { white-space:nowrap; }
-.progress-data-grid .progress-table-foot { padding:7px 10px !important; font-size:8px !important; line-height:1.35; }
-
-/* Progress command belongs under the right-hand History panel. */
-.progress-data-grid > .progress-create-wrap { grid-column:2; grid-row:2; width:100%; margin-top:0; }
+.progress-data-grid .progress-table-foot {
+  padding:7px 10px !important;
+  font-size:8px !important;
+  line-height:1.35;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.progress-data-grid > .progress-create-wrap {
+  grid-column:2;
+  grid-row:2;
+  width:100%;
+  margin-top:0;
+}
 .progress-data-grid > .progress-create-wrap > .kavio-command-button { justify-self:start; }
-
-@media (max-width:900px) {
-  .progress-data-grid { grid-template-columns:1fr; }
-  .progress-data-grid > .progress-create-wrap { grid-column:1; grid-row:auto; }
-}
-@media (max-width:650px) {
-  .progress-selector-form { grid-template-columns:1fr !important; padding:8px 12px 10px !important; }
-  .progress-selector-button { justify-self:end; }
-  .progress-data-grid .progress-table { table-layout:auto; }
-}
-
-/* Progress table density correction */
-/* Keep progress tables truly compact inside the two-column layout. */
 .progress-data-grid .kavio-table-wrap { overflow-x:hidden; }
-.progress-data-grid .progress-table { width:100% !important; min-width:0 !important; max-width:100% !important; table-layout:fixed !important; }
-.progress-data-grid .progress-table thead tr,
-.progress-data-grid .progress-table tbody tr { height:34px !important; }
-.progress-data-grid .progress-table th,
-.progress-data-grid .progress-table td { height:34px !important; min-height:0 !important; padding:4px 6px !important; line-height:1.2 !important; }
-.progress-data-grid .progress-table th { overflow:hidden; text-overflow:ellipsis; }
-.progress-data-grid .progress-table td { overflow:hidden; text-overflow:ellipsis; }
+
+/* Column widths only — preserve the two-column fit. */
 .progress-data-grid .progress-table th:nth-child(1),
 .progress-data-grid .progress-table td:nth-child(1) { width:30%; }
 .progress-data-grid .progress-table th:nth-child(2),
@@ -365,6 +375,7 @@ body { margin: 0; }
 .progress-data-grid .progress-table td:nth-child(4) { width:18%; }
 .progress-data-grid .progress-table th:nth-child(5),
 .progress-data-grid .progress-table td:nth-child(5) { width:19%; }
+
 .progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(1),
 .progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(1) { width:22%; }
 .progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(2),
@@ -373,7 +384,16 @@ body { margin: 0; }
 .progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(3) { width:20%; }
 .progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(4),
 .progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(4) { width:26%; }
-.progress-data-grid .progress-table-foot { white-space:normal; overflow-wrap:anywhere; }
+
+@media (max-width:900px) {
+  .progress-data-grid { grid-template-columns:1fr; }
+  .progress-data-grid > .progress-create-wrap { grid-column:1; grid-row:auto; }
+}
+@media (max-width:650px) {
+  .progress-selector-form { grid-template-columns:1fr !important; padding:8px 12px 10px !important; }
+  .progress-selector-button { justify-self:end; }
+  .progress-data-grid .progress-table { table-layout:auto; }
+}
 
 /* Global native select treatment */
 /* Use the KAVIO dark palette for native select controls and their option menus. */
