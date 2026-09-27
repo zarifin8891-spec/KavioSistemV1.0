@@ -45,8 +45,9 @@ export default function SalesCostPanel({
           <h2 className="kavio-panel-title">BIAYA SALES</h2>
           <div className="kavio-panel-note">Biaya tambahan tersimpan terpisah dari harga jual dasar dan otomatis masuk ke total harga.</div>
         </div>
+        <KavioActionGate action="SALES_WRITE"><button type="submit" form="sales-cost-form" className="kavio-button">SIMPAN BIAYA</button></KavioActionGate>
       </div>
-      <KavioActionGate action="SALES_WRITE"><form action={saveSalesBiaya} className="kavio-panel-body">
+      <KavioActionGate action="SALES_WRITE"><form id="sales-cost-form" action={saveSalesBiaya} className="kavio-panel-body">
         <input type="hidden" name="id_sales" value={idSales} />
         <div className="sales-costs-grid">
           {ITEMS.map(([label, name]) => (
@@ -68,7 +69,7 @@ export default function SalesCostPanel({
           <div><span>TOTAL BIAYA TAMBAHAN</span><strong>{money(totalBiaya)}</strong></div>
           <div><span>TOTAL HARGA SALES</span><strong>{money(totalHarga)}</strong></div>
         </div>
-        <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN BIAYA</button></div>
+         
       </form></KavioActionGate>
     </section>
   );
