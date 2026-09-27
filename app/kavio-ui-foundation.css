@@ -570,6 +570,22 @@ select option:hover {
 .kavling-page .kavio-inline-actions .kavio-button { flex:0 0 auto; }
 .kavling-page .kavling-edit-panel .kavio-field input,
 .kavling-page .kavling-edit-panel .kavio-field select { background:linear-gradient(180deg,#213B59,#182F4A) !important; border-color:rgba(240,212,138,.34) !important; }
+.kavling-page .kavling-kpi-grid {
+  margin-bottom:14px !important;
+}
+.kavling-page .kavling-add-action {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  min-width:0;
+}
+.kavling-page .kavling-add-action .kavio-command-button {
+  margin:0 !important;
+}
+.kavling-page > .kavio-create-panel {
+  margin-top:10px !important;
+}
+
 .kavling-page .kavio-create-panel .kavio-field input,
 .kavling-page .kavio-create-panel .kavio-field select { background:linear-gradient(180deg,#213B59,#182F4A) !important; border-color:rgba(240,212,138,.34) !important; }
 
