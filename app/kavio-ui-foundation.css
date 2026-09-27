@@ -598,13 +598,21 @@ select option:hover {
 }
 .spk-detail-progress-panels .spk-detail-table th,
 .spk-detail-progress-panels .spk-detail-table td {
-  padding:5px 6px !important;
+  padding:5px 8px !important;
 }
 .spk-detail-progress-panels .spk-detail-table th {
-  font-size:7.5px !important;
+  height:33px !important;
+  padding-top:6px !important;
+  padding-bottom:6px !important;
+  font-size:var(--kavio-font-table-head) !important;
 }
 .spk-detail-progress-panels .spk-detail-table td {
-  font-size:9px !important;
+  height:34px !important;
+  min-height:34px !important;
+  padding-top:5px !important;
+  padding-bottom:5px !important;
+  font-size:var(--kavio-font-table-body) !important;
+  line-height:1.2 !important;
 }
 .spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table th:nth-child(1),
 .spk-detail-progress-panels > .spk-detail-snapshot-panel .spk-detail-table td:nth-child(1) { width:7%; }
