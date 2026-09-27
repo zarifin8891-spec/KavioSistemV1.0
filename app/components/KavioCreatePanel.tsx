@@ -49,7 +49,7 @@ export default function KavioCreatePanel({
                 {note && <div className="kavio-panel-note">{note}</div>}
               </div>
               {badge && <span className="kavio-badge">{badge}</span>}
-              {openTriggerTargetId && <div className="kavio-create-open-action-slot" aria-hidden="true" />}
+              {openTriggerTargetId && <div id={openTriggerTargetId} className="kavio-create-open-action-slot" />}
             </div>
             {children}
           </section>
