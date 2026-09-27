@@ -11,7 +11,6 @@ export default function KavioCreatePanel({
   badge,
   children,
   triggerTargetId,
-  openTriggerTargetId,
 }: {
   buttonLabel: string;
   closeLabel?: string;
@@ -20,7 +19,6 @@ export default function KavioCreatePanel({
   badge?: string;
   children: React.ReactNode;
   triggerTargetId?: string;
-  openTriggerTargetId?: string;
 }) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
@@ -37,11 +35,10 @@ export default function KavioCreatePanel({
   );
 
   if (triggerTargetId) {
-    const targetId = open ? (openTriggerTargetId ?? triggerTargetId) : triggerTargetId;
-    const target = mounted ? document.getElementById(targetId) : null;
+    const target = mounted ? document.getElementById(triggerTargetId) : null;
     return (
       <>
-        {target ? createPortal(trigger, target) : null}
+        {!open && target ? createPortal(trigger, target) : null}
         {open && (
           <section className="kavio-panel kavio-create-panel">
             <div className="kavio-panel-head">
@@ -50,7 +47,7 @@ export default function KavioCreatePanel({
                 {note && <div className="kavio-panel-note">{note}</div>}
               </div>
               {badge && <span className="kavio-badge">{badge}</span>}
-              {openTriggerTargetId && <div id={openTriggerTargetId} className="kavio-create-open-action-slot" />}
+              {trigger}
             </div>
             {children}
           </section>
