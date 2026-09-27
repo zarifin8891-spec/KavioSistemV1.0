@@ -72,7 +72,7 @@ export async function createSales(formData: FormData) {
   }).select('id_sales').single();
   if (insertError || !inserted) return redirectError(insertError?.message ?? 'SALES GAGAL DISIMPAN');
 
-  const nextKavlingStatus = activeSpk ? 'BUILDING' : statusSales === 'BATAL' ? (kavling.status_kavling === 'READY_STOCK' ? 'READY_STOCK' : 'AVAILABLE') : statusSales === 'AKAD' ? 'SOLD' : 'BOOKING';
+  const nextKavlingStatus = statusSales === 'AKAD' ? 'SOLD' : activeSpk ? 'BUILDING' : statusSales === 'BATAL' ? (kavling.status_kavling === 'READY_STOCK' ? 'READY_STOCK' : 'AVAILABLE') : 'BOOKING';
   const { error: kavlingUpdateError } = await supabase.from('master_kavling').update({ status_kavling: nextKavlingStatus }).eq('id_kavling', idKavling);
   if (kavlingUpdateError) { await supabase.from('sales').delete().eq('id_sales', inserted.id_sales); return redirectError(kavlingUpdateError.message); }
 
