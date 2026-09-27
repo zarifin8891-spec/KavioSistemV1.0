@@ -195,7 +195,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     () => Object.fromEntries(
       spks
         .slice()
-        .sort((a, b) => Number(Boolean(b.is_active)) - Number(Boolean(a.is_active)))
+        .sort((a, b) => Number(Boolean(a.is_active)) - Number(Boolean(b.is_active)))
         .map((spk) => [spk.id_kavling, spk]),
     ),
     [spks],
