@@ -88,7 +88,6 @@ export default function SalesCreatePanel({
             </div>
             <div className="sales-contact-note"><span>{isKpr ? 'BANK KPR WAJIB DIISI.' : 'PEMBAYARAN CASH TIDAK MEMERLUKAN BANK.'}</span></div>
 
-            <div className="kavio-actions"><button type="submit" className="kavio-button" disabled={!kavlings.length}>SIMPAN SALES</button></div>
           </form>
         </section>
         )}
