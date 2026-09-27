@@ -153,3 +153,27 @@ set status_kavling = d.status_baru
 from desired d
 where d.id_kavling = k.id_kavling
   and k.status_kavling is distinct from d.status_baru;
+
+
+-- Guard direct writes to master_kavling.status_kavling as well.
+-- This prevents any older action/function from reintroducing a stale status.
+create or replace function public.kavio_guard_kavling_status()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if pg_trigger_depth() = 1 and new.status_aktif = true then
+    perform public.kavio_sync_kavling_status(new.id_kavling);
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_kavio_guard_kavling_status on public.master_kavling;
+create trigger trg_kavio_guard_kavling_status
+after update of status_kavling on public.master_kavling
+for each row
+when (new.status_kavling is distinct from old.status_kavling)
+execute function public.kavio_guard_kavling_status();
