@@ -5,10 +5,7 @@ import SiteplanClient from './SiteplanClient';
 
 export default async function SiteplanPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const [{ data: kavlings }, { data: tipeRumah }] = await Promise.all([
+const [{ data: kavlings }, { data: tipeRumah }] = await Promise.all([
     supabase
       .from('master_kavling')
       .select('id_kavling,blok,no_kavling,id_tipe,status_kavling,status_aktif,luas_tanah_standar,luas_tanah_real,kelebihan_tanah,harga_standar,harga_tanah_meter,harga_jual')
