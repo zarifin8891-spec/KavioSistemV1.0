@@ -9,9 +9,7 @@ type SearchParams = Promise<{ error?: string; success?: string }>;
 export default async function MasterKategoriPekerjaanPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const { data, error } = await supabase.from('master_kategori_pekerjaan').select('id_kategori,nama_kategori,urutan,status_aktif').order('urutan',{ascending:true});
+const { data, error } = await supabase.from('master_kategori_pekerjaan').select('id_kategori,nama_kategori,urutan,status_aktif').order('urutan',{ascending:true});
   const rows = data ?? [];
   const pageError = params.error ?? error?.message;
 
