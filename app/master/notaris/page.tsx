@@ -8,8 +8,8 @@ type SearchParams=Promise<{error?:string;success?:string}>;
 type Notaris={id_notaris:string;nama_notaris:string;no_izin:string|null;no_hp:string|null;alamat:string|null;status_aktif:boolean};
 
 export default async function MasterNotarisPage({searchParams}:{searchParams:SearchParams}){
- const p=await searchParams; const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect('/login');
- const {data,error}=await supabase.from('master_notaris').select('id_notaris,nama_notaris,no_izin,no_hp,alamat,status_aktif').order('nama_notaris'); const rows=(data??[]) as Notaris[];
+ const p=await searchParams; const supabase=await createClient();
+const {data,error}=await supabase.from('master_notaris').select('id_notaris,nama_notaris,no_izin,no_hp,alamat,status_aktif').order('nama_notaris'); const rows=(data??[]) as Notaris[];
  return <main className="master-simple-page">
   {p.error??error?.message?<div className="kavio-alert error">{p.error??error?.message}</div>:null}{p.success?<div className="kavio-alert success">{p.success}</div>:null}
   <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DAFTAR NOTARIS</h2><div className="kavio-panel-note">Notaris aktif yang dapat dipilih untuk proses akad.</div></div><span className="kavio-badge">{rows.length} DATA</span></div>
