@@ -7,6 +7,7 @@ import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
 import { KAVIO_LOGO_DATA_URI } from './kavio-sidebar-logo';
 import { canViewPath, normalizeRole, type KavioRole } from '../../lib/kavio-permissions';
+import { KavioPermissionProvider } from './KavioPermissionContext';
 
 const sections = [
   { title: 'UTAMA', items: [['Beranda', '/dashboard']] },
@@ -43,6 +44,8 @@ export default function KavioShell({ children, active }: { children: React.React
   const router = useRouter();
   const [userEmail, setUserEmail] = useState('');
   const [role, setRole] = useState<KavioRole>('USER');
+  const [actions, setActions] = useState<string[]>([]);
+  const [accessReady, setAccessReady] = useState(false);
   const [today, setToday] = useState('');
   const [title, subtitle] = pageHeader(pathname);
 
@@ -61,15 +64,20 @@ export default function KavioShell({ children, active }: { children: React.React
   useEffect(() => {
     let mounted = true;
     const supabase = createClient();
-    supabase.auth.getUser().then(async ({ data }) => {
+
+    Promise.all([
+      supabase.auth.getUser(),
+      supabase.rpc('kavio_get_current_access_context'),
+    ]).then(([userResult, accessResult]) => {
       if (!mounted) return;
-      setUserEmail(data.user?.email ?? '');
-      if (data.user) {
-        const { data: accessRows } = await supabase.rpc('kavio_get_current_access');
-        const access = accessRows?.[0];
-        if (mounted) setRole(normalizeRole(access?.role));
-      }
+
+      setUserEmail(userResult.data.user?.email ?? '');
+      const access = accessResult.data?.[0];
+      setRole(normalizeRole(access?.role));
+      setActions(Array.isArray(access?.actions) ? access.actions : []);
+      setAccessReady(!accessResult.error);
     });
+
     setToday(formatKavioDate(new Date()));
     return () => { mounted = false; };
   }, []);
@@ -81,7 +89,8 @@ export default function KavioShell({ children, active }: { children: React.React
   };
 
   return (
-    <div className="kavio-shell">
+    <KavioPermissionProvider actions={actions} ready={accessReady}>
+      <div className="kavio-shell">
       <aside className="kavio-sidebar">
         <Link href="/dashboard" className="kavio-brand" aria-label="KAVIO">
           <img src={KAVIO_LOGO_DATA_URI} alt="KAVIO — Satu Data, Satu Kendali, Satu Hasil" className="kavio-brand-logo" />
@@ -144,6 +153,7 @@ export default function KavioShell({ children, active }: { children: React.React
         <div className="kavio-content">{children}</div>
       </div>
     </div>
+    </KavioPermissionProvider>
   );
 }
 
