@@ -40,6 +40,12 @@ export default function LoginPage() {
       return;
     }
 
+    // KAVIO treats a browser session as an application session.
+    // This cookie intentionally has no Expires/Max-Age so the browser removes
+    // it when the browser session ends.
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `kavio_browser_session=1; Path=/; SameSite=Lax${secure}`;
+
     router.replace('/dashboard');
     router.refresh();
   }
