@@ -36,6 +36,19 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
       <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">✓</div><div className="kavio-kpi-label">READY STOCK</div><div className="kavio-kpi-value">{statusCounts.READY_STOCK ?? 0}</div><div className="kavio-kpi-note">Pembangunan selesai</div></div>
       <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">●</div><div className="kavio-kpi-label">SOLD</div><div className="kavio-kpi-value">{statusCounts.SOLD ?? 0}</div><div className="kavio-kpi-note">Sudah akad / terjual</div></div>
     </section>
+    {canWrite && <KavioCreatePanel triggerTargetId="kavling-add-action" buttonLabel="+ TAMBAH KAVLING" closeLabel="× TUTUP FORM" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE.">
+      <form action={createKavling} className="kavio-form kavio-panel-body">
+        <label className="kavio-field"><span>ID KAVLING</span><input name="id_kavling" placeholder="A-11" required/></label>
+        <label className="kavio-field"><span>BLOK</span><input name="blok" placeholder="A" required/></label>
+        <label className="kavio-field"><span>NOMOR KAVLING</span><input name="no_kavling" placeholder="11" required/></label>
+        <label className="kavio-field"><span>TIPE RUMAH</span><select name="id_tipe" defaultValue="" required><option value="" disabled>PILIH TIPE</option>{tipeRows.map((t)=><option key={t.id_tipe} value={t.id_tipe}>{t.nama_tipe}</option>)}</select></label>
+        <label className="kavio-field"><span>LUAS TANAH STANDAR (M²)</span><input name="luas_tanah_standar" type="number" min="0" step="0.01" placeholder="0.00" required/></label>
+        <label className="kavio-field"><span>LUAS TANAH REAL (M²)</span><input name="luas_tanah_real" type="number" min="0" step="0.01" placeholder="0.00" required/></label>
+        <label className="kavio-field"><span>HARGA STANDAR</span><input name="harga_standar" type="number" min="0" step="1000" placeholder="0" required/></label>
+        <label className="kavio-field"><span>HARGA TANAH / M²</span><input name="harga_tanah_meter" type="number" min="0" step="1000" placeholder="0" required/></label>
+        <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN KAVLING</button></div>
+      </form>
+    </KavioCreatePanel>}
     <section className="kavio-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DAFTAR KAVLING</h2><div className="kavio-panel-note">Inventory kavling dan lifecycle pembangunan proyek.</div></div>{canWrite && <div id="kavling-add-action" className="kavling-add-action" aria-label="Aksi tambah kavling" />}</div>
       <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>NO</th><th>ID KAVLING</th><th>BLOK</th><th>NOMOR</th><th>TIPE RUMAH</th><th>L. TANAH</th><th>KELEBIHAN</th><th>HARGA STANDAR</th><th>HARGA TANAH/M²</th><th>HARGA JUAL</th><th>STATUS KAVLING</th><th>STATUS DATA</th><th>AKSI</th></tr></thead><tbody>
@@ -59,19 +72,6 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
       </form>
     </section>}
     </section>
-    {canWrite && <KavioCreatePanel triggerTargetId="kavling-add-action" buttonLabel="+ TAMBAH KAVLING" closeLabel="× TUTUP FORM" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE.">
-      <form action={createKavling} className="kavio-form kavio-panel-body">
-        <label className="kavio-field"><span>ID KAVLING</span><input name="id_kavling" placeholder="A-11" required/></label>
-        <label className="kavio-field"><span>BLOK</span><input name="blok" placeholder="A" required/></label>
-        <label className="kavio-field"><span>NOMOR KAVLING</span><input name="no_kavling" placeholder="11" required/></label>
-        <label className="kavio-field"><span>TIPE RUMAH</span><select name="id_tipe" defaultValue="" required><option value="" disabled>PILIH TIPE</option>{tipeRows.map((t)=><option key={t.id_tipe} value={t.id_tipe}>{t.nama_tipe}</option>)}</select></label>
-        <label className="kavio-field"><span>LUAS TANAH STANDAR (M²)</span><input name="luas_tanah_standar" type="number" min="0" step="0.01" placeholder="0.00" required/></label>
-        <label className="kavio-field"><span>LUAS TANAH REAL (M²)</span><input name="luas_tanah_real" type="number" min="0" step="0.01" placeholder="0.00" required/></label>
-        <label className="kavio-field"><span>HARGA STANDAR</span><input name="harga_standar" type="number" min="0" step="1000" placeholder="0" required/></label>
-        <label className="kavio-field"><span>HARGA TANAH / M²</span><input name="harga_tanah_meter" type="number" min="0" step="1000" placeholder="0" required/></label>
-        <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN KAVLING</button></div>
-      </form>
-    </KavioCreatePanel>}
   </main>;
 }
 
