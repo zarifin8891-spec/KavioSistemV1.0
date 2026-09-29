@@ -37,6 +37,7 @@ export async function middleware(request: NextRequest) {
   const actions = Array.isArray(access.actions) ? access.actions : [];
   const pathname = request.nextUrl.pathname;
   const isPublicRoute = pathname === '/login' || pathname.startsWith('/auth');
+  const hasBrowserSession = request.cookies.get('kavio_browser_session')?.value === '1';
 
   const applyCookies = (response: NextResponse) => {
     refreshedCookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
@@ -46,8 +47,9 @@ export async function middleware(request: NextRequest) {
   const redirectTo = (path: string) => applyCookies(NextResponse.redirect(new URL(path, request.url)));
 
   if (!user && !isPublicRoute) return redirectTo('/login');
+  if (user && !isPublicRoute && !hasBrowserSession) return redirectTo('/login?session=berakhir');
   if (user && access.status_aktif !== true && pathname !== '/login') return redirectTo('/login?akses=nonaktif');
-  if (user && pathname === '/login') return redirectTo('/dashboard');
+  if (user && pathname === '/login' && hasBrowserSession) return redirectTo('/dashboard');
   if (user && !isPublicRoute && !canViewPath(role, pathname)) return redirectTo('/dashboard?akses=ditolak');
 
   if (user && !isPublicRoute) {
