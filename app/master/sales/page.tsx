@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { deactivateSales } from './actions';
 import { formatKavioDate } from '../../lib/date-format';
@@ -35,14 +34,16 @@ const [kavlingRes, tipeRes, bankRes, notarisRes, salesRes, priceRes] = await Pro
   const priceMap=new Map(salesPrices.map((row)=>[row.id_sales,row]));
   const typeMap=new Map(types.map(r=>[r.id_tipe,r.nama_tipe]));
   const bankMap=new Map(banks.map(r=>[r.id_bank,r.nama_bank]));
+  const kavlingMap=new Map(kavlings.map(r=>[r.id_kavling,r]));
   const active=sales.filter(r=>r.status_aktif);
   const filterStatus = params.status ?? '';
   const filterTipe = params.tipe ?? '';
   const filterQuery = (params.q ?? '').trim().toLowerCase();
   const filteredSales = sales.filter((row) => {
-    const tipeName = typeMap.get(kavlings.find((item) => item.id_kavling === row.id_kavling)?.id_tipe ?? '') ?? '';
+    const kavling = kavlingMap.get(row.id_kavling);
+    const tipeName = typeMap.get(kavling?.id_tipe ?? '') ?? '';
     const matchesStatus = !filterStatus || row.status_sales === filterStatus;
-    const matchesTipe = !filterTipe || kavlings.find((item) => item.id_kavling === row.id_kavling)?.id_tipe === filterTipe;
+    const matchesTipe = !filterTipe || kavling?.id_tipe === filterTipe;
     const haystack = [row.nama_konsumen, row.id_kavling, row.hp_konsumen ?? '', row.status_sales, tipeName].join(' ').toLowerCase();
     const matchesQuery = !filterQuery || haystack.includes(filterQuery);
     return matchesStatus && matchesTipe && matchesQuery;
@@ -84,7 +85,7 @@ const [kavlingRes, tipeRes, bankRes, notarisRes, salesRes, priceRes] = await Pro
         <div className="kavio-table-wrap">
           <table className="kavio-table sales-table">
             <thead><tr><th>NO</th><th>TANGGAL</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>HP</th><th>TIPE</th><th>HARGA DASAR</th><th>BIAYA</th><th>TOTAL HARGA</th><th>JENIS BAYAR</th><th>BANK</th><th>STATUS</th><th>AKSI</th></tr></thead>
-            <tbody>{filteredSales.map((row,index)=>{const kavling=kavlings.find(item=>item.id_kavling===row.id_kavling);return <tr key={row.id_sales}>
+            <tbody>{filteredSales.map((row,index)=>{const kavling=kavlingMap.get(row.id_kavling);return <tr key={row.id_sales}>
               <td className="sales-center">{index+1}</td>
               <td>{row.tgl_booking ? formatKavioDate(row.tgl_booking) : '—'}</td>
               <td className="sales-highlight"><Link href={`/master/sales/detail?id=${row.id_sales}`}>{row.id_kavling}</Link></td>
