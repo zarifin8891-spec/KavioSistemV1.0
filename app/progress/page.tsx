@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import ProgressCreatePanel from './ProgressCreatePanel';
 import { formatKavioDate } from '../lib/date-format';
 
-type SearchParams = Promise<{ spk?: string; error?: string; success?: string }>;
+const HISTORY_PAGE_SIZE = 25;
+
+type SearchParams = Promise<{ spk?: string; error?: string; success?: string; hpage?: string }>;
 type Spk = { id_spk: string; id_kavling: string; id_tipe: string; tgl_spk: string; tgl_target_selesai: string; status_spk: string; is_active: boolean };
 type Config = { id_kategori: string; bobot_final: number | string };
 type Category = { id_kategori: string; nama_kategori: string; urutan: number };
@@ -23,10 +24,14 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
   const spkRows = (spks ?? []) as Spk[];
   const categoryRows = (categories ?? []) as Category[];
   const selected = spkRows.find((row) => row.id_spk === params.spk) ?? spkRows[0] ?? null;
+  const requestedHistoryPage = Number.parseInt(params.hpage ?? '1', 10);
+  const historyPage = Number.isFinite(requestedHistoryPage) && requestedHistoryPage > 0 ? requestedHistoryPage : 1;
+  const historyOffset = (historyPage - 1) * HISTORY_PAGE_SIZE;
 
   let configRows: Config[] = [];
   let currentRows: Current[] = [];
   let historyRows: History[] = [];
+  let historyCount = 0;
   let decision: Decision | null = null;
   let readError = spkError?.message ?? categoryError?.message ?? '';
 
@@ -34,18 +39,32 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
     const results = await Promise.all([
       supabase.from('spk_progress_config').select('id_kategori,bobot_final').eq('id_spk', selected.id_spk).order('id_kategori'),
       supabase.from('v_progress_kategori_current').select('id_kategori,progress_akumulasi,bobot_final,progress_berbobot,tanggal_update_terakhir').eq('id_spk', selected.id_spk).order('id_kategori'),
-      supabase.from('progress_update').select('id_progress,tanggal_update,id_kategori,progress_periode,keterangan').eq('id_spk', selected.id_spk).order('tanggal_update', { ascending: false }).order('id_kategori'),
+      supabase
+        .from('progress_update')
+        .select('id_progress,tanggal_update,id_kategori,progress_periode,keterangan', { count: 'exact' })
+        .eq('id_spk', selected.id_spk)
+        .order('tanggal_update', { ascending: false })
+        .order('id_kategori')
+        .range(historyOffset, historyOffset + HISTORY_PAGE_SIZE - 1),
       supabase.from('v_decision_engine').select('progress_aktual,progress_seharusnya,gap_progress,sisa_hari,tanggal_update_terakhir,progress_periode_terakhir,status_operasional,status_ritme,prioritas_tindakan,action_rekomendasi,hari_sejak_update,progress_diperlukan_per_hari,health_score,health_level,health_description').eq('id_spk', selected.id_spk).maybeSingle(),
     ]);
     configRows = (results[0].data ?? []) as Config[];
     currentRows = (results[1].data ?? []) as Current[];
     historyRows = (results[2].data ?? []) as History[];
+    historyCount = results[2].count ?? 0;
     decision = results[3].data as Decision | null;
     readError = results.map((r) => r.error?.message).find(Boolean) ?? readError;
   }
 
   const categoryMap = new Map(categoryRows.map((row) => [row.id_kategori, row]));
   const latestPeriod = getLatestPeriod(historyRows);
+  const historyTotalPages = Math.max(1, Math.ceil(historyCount / HISTORY_PAGE_SIZE));
+  const historyHref = (page: number) => {
+    if (!selected) return '/progress';
+    const query = new URLSearchParams({ spk: selected.id_spk });
+    if (page > 1) query.set('hpage', String(page));
+    return `/progress?${query.toString()}`;
+  };
   const completedCategoryIds = currentRows
     .filter((row) => Number(row.progress_akumulasi) >= 1 - 0.000001)
     .map((row) => row.id_kategori);
@@ -90,9 +109,14 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
         </section>
 
         <section className="kavio-panel">
-          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">HISTORI PROGRESS</h2><div className="kavio-panel-note">Seluruh update periode tetap tersimpan.</div></div><span className="kavio-badge">{historyRows.length} UPDATE</span></div>
+          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">HISTORI PROGRESS</h2><div className="kavio-panel-note">Seluruh update periode tetap tersimpan.</div></div><span className="kavio-badge">{historyCount} UPDATE</span></div>
           <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>TANGGAL</th><th>KATEGORI</th><th>PROGRESS PERIODE</th><th>KETERANGAN</th></tr></thead><tbody>{historyRows.map((row) => <tr key={row.id_progress}><td>{formatKavioDate(row.tanggal_update)}</td><td>{categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori}</td><td className="progress-highlight">{(Number(row.progress_periode) * 100).toFixed(2)}%</td><td>{row.keterangan || '—'}</td></tr>)}{!historyRows.length && <tr><td colSpan={4} className="kavio-empty">BELUM ADA HISTORI PROGRESS.</td></tr>}</tbody></table></div>
           <div className="progress-table-foot">UPDATE TERAKHIR: {decision?.tanggal_update_terakhir ? formatKavioDate(decision.tanggal_update_terakhir) : latestPeriod?.date ? formatKavioDate(latestPeriod.date) : 'BELUM ADA'} · PERIODE TERAKHIR: {decision ? `${(Number(decision.progress_periode_terakhir) * 100).toFixed(2)}%` : '—'} · KEBUTUHAN / HARI: {decision ? `${(Number(decision.progress_diperlukan_per_hari) * 100).toFixed(2)}%` : '—'}</div>
+          <div className="kavio-pagination kavio-pagination-foot" aria-label="Navigasi histori progress">
+            {historyPage > 1 ? <Link href={historyHref(historyPage - 1)} className="kavio-button secondary">← SEBELUMNYA</Link> : <span />}
+            <span>HALAMAN {historyPage} / {historyTotalPages} · MENAMPILKAN {historyRows.length} DARI {historyCount} UPDATE</span>
+            {historyPage < historyTotalPages ? <Link href={historyHref(historyPage + 1)} className="kavio-button secondary">BERIKUTNYA →</Link> : <span />}
+          </div>
         </section>
                 <ProgressCreatePanel idSpk={selected.id_spk} tglSpk={selected.tgl_spk} configs={configRows} categories={categoryRows} completedCategoryIds={completedCategoryIds} />
         </section>
