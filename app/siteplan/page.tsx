@@ -72,15 +72,7 @@ export default async function SiteplanPage() {
     siteplanSrc = signedSiteplan.data.signedUrl;
   }
 
-  // Stage 3: progress depends only on the active SPK result.
-  const spkIds = (spks ?? []).map((row) => row.id_spk);
-  const { data: progressUpdates } = spkIds.length
-    ? await supabase
-        .from('progress_update')
-        .select('id_progress,id_spk,tanggal_update,id_kategori,progress_periode,keterangan')
-        .in('id_spk', spkIds)
-        .order('tanggal_update', { ascending: false })
-    : { data: [] };
+  // Progress detail is loaded on demand after a kavling is selected.
 
   return (
     <KavioShell>
@@ -88,7 +80,6 @@ export default async function SiteplanPage() {
         kavlings={kavlingRows}
         sales={sales ?? []}
         spks={spks ?? []}
-        progressUpdates={progressUpdates ?? []}
         savedMappings={(savedMappings ?? []) as { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null; siteplan_version_id?: string | null }[]}
         activeSiteplan={activeSiteplan ? {
           id: activeSiteplan.id,
