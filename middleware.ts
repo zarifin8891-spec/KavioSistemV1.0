@@ -37,7 +37,8 @@ export async function middleware(request: NextRequest) {
   const actions = Array.isArray(access.actions) ? access.actions : [];
   const pathname = request.nextUrl.pathname;
   const isPublicRoute = pathname === '/login' || pathname.startsWith('/auth');
-  const hasBrowserSession = request.cookies.get('kavio_browser_session')?.value === '1';
+  const browserSessionToken = request.cookies.get('kavio_browser_session')?.value ?? '';
+  const hasBrowserSession = browserSessionToken.length > 0;
 
   const applyCookies = (response: NextResponse) => {
     refreshedCookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
