@@ -1,11 +1,12 @@
-import { redirect } from 'next/navigation';
 import KavioShell from '../components/kavio-shell';
 import { createClient } from '../../lib/supabase/server';
 import SiteplanClient from './SiteplanClient';
 
 export default async function SiteplanPage() {
   const supabase = await createClient();
-const [{ data: kavlings }, { data: tipeRumah }] = await Promise.all([
+
+  // Stage 1: load independent page foundations in parallel.
+  const [{ data: kavlings }, { data: tipeRumah }, { data: activeSiteplan }] = await Promise.all([
     supabase
       .from('master_kavling')
       .select('id_kavling,blok,no_kavling,id_tipe,status_kavling,status_aktif,luas_tanah_standar,luas_tanah_real,kelebihan_tanah,harga_standar,harga_tanah_meter,harga_jual')
@@ -16,6 +17,13 @@ const [{ data: kavlings }, { data: tipeRumah }] = await Promise.all([
       .select('id_tipe,nama_tipe')
       .eq('status_aktif', true)
       .order('nama_tipe'),
+    supabase
+      .from('siteplan_versions')
+      .select('id,nama_siteplan,versi,file_name,file_path,mime_type,file_size,image_width,image_height,is_active,activated_at')
+      .eq('is_active', true)
+      .order('activated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const tipeMap = new Map((tipeRumah ?? []).map((row) => [row.id_tipe, row.nama_tipe]));
@@ -25,50 +33,46 @@ const [{ data: kavlings }, { data: tipeRumah }] = await Promise.all([
   }));
   const ids = kavlingRows.map((row) => row.id_kavling);
 
-  const [{ data: sales }, { data: spks }] = await Promise.all([
+  const mappingPromise = ids.length
+    ? (() => {
+        let query = supabase
+          .from('siteplan_kavling_mapping')
+          .select('id_kavling,polygon,label,siteplan_version_id')
+          .in('id_kavling', ids);
+        if (activeSiteplan?.id) query = query.eq('siteplan_version_id', activeSiteplan.id);
+        return query;
+      })()
+    : Promise.resolve({ data: [] as any[] });
+
+  const signedUrlPromise = activeSiteplan?.id && activeSiteplan.file_path
+    ? supabase.storage.from('siteplans').createSignedUrl(activeSiteplan.file_path, 3600)
+    : Promise.resolve({ data: null, error: null });
+
+  // Stage 2: all queries that only depend on kavling IDs / active siteplan run together.
+  const [{ data: sales }, { data: spks }, { data: savedMappings }, signedSiteplan] = await Promise.all([
     ids.length
       ? supabase
           .from('sales')
           .select('id_sales,id_kavling,nama_konsumen,status_sales,jenis_pembayaran,harga_jual,tgl_booking,target_akad,tgl_akad,id_bank,id_notaris')
           .in('id_kavling', ids)
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [] as any[] }),
     ids.length
       ? supabase
           .from('spk')
           .select('id_spk,id_kavling,tgl_spk,id_tipe,jenis_bobot,id_kantor,id_mandor,status_spk,tgl_target_selesai,is_active')
           .in('id_kavling', ids)
           .eq('is_active', true)
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [] as any[] }),
+    mappingPromise,
+    signedUrlPromise,
   ]);
 
-  const { data: activeSiteplan } = await supabase
-    .from('siteplan_versions')
-    .select('id,nama_siteplan,versi,file_name,file_path,mime_type,file_size,image_width,image_height,is_active,activated_at')
-    .eq('is_active', true)
-    .order('activated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
   let siteplanSrc = '/siteplan/siteplan-clean-source.png';
-  if (activeSiteplan?.id && activeSiteplan.file_path) {
-    const { data: signedSiteplan, error: signedSiteplanError } = await supabase.storage
-      .from('siteplans')
-      .createSignedUrl(activeSiteplan.file_path, 3600);
-
-    if (!signedSiteplanError && signedSiteplan?.signedUrl) {
-      siteplanSrc = signedSiteplan.signedUrl;
-    }
+  if (!signedSiteplan.error && signedSiteplan.data?.signedUrl) {
+    siteplanSrc = signedSiteplan.data.signedUrl;
   }
 
-  let mappingQuery = supabase
-    .from('siteplan_kavling_mapping')
-    .select('id_kavling,polygon,label,siteplan_version_id')
-    .in('id_kavling', ids);
-  if (activeSiteplan?.id) {
-    mappingQuery = mappingQuery.eq('siteplan_version_id', activeSiteplan.id);
-  }
-  const { data: savedMappings } = await mappingQuery;
-
+  // Stage 3: progress depends only on the active SPK result.
   const spkIds = (spks ?? []).map((row) => row.id_spk);
   const { data: progressUpdates } = spkIds.length
     ? await supabase
