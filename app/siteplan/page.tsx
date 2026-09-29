@@ -48,21 +48,10 @@ export default async function SiteplanPage() {
     ? supabase.storage.from('siteplans').createSignedUrl(activeSiteplan.file_path, 3600)
     : Promise.resolve({ data: null, error: null });
 
-  // Stage 2: all queries that only depend on kavling IDs / active siteplan run together.
-  const [{ data: sales }, { data: spks }, { data: savedMappings }, signedSiteplan] = await Promise.all([
-    ids.length
-      ? supabase
-          .from('sales')
-          .select('id_sales,id_kavling,nama_konsumen,status_sales,jenis_pembayaran,harga_jual,tgl_booking,target_akad,tgl_akad,id_bank,id_notaris')
-          .in('id_kavling', ids)
-      : Promise.resolve({ data: [] as any[] }),
-    ids.length
-      ? supabase
-          .from('spk')
-          .select('id_spk,id_kavling,tgl_spk,id_tipe,jenis_bobot,id_kantor,id_mandor,status_spk,tgl_target_selesai,is_active')
-          .in('id_kavling', ids)
-          .eq('is_active', true)
-      : Promise.resolve({ data: [] as any[] }),
+  // Stage 2 critical path: only mapping + image URL block the first Siteplan paint.
+  // Sales/SPK detail is deliberately loaded after the image is visible so it
+  // cannot delay or compete with the Siteplan image request.
+  const [{ data: savedMappings }, signedSiteplan] = await Promise.all([
     mappingPromise,
     signedUrlPromise,
   ]);
@@ -72,14 +61,10 @@ export default async function SiteplanPage() {
     siteplanSrc = signedSiteplan.data.signedUrl;
   }
 
-  // Progress detail is loaded on demand after a kavling is selected.
-
   return (
     <KavioShell>
       <SiteplanClient
         kavlings={kavlingRows}
-        sales={sales ?? []}
-        spks={spks ?? []}
         savedMappings={(savedMappings ?? []) as { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null; siteplan_version_id?: string | null }[]}
         activeSiteplan={activeSiteplan ? {
           id: activeSiteplan.id,
