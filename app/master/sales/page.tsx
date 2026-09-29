@@ -17,10 +17,7 @@ type Sales = { id_sales:string; id_kavling:string; nama_konsumen:string; alamat_
 export default async function SalesPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const supabase = await createClient();
-  const { data:{user} } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const [kavlingRes, tipeRes, bankRes, notarisRes, salesRes, priceRes] = await Promise.all([
+const [kavlingRes, tipeRes, bankRes, notarisRes, salesRes, priceRes] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling,id_tipe,status_kavling,status_aktif,harga_jual').eq('status_aktif',true).order('id_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe').eq('status_aktif',true).order('nama_tipe'),
     supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).order('nama_bank'),
