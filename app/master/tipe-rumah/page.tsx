@@ -10,9 +10,7 @@ type TipeRumah = { id_tipe: string; nama_tipe: string; luas_tanah_m2: number | s
 export default async function MasterTipeRumahPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const { data, error } = await supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe,luas_tanah_m2,luas_bangunan_m2,status_aktif').order('nama_tipe');
+const { data, error } = await supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe,luas_tanah_m2,luas_bangunan_m2,status_aktif').order('nama_tipe');
   const rows = (data ?? []) as TipeRumah[];
   const pageError = params.error ?? error?.message;
 
