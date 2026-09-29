@@ -9,8 +9,8 @@ type Kantor={id_kantor:string;nama_kantor_pelaksana:string};
 type Mandor={id_mandor:string;nama_mandor:string;id_kantor:string;no_hp:string|null;status_aktif:boolean;keterangan:string|null};
 
 export default async function MasterMandorPage({searchParams}:{searchParams:SearchParams}){
- const p=await searchParams; const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect('/login');
- const [{data:mandor, error:mandorError},{data:kantor,error:kantorError}]=await Promise.all([supabase.from('master_mandor').select('id_mandor,nama_mandor,id_kantor,no_hp,status_aktif,keterangan').order('nama_mandor'),supabase.from('master_kantor_pelaksana').select('id_kantor,nama_kantor_pelaksana').eq('status_aktif',true).order('nama_kantor_pelaksana')]);
+ const p=await searchParams; const supabase=await createClient();
+const [{data:mandor, error:mandorError},{data:kantor,error:kantorError}]=await Promise.all([supabase.from('master_mandor').select('id_mandor,nama_mandor,id_kantor,no_hp,status_aktif,keterangan').order('nama_mandor'),supabase.from('master_kantor_pelaksana').select('id_kantor,nama_kantor_pelaksana').eq('status_aktif',true).order('nama_kantor_pelaksana')]);
  const rows=(mandor??[]) as Mandor[]; const kantorRows=(kantor??[]) as Kantor[]; const kantorMap=new Map(kantorRows.map(x=>[x.id_kantor,x.nama_kantor_pelaksana])); const error=p.error??mandorError?.message??kantorError?.message;
  return <main className="master-simple-page">
   {error?<div className="kavio-alert error">{error}</div>:null}{p.success?<div className="kavio-alert success">{p.success}</div>:null}{!kantorRows.length&&!kantorError?<div className="kavio-alert"><strong>PERHATIAN:</strong> Tambahkan kantor pelaksana aktif sebelum membuat mandor.</div>:null}
