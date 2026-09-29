@@ -71,10 +71,7 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   const priority = textParam(params, 'priority');
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const [
+const [
     { data: sales },
     { data: progress },
     { data: decision },
