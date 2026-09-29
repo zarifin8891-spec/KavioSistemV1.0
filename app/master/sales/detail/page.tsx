@@ -14,8 +14,8 @@ const STAGES=[['KELENGKAPAN_DATA','KELENGKAPAN DATA'],['SURVEY_BANK','SURVEY BAN
 
 export default async function SalesDetailPage({searchParams}:{searchParams:SearchParams}){
  const p=await searchParams; const id=p.id; if(!id) redirect('/master/sales');
- const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect('/login');
- const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data:costs}] = await Promise.all([
+ const supabase=await createClient();
+const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data:costs}] = await Promise.all([
    supabase.from('sales').select('id_sales,id_kavling,nama_konsumen,alamat_konsumen,hp_konsumen,status_sales,jenis_pembayaran,id_bank,id_notaris,harga_jual,tgl_booking,target_akad,tgl_akad,status_aktif').eq('id_sales',id).maybeSingle(),
    supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).order('nama_bank'),
    supabase.from('master_notaris').select('id_notaris,nama_notaris').eq('status_aktif',true).order('nama_notaris'),
