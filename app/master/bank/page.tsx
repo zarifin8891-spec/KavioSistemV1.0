@@ -8,8 +8,8 @@ type SearchParams = Promise<{ error?: string; success?: string }>;
 type Bank = { id_bank: string; nama_bank: string; status_aktif: boolean; keterangan: string | null };
 
 export default async function MasterBankPage({ searchParams }: { searchParams: SearchParams }) {
-  const params=await searchParams; const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect('/login');
-  const {data,error}=await supabase.from('master_bank').select('id_bank,nama_bank,status_aktif,keterangan').order('nama_bank'); const rows=(data??[]) as Bank[];
+  const params=await searchParams; const supabase=await createClient();
+const {data,error}=await supabase.from('master_bank').select('id_bank,nama_bank,status_aktif,keterangan').order('nama_bank'); const rows=(data??[]) as Bank[];
   return <main className="master-simple-page">
     {params.error??error?.message ? <div className="kavio-alert error">{params.error??error?.message}</div> : null}{params.success?<div className="kavio-alert success">{params.success}</div>:null}
     <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DAFTAR BANK</h2><div className="kavio-panel-note">Bank aktif yang dapat dipilih untuk pembiayaan KPR Sales.</div></div><span className="kavio-badge">{rows.length} DATA</span></div>
