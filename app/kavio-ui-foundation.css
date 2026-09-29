@@ -75,12 +75,12 @@ body { margin: 0; }
    ============================================================ */
 
 :root {
-  --kavio-font-table-title: 13px;
-  --kavio-font-table-subtitle: 11px;
-  --kavio-font-table-head: 11px;
-  --kavio-font-table-body: 12px;
-  --kavio-font-table-button: 11px;
-  --kavio-font-table-badge: 10px;
+  --kavio-font-table-title: 14px;
+  --kavio-font-table-subtitle: 12px;
+  --kavio-font-table-head: 12px;
+  --kavio-font-table-body: 13px;
+  --kavio-font-table-button: 12px;
+  --kavio-font-table-badge: 11px;
 }
 
 .kavio-table-title,
@@ -945,27 +945,28 @@ button.kavio-button,
 
 
 /* ============================================================
-   KAVIO TYPOGRAPHY FOUNDATION — FINAL STANDARD
+   KAVIO TYPOGRAPHY FOUNDATION — REVISION 2
+   Increased shared readability globally without page-level overrides.
    Source of truth for shared typography, KPI and operational tables.
    ============================================================ */
 :root {
   --kavio-font-page-title: 30px;
-  --kavio-font-panel-title: 13px;
-  --kavio-font-panel-note: 10px;
-  --kavio-font-form-label: 9px;
-  --kavio-font-input: 11px;
-  --kavio-font-button: 10px;
+  --kavio-font-panel-title: 14px;
+  --kavio-font-panel-note: 11px;
+  --kavio-font-form-label: 10px;
+  --kavio-font-input: 12px;
+  --kavio-font-button: 11px;
   --kavio-font-table-head: 10px;
   --kavio-font-table-body: 11px;
-  --kavio-font-badge: 9px;
-  --kavio-font-kpi-label: 13px;
+  --kavio-font-badge: 10px;
+  --kavio-font-kpi-label: 14px;
   --kavio-font-kpi-value: 28px;
-  --kavio-font-kpi-note: 12px;
+  --kavio-font-kpi-note: 13px;
   --kavio-font-kpi-icon: 20px;
   --kavio-font-health-title: 22px;
-  --kavio-font-health-meta: 10px;
-  --kavio-font-health-segment: 13px;
-  --kavio-font-health-small: 10px;
+  --kavio-font-health-meta: 11px;
+  --kavio-font-health-segment: 14px;
+  --kavio-font-health-small: 11px;
 }
 
 /* Shared typography */
