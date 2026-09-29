@@ -60,6 +60,7 @@ export default function KavioShellClient({
   const [role] = useState<KavioRole>(initialRole);
   const [actions] = useState<string[]>(initialActions);
   const [today, setToday] = useState('');
+  const [browserSessionReady, setBrowserSessionReady] = useState(false);
   const [title, subtitle] = pageHeader(pathname);
 
   const effectiveActive =
@@ -76,14 +77,37 @@ export default function KavioShellClient({
 
   useEffect(() => {
     setToday(formatKavioDate(new Date()));
+
+    const pageSessionToken = sessionStorage.getItem('kavio_browser_session');
+    const cookieSessionToken = document.cookie
+      .split('; ')
+      .find((part) => part.startsWith('kavio_browser_session='))
+      ?.slice('kavio_browser_session='.length);
+
+    const cookieToken = cookieSessionToken ? decodeURIComponent(cookieSessionToken) : '';
+
+    if (!pageSessionToken || !cookieToken || pageSessionToken !== cookieToken) {
+      // Some browsers restore session cookies after a browser restart. Do not
+      // trust the cookie alone: without the page-session token KAVIO requires
+      // a fresh login.
+      sessionStorage.removeItem('kavio_browser_session');
+      document.cookie = 'kavio_browser_session=; Path=/; Max-Age=0; SameSite=Lax';
+      window.location.replace('/login?session=berakhir');
+      return;
+    }
+
+    setBrowserSessionReady(true);
   }, []);
 
   const handleLogout = async () => {
     const supabase = createClient();
-    await supabase.auth.signOut();
+    sessionStorage.removeItem('kavio_browser_session');
     document.cookie = 'kavio_browser_session=; Path=/; Max-Age=0; SameSite=Lax';
+    await supabase.auth.signOut();
     router.push('/login');
   };
+
+  if (!browserSessionReady) return null;
 
   return (
     <KavioPermissionProvider actions={actions} ready={accessReady}>
