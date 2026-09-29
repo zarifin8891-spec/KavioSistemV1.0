@@ -730,10 +730,18 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
                 ref={imageRef}
                 src={siteplanSrc}
                 alt={activeSiteplan?.nama_siteplan || 'Siteplan aktif'}
-                className="siteplan-image"
+                className={`siteplan-image ${imageReady ? 'is-ready' : 'is-loading'}`}
                 fetchPriority="high"
+                loading="eager"
                 decoding="async"
-                onLoad={() => setImageReady(true)}
+                onLoad={async (event) => {
+                  try {
+                    await event.currentTarget.decode();
+                  } catch {
+                    // The load event already confirms usable image bytes.
+                  }
+                  setImageReady(true);
+                }}
                 onError={(event) => {
                   const image = event.currentTarget;
                   if (image.dataset.fallbackApplied === '1') return;
@@ -741,7 +749,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
                   image.src = fallbackSiteplanSrc;
                 }}
               />
-            <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onPointerDownCapture={handleMapPointerDownCapture}
+            {imageReady && <svg ref={svgRef} className={`siteplan-overlay ${mappingMode ? 'is-mapping' : ''} ${autoDetectArmed ? 'is-auto-detect' : ''}`} viewBox={`0 0 ${siteplanWidth} ${siteplanHeight}`} preserveAspectRatio="none" aria-label="Mapping kavling Siteplan" onPointerDownCapture={handleMapPointerDownCapture}
             onMouseMove={handleMapMouseMove}
             onMouseUp={handleMapMouseUp}
             onMouseLeave={handleMapMouseUp}>
@@ -831,7 +839,8 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
                   <circle cx={autoDetectSeed[0]} cy={autoDetectSeed[1]} r="3" />
                 </g>
               )}
-            </svg>
+            </svg>}
+              {!imageReady && <div className="siteplan-image-loading" aria-live="polite">MEMUAT SITEPLAN…</div>}
               </div>
             </div>
           </div>
