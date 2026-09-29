@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { createClient } from '../../../../lib/supabase/server';
 import { formatKavioDate } from '../../../lib/date-format';
 
@@ -22,18 +22,31 @@ export default async function SpkDetailPage({ params, searchParams }: { params: 
   const returnHref = fromProgress ? '/progress' : '/master/spk';
   const returnLabel = fromProgress ? 'Kembali ke Progress' : 'Kembali ke SPK';
   const supabase = await createClient();
-const { data: spkData } = await supabase.from('spk').select('id_spk, id_kavling, id_tipe, id_kantor, id_mandor, jenis_bobot, tgl_spk, tgl_target_selesai, status_spk, is_active').eq('id_spk', id).maybeSingle();
-  if (!spkData) notFound();
-  const spk = spkData as Spk;
 
-  const [{ data: currentData }, { data: categories }, { data: history }, { data: office }, { data: mandor }, { data: configData }, { data: decisionData }] = await Promise.all([
+  // Control Sheet critical path: every query that only needs the SPK id starts
+  // immediately. Office and mandor names wait only for the SPK identity row.
+  const [
+    { data: spkData },
+    { data: currentData },
+    { data: categories },
+    { data: history },
+    { data: configData },
+    { data: decisionData },
+  ] = await Promise.all([
+    supabase.from('spk').select('id_spk, id_kavling, id_tipe, id_kantor, id_mandor, jenis_bobot, tgl_spk, tgl_target_selesai, status_spk, is_active').eq('id_spk', id).maybeSingle(),
     supabase.from('v_progress_kategori_current').select('id_kategori, progress_akumulasi, bobot_final, progress_berbobot, tanggal_update_terakhir').eq('id_spk', id).order('id_kategori'),
     supabase.from('master_kategori_pekerjaan').select('id_kategori, nama_kategori, urutan').eq('status_aktif', true).order('urutan'),
     supabase.from('progress_update').select('id_progress, tanggal_update, id_kategori, progress_periode, keterangan').eq('id_spk', id).order('tanggal_update', { ascending: true }).order('id_kategori').limit(500),
-    supabase.from('master_kantor_pelaksana').select('nama_kantor_pelaksana').eq('id_kantor', spk.id_kantor).maybeSingle(),
-    supabase.from('master_mandor').select('nama_mandor').eq('id_mandor', spk.id_mandor).maybeSingle(),
     supabase.from('spk_progress_config').select('id_kategori, bobot_final').eq('id_spk', id).order('id_kategori'),
     supabase.from('v_decision_engine').select('progress_aktual, progress_seharusnya, gap_progress, sisa_hari, tanggal_update_terakhir, progress_periode_terakhir, status_operasional, status_ritme, prioritas_tindakan, action_rekomendasi, hari_sejak_update, progress_diperlukan_per_hari, health_score, health_level, health_description').eq('id_spk', id).maybeSingle(),
+  ]);
+
+  if (!spkData) notFound();
+  const spk = spkData as Spk;
+
+  const [{ data: office }, { data: mandor }] = await Promise.all([
+    supabase.from('master_kantor_pelaksana').select('nama_kantor_pelaksana').eq('id_kantor', spk.id_kantor).maybeSingle(),
+    supabase.from('master_mandor').select('nama_mandor').eq('id_mandor', spk.id_mandor).maybeSingle(),
   ]);
 
   const currentRows = (currentData ?? []) as Current[];
