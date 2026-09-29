@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { createClient } from '../../lib/supabase/server';
+import { headers } from 'next/headers';
 import { canViewPath, normalizeRole } from '../../lib/kavio-permissions';
 
 const masterLinks = [
@@ -14,9 +13,8 @@ const masterLinks = [
 ];
 
 export default async function MasterPage() {
-  const supabase = await createClient();
-const { data: accessRows } = await supabase.rpc('kavio_get_current_access');
-  const role = normalizeRole(accessRows?.[0]?.role);
+  const requestHeaders = await headers();
+  const role = normalizeRole(requestHeaders.get('x-kavio-role'));
   const visibleLinks = masterLinks.filter((item) => canViewPath(role, item.href));
 
   return (
