@@ -1,13 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from './supabase/server';
-
-export type KavioAction =
-  | 'MASTER_WRITE'
-  | 'SALES_WRITE'
-  | 'SPK_WRITE'
-  | 'PROGRESS_WRITE'
-  | 'SITEPLAN_MAP'
-  | 'USER_MANAGE';
+import type { KavioAction } from './kavio-permissions';
 
 export async function requireKavioAction(
   action: KavioAction,
