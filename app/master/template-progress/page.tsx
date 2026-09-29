@@ -8,8 +8,8 @@ type SearchParams=Promise<{error?:string;success?:string}>;
 type Tipe={id_tipe:string;nama_tipe:string}; type Kategori={id_kategori:string;nama_kategori:string;urutan:number}; type Template={id_tipe:string;id_kategori:string;bobot_standar:number|string};
 
 export default async function TemplateProgressPage({searchParams}:{searchParams:SearchParams}){
- const p=await searchParams; const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect('/login');
- const [tipeRes,kategoriRes,templateRes]=await Promise.all([supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe').eq('status_aktif',true).order('nama_tipe'),supabase.from('master_kategori_pekerjaan').select('id_kategori,nama_kategori,urutan').eq('status_aktif',true).order('urutan'),supabase.from('template_progress_tipe').select('id_tipe,id_kategori,bobot_standar').order('id_tipe').order('id_kategori')]);
+ const p=await searchParams; const supabase=await createClient();
+const [tipeRes,kategoriRes,templateRes]=await Promise.all([supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe').eq('status_aktif',true).order('nama_tipe'),supabase.from('master_kategori_pekerjaan').select('id_kategori,nama_kategori,urutan').eq('status_aktif',true).order('urutan'),supabase.from('template_progress_tipe').select('id_tipe,id_kategori,bobot_standar').order('id_tipe').order('id_kategori')]);
  const tipeRows=(tipeRes.data??[]) as Tipe[]; const kategoriRows=(kategoriRes.data??[]) as Kategori[]; const templateRows=(templateRes.data??[]) as Template[]; const error=p.error??tipeRes.error?.message??kategoriRes.error?.message??templateRes.error?.message;
  const kategoriMap=new Map(kategoriRows.map(x=>[x.id_kategori,x.nama_kategori])); const grouped=new Map<string,Template[]>(); for(const row of templateRows) grouped.set(row.id_tipe,[...(grouped.get(row.id_tipe)??[]),row]);
  return <main className="master-simple-page">
