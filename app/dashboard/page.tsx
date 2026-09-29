@@ -31,10 +31,7 @@ type SalesRow = { id_kavling: string; status_sales: string; status_aktif: boolea
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const [
+const [
     { data: decisions, error: decisionError },
     { data: kavlings, error: kavlingError },
     { data: sales, error: salesError },
