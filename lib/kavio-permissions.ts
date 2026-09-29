@@ -1,6 +1,16 @@
 export const KAVIO_ROLES = ['DIREKTUR', 'ADMIN', 'MARKETING', 'PELAKSANA', 'USER'] as const;
 export type KavioRole = typeof KAVIO_ROLES[number];
 
+export const KAVIO_ACTIONS = [
+  'MASTER_WRITE',
+  'SALES_WRITE',
+  'SPK_WRITE',
+  'PROGRESS_WRITE',
+  'SITEPLAN_MAP',
+  'USER_MANAGE',
+] as const;
+export type KavioAction = typeof KAVIO_ACTIONS[number];
+
 const MASTER_DATA_ROUTES = [
   '/master/tipe-rumah',
   '/master/kategori-pekerjaan',
