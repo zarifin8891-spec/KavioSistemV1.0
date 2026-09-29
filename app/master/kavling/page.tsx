@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { createClient } from '../../../lib/supabase/server';
 import { createKavling, toggleKavling, updateKavling } from './actions';
 import KavioCreatePanel from '../../components/KavioCreatePanel';
@@ -7,14 +7,19 @@ type SearchParams = Promise<{ error?: string; success?: string; edit?: string }>
 
 export default async function MasterKavlingPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
+  const requestHeaders = await headers();
+  const actions = new Set(
+    (requestHeaders.get('x-kavio-actions') ?? '')
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  );
+  const canWrite = actions.has('MASTER_WRITE');
   const supabase = await createClient();
-const [{ data: kavling, error: kavlingError }, { data: tipeRumah, error: tipeError }, { data: writeAccess }] = await Promise.all([
+  const [{ data: kavling, error: kavlingError }, { data: tipeRumah, error: tipeError }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling,blok,no_kavling,id_tipe,status_kavling,status_aktif,luas_tanah_standar,luas_tanah_real,kelebihan_tanah,harga_standar,harga_tanah_meter,harga_jual').order('blok').order('no_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe').eq('status_aktif',true).order('nama_tipe'),
-    supabase.rpc('kavio_can_action', { p_action: 'MASTER_WRITE' }),
   ]);
-
-  const canWrite = writeAccess === true;
   const rows = kavling ?? [];
   const tipeRows = tipeRumah ?? [];
   const tipeMap = new Map(tipeRows.map((t) => [t.id_tipe,t.nama_tipe]));
