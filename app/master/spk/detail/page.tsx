@@ -22,10 +22,7 @@ export default async function SpkDetailPage({ params, searchParams }: { params: 
   const returnHref = fromProgress ? '/progress' : '/master/spk';
   const returnLabel = fromProgress ? 'Kembali ke Progress' : 'Kembali ke SPK';
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const { data: spkData } = await supabase.from('spk').select('id_spk, id_kavling, id_tipe, id_kantor, id_mandor, jenis_bobot, tgl_spk, tgl_target_selesai, status_spk, is_active').eq('id_spk', id).maybeSingle();
+const { data: spkData } = await supabase.from('spk').select('id_spk, id_kavling, id_tipe, id_kantor, id_mandor, jenis_bobot, tgl_spk, tgl_target_selesai, status_spk, is_active').eq('id_spk', id).maybeSingle();
   if (!spkData) notFound();
   const spk = spkData as Spk;
 
