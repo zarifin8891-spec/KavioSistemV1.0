@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { activateSpk, deactivateSpk } from './actions';
 import SpkCreatePanel from './SpkCreatePanel';
 import { createClient } from '../../../lib/supabase/server';
@@ -20,7 +19,7 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
   const params = await searchParams;
   const supabase = await createClient();
 const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkRes] = await Promise.all([
-    supabase.from('master_kavling').select('id_kavling, blok, no_kavling, id_tipe, status_kavling').eq('status_aktif', true).order('blok').order('no_kavling'),
+    supabase.from('master_kavling').select('id_kavling, blok, no_kavling, id_tipe, status_kavling').eq('status_aktif', true).in('status_kavling', ['AVAILABLE', 'BOOKING']).order('blok').order('no_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe, nama_tipe').eq('status_aktif', true).order('nama_tipe'),
     supabase.from('master_kantor_pelaksana').select('id_kantor, nama_kantor_pelaksana').eq('status_aktif', true).order('nama_kantor_pelaksana'),
     supabase.from('master_mandor').select('id_mandor, nama_mandor, id_kantor').eq('status_aktif', true).order('nama_mandor'),
@@ -29,8 +28,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
     supabase.from('spk').select('id_spk, id_kavling, tgl_spk, id_tipe, jenis_bobot, id_kantor, id_mandor, status_spk, tgl_target_selesai, is_active').order('created_at', { ascending: false }),
   ]);
 
-  const allKavlingRows = (kavlingRes.data ?? []) as Kavling[];
-  const kavlingRows = allKavlingRows.filter((row) => ['AVAILABLE', 'BOOKING'].includes(row.status_kavling));
+  const kavlingRows = (kavlingRes.data ?? []) as Kavling[];
   const tipeRows = (tipeRes.data ?? []) as Tipe[];
   const kantorRows = (kantorRes.data ?? []) as Kantor[];
   const mandorRows = (mandorRes.data ?? []) as Mandor[];
