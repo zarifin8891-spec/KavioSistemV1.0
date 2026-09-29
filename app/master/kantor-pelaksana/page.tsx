@@ -8,8 +8,8 @@ type SearchParams=Promise<{error?:string;success?:string}>;
 type Kantor={id_kantor:string;nama_kantor_pelaksana:string;penanggung_jawab:string|null;no_hp:string|null;status_aktif:boolean;keterangan:string|null};
 
 export default async function MasterKantorPelaksanaPage({searchParams}:{searchParams:SearchParams}){
- const p=await searchParams; const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user) redirect('/login');
- const {data,error}=await supabase.from('master_kantor_pelaksana').select('id_kantor,nama_kantor_pelaksana,penanggung_jawab,no_hp,status_aktif,keterangan').order('nama_kantor_pelaksana'); const rows=(data??[]) as Kantor[];
+ const p=await searchParams; const supabase=await createClient();
+const {data,error}=await supabase.from('master_kantor_pelaksana').select('id_kantor,nama_kantor_pelaksana,penanggung_jawab,no_hp,status_aktif,keterangan').order('nama_kantor_pelaksana'); const rows=(data??[]) as Kantor[];
  return <main className="master-simple-page">
   {p.error??error?.message?<div className="kavio-alert error">{p.error??error?.message}</div>:null}{p.success?<div className="kavio-alert success">{p.success}</div>:null}
   <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DAFTAR KANTOR PELAKSANA</h2><div className="kavio-panel-note">Kantor/pelaksana menjadi induk data Mandor dan pilihan pada SPK.</div></div><span className="kavio-badge">{rows.length} DATA</span></div>
