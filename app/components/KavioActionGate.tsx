@@ -1,30 +1,20 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
-import { createClient } from '../../lib/supabase/client';
+import { ReactNode } from 'react';
+import type { KavioAction } from '../../lib/kavio-permissions';
+import { useKavioPermissions } from './KavioPermissionContext';
 
 export default function KavioActionGate({
   action,
   children,
   fallback = null,
 }: {
-  action: string;
+  action: KavioAction;
   children: ReactNode;
   fallback?: ReactNode;
 }) {
-  const [allowed, setAllowed] = useState<boolean | null>(null);
+  const { ready, canAction } = useKavioPermissions();
 
-  useEffect(() => {
-    let mounted = true;
-    createClient()
-      .rpc('kavio_can_action', { p_action: action })
-      .then(({ data, error }) => {
-        if (mounted) setAllowed(!error && data === true);
-      });
-    return () => { mounted = false; };
-  }, [action]);
-
-  if (allowed === true) return <>{children}</>;
-  if (allowed === false) return <>{fallback}</>;
-  return null;
+  if (!ready) return null;
+  return canAction(action) ? <>{children}</> : <>{fallback}</>;
 }
