@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { headers } from 'next/headers';
-import { canViewPath, normalizeRole } from '../../lib/kavio-permissions';
+import { getKavioRequestContext } from '../../lib/kavio-request-context';
+import { canViewPath } from '../../lib/kavio-permissions';
 
 const masterLinks = [
   { href: '/master/tipe-rumah', title: 'Tipe Rumah', desc: 'Kelola referensi tipe rumah dan spesifikasi luas.', icon: '⌂' },
@@ -13,8 +13,7 @@ const masterLinks = [
 ];
 
 export default async function MasterPage() {
-  const requestHeaders = await headers();
-  const role = normalizeRole(requestHeaders.get('x-kavio-role'));
+  const { role } = await getKavioRequestContext();
   const visibleLinks = masterLinks.filter((item) => canViewPath(role, item.href));
 
   return (
