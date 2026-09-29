@@ -8,9 +8,7 @@ type SearchParams = Promise<{ error?: string; success?: string; edit?: string }>
 export default async function MasterKavlingPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [{ data: kavling, error: kavlingError }, { data: tipeRumah, error: tipeError }, { data: writeAccess }] = await Promise.all([
+const [{ data: kavling, error: kavlingError }, { data: tipeRumah, error: tipeError }, { data: writeAccess }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling,blok,no_kavling,id_tipe,status_kavling,status_aktif,luas_tanah_standar,luas_tanah_real,kelebihan_tanah,harga_standar,harga_tanah_meter,harga_jual').order('blok').order('no_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe').eq('status_aktif',true).order('nama_tipe'),
     supabase.rpc('kavio_can_action', { p_action: 'MASTER_WRITE' }),
