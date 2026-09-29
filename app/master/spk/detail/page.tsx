@@ -9,6 +9,7 @@ type Current = { id_kategori: string; progress_akumulasi: number | string; bobot
 type Config = { id_kategori: string; bobot_final: number | string };
 type Category = { id_kategori: string; nama_kategori: string; urutan: number };
 type History = { id_progress: string; tanggal_update: string; id_kategori: string; progress_periode: number | string; keterangan: string | null };
+type CurveHistory = { tanggal_update: string; progress_aktual: number | string };
 type Decision = { progress_aktual: number | string; progress_seharusnya: number | string; gap_progress: number | string; sisa_hari: number; tanggal_update_terakhir: string | null; progress_periode_terakhir: number | string; status_operasional: OperationalStatus; status_ritme: PaceStatus; prioritas_tindakan: ActionPriority; action_rekomendasi: string; hari_sejak_update: number; progress_diperlukan_per_hari: number | string; health_score: number; health_level: HealthLevel; health_description: string };
 type OperationalStatus = 'BERJALAN' | 'PERHATIAN' | 'LEWAT TARGET' | 'SELESAI';
 type PaceStatus = 'DI DEPAN' | 'SESUAI RITME' | 'TERTINGGAL';
@@ -30,13 +31,15 @@ export default async function SpkDetailPage({ params, searchParams }: { params: 
     { data: currentData },
     { data: categories },
     { data: history },
+    { data: curveHistoryData },
     { data: configData },
     { data: decisionData },
   ] = await Promise.all([
     supabase.from('spk').select('id_spk, id_kavling, id_tipe, id_kantor, id_mandor, jenis_bobot, tgl_spk, tgl_target_selesai, status_spk, is_active').eq('id_spk', id).maybeSingle(),
     supabase.from('v_progress_kategori_current').select('id_kategori, progress_akumulasi, bobot_final, progress_berbobot, tanggal_update_terakhir').eq('id_spk', id).order('id_kategori'),
     supabase.from('master_kategori_pekerjaan').select('id_kategori, nama_kategori, urutan').eq('status_aktif', true).order('urutan'),
-    supabase.from('progress_update').select('id_progress, tanggal_update, id_kategori, progress_periode, keterangan').eq('id_spk', id).order('tanggal_update', { ascending: true }).order('id_kategori').limit(500),
+    supabase.from('progress_update').select('id_progress, tanggal_update, id_kategori, progress_periode, keterangan').eq('id_spk', id).order('tanggal_update', { ascending: false }).order('id_kategori').limit(30),
+    supabase.rpc('kavio_spk_curve_history', { p_id_spk: id }),
     supabase.from('spk_progress_config').select('id_kategori, bobot_final').eq('id_spk', id).order('id_kategori'),
     supabase.from('v_decision_engine').select('progress_aktual, progress_seharusnya, gap_progress, sisa_hari, tanggal_update_terakhir, progress_periode_terakhir, status_operasional, status_ritme, prioritas_tindakan, action_rekomendasi, hari_sejak_update, progress_diperlukan_per_hari, health_score, health_level, health_description').eq('id_spk', id).maybeSingle(),
   ]);
@@ -53,6 +56,7 @@ export default async function SpkDetailPage({ params, searchParams }: { params: 
   const configRows = (configData ?? []) as Config[];
   const categoryRows = (categories ?? []) as Category[];
   const historyRows = (history ?? []) as History[];
+  const curveHistory = (curveHistoryData ?? []) as CurveHistory[];
   const decision = decisionData as Decision | null;
   const categoryMap = new Map(categoryRows.map((row) => [row.id_kategori, row]));
   const progressMap = new Map(currentRows.map((row) => [row.id_kategori, row]));
@@ -69,7 +73,9 @@ export default async function SpkDetailPage({ params, searchParams }: { params: 
     })
     .sort((a, b) => (categoryMap.get(a.id_kategori)?.urutan ?? 9999) - (categoryMap.get(b.id_kategori)?.urutan ?? 9999));
   const progressTotal = Number(decision?.progress_aktual ?? snapshotRows.reduce((sum, row) => sum + Number(row.progress_berbobot ?? 0), 0));
-  const latestPeriod = getLatestPeriod(historyRows, configRows);
+  const latestPeriod = decision?.tanggal_update_terakhir
+    ? { date: decision.tanggal_update_terakhir, progress: Number(decision.progress_periode_terakhir ?? 0) }
+    : getLatestPeriod(historyRows, configRows);
   const today = new Date().toISOString().slice(0, 10);
   const daysRemaining = Number(decision?.sisa_hari ?? differenceInDays(today, spk.tgl_target_selesai));
   const expectedProgress = Number(decision?.progress_seharusnya ?? getExpectedProgress(spk, today));
@@ -84,7 +90,7 @@ export default async function SpkDetailPage({ params, searchParams }: { params: 
   const actualPct = clamp(progressTotal) * 100;
   const schedulePct = clamp(expectedProgress) * 100;
   const remainingPct = Math.max(0, 100 - actualPct);
-  const curvePoints = buildCurvePoints(spk.tgl_spk, spk.tgl_target_selesai, historyRows, currentRows, today);
+  const curvePoints = buildCurvePoints(spk.tgl_spk, spk.tgl_target_selesai, curveHistory, today);
 
   return (
     <main className="spk-detail-page">
@@ -100,7 +106,7 @@ export default async function SpkDetailPage({ params, searchParams }: { params: 
         <div className="spk-detail-progress-panels">
         <section className="spk-detail-snapshot-panel"><div className="spk-detail-section-head"><div><div style={sectionTitleNoPad}>Progress &amp; Bobot Final SPK</div></div></div><div className="kavio-table-wrap"><table className="kavio-table spk-detail-table"><thead><tr><th>#</th><th>Kategori</th><th>Bobot Final</th><th>Progress Akumulasi</th><th>Kontribusi</th><th>Update Terakhir</th></tr></thead><tbody>{snapshotRows.map((row) => <tr key={row.id_kategori}><td>{categoryMap.get(row.id_kategori)?.urutan ?? '—'}</td><td>{categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori}</td><td>{(Number(row.bobot_final) * 100).toFixed(2)}%</td><td>{(Number(row.progress_akumulasi) * 100).toFixed(2)}%</td><td>{(Number(row.progress_berbobot) * 100).toFixed(2)}%</td><td>{row.tanggal_update_terakhir ? formatKavioDate(row.tanggal_update_terakhir) : 'Belum ada'}</td></tr>)}{!snapshotRows.length && <tr><td colSpan={6}>Konfigurasi bobot SPK belum tersedia.</td></tr>}</tbody></table></div></section>
 
-        <section className="spk-detail-data-panel"><div className="spk-detail-section-title">Histori Progress Terbaru</div><div className="kavio-table-wrap"><table className="kavio-table spk-detail-table"><thead><tr><th>Tanggal</th><th>Kategori</th><th>Periode</th><th>Keterangan</th></tr></thead><tbody>{historyRows.slice().reverse().slice(0, 30).map((row) => <tr key={row.id_progress}><td>{formatKavioDate(row.tanggal_update)}</td><td>{categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori}</td><td>{(Number(row.progress_periode) * 100).toFixed(2)}%</td><td>{row.keterangan || '—'}</td></tr>)}{!historyRows.length && <tr><td colSpan={4}>Belum ada histori progress.</td></tr>}</tbody></table></div></section>
+        <section className="spk-detail-data-panel"><div className="spk-detail-section-title">Histori Progress Terbaru</div><div className="kavio-table-wrap"><table className="kavio-table spk-detail-table"><thead><tr><th>Tanggal</th><th>Kategori</th><th>Periode</th><th>Keterangan</th></tr></thead><tbody>{historyRows.map((row) => <tr key={row.id_progress}><td>{formatKavioDate(row.tanggal_update)}</td><td>{categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori}</td><td>{(Number(row.progress_periode) * 100).toFixed(2)}%</td><td>{row.keterangan || '—'}</td></tr>)}{!historyRows.length && <tr><td colSpan={4}>Belum ada histori progress.</td></tr>}</tbody></table></div></section>
 
         </div>
       </section>
@@ -108,32 +114,29 @@ export default async function SpkDetailPage({ params, searchParams }: { params: 
   );
 }
 
-function buildCurvePoints(start: string, target: string, history: History[], currentRows: Current[], today: string) {
+function buildCurvePoints(start: string, target: string, history: CurveHistory[], today: string) {
   const startMs = dateMs(start);
   const targetMs = dateMs(target);
   const todayMs = dateMs(today);
   const totalMs = Math.max(1, targetMs - startMs);
-  const sortedHistory = [...history].sort((a, b) => a.tanggal_update.localeCompare(b.tanggal_update));
-  const byDate = new Map<string, number>();
-  const cumulativeByCategory = new Map<string, number>();
-  const weightByCategory = new Map(currentRows.map((row) => [row.id_kategori, Number(row.bobot_final)]));
+  const sortedHistory = history
+    .map((row) => ({ date: row.tanggal_update, actual: clamp(Number(row.progress_aktual ?? 0)) }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
-  for (const row of sortedHistory) {
-    const previous = cumulativeByCategory.get(row.id_kategori) ?? 0;
-    const next = Math.min(1, previous + Number(row.progress_periode ?? 0));
-    cumulativeByCategory.set(row.id_kategori, next);
-    const weighted = [...cumulativeByCategory.entries()].reduce((sum, [category, progress]) => sum + progress * (weightByCategory.get(category) ?? 0), 0);
-    byDate.set(row.tanggal_update, weighted);
-  }
-
-  const lastActualDate = sortedHistory.at(-1)?.tanggal_update ?? start;
-  const lastActual = byDate.get(lastActualDate) ?? 0;
+  const actualByDate = new Map(sortedHistory.map((row) => [row.date, row.actual]));
+  const lastActualDate = sortedHistory.at(-1)?.date ?? start;
+  const lastActual = actualByDate.get(lastActualDate) ?? 0;
   const effectiveToday = todayMs < startMs ? start : today;
-  const dates = Array.from(new Set([start, ...sortedHistory.map((row) => row.tanggal_update).filter((date) => date <= effectiveToday), effectiveToday, target])).sort();
-  let latestActual = 0;
+  const dates = Array.from(new Set([
+    start,
+    ...sortedHistory.map((row) => row.date).filter((date) => date <= effectiveToday),
+    effectiveToday,
+    target,
+  ])).sort();
 
+  let latestActual = 0;
   return dates.map((date) => {
-    if (byDate.has(date)) latestActual = Number(byDate.get(date));
+    if (actualByDate.has(date)) latestActual = Number(actualByDate.get(date));
     if (date === effectiveToday && dateMs(date) >= dateMs(lastActualDate)) latestActual = lastActual;
     const elapsed = Math.min(1, Math.max(0, (dateMs(date) - startMs) / totalMs));
     const planned = elapsed <= 0 ? 0 : elapsed >= 1 ? 1 : elapsed * elapsed * (3 - 2 * elapsed);
