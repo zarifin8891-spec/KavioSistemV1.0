@@ -69,7 +69,6 @@ type Props = {
   kavlings: Kavling[];
   sales: Sale[];
   spks: Spk[];
-  progressUpdates: ProgressUpdate[];
   savedMappings: SavedMapping[];
   activeSiteplan: ActiveSiteplan | null;
   siteplanSrc: string;
@@ -123,7 +122,7 @@ function polygonCenter(points: [number, number][]) {
   ] as [number, number];
 }
 
-export default function SiteplanClient({ kavlings, sales, spks, progressUpdates, savedMappings, activeSiteplan, siteplanSrc }: Props) {
+export default function SiteplanClient({ kavlings, sales, spks, savedMappings, activeSiteplan, siteplanSrc }: Props) {
   const fallbackSiteplanSrc = '/siteplan/siteplan-clean-source.png';
   const router = useRouter();
   const siteplanWidth = activeSiteplan?.image_width || SITEPLAN_VIEWBOX.width;
@@ -172,25 +171,15 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
   );
   const rows = useMemo(() => kavlings.filter((row) => Boolean(activeMap[row.id_kavling])), [kavlings, activeMap]);
   const unmappedRows = useMemo(() => kavlings.filter((row) => !activeMap[row.id_kavling]), [kavlings, activeMap]);
-  const selected = selectedId ? kavlings.find((row) => row.id_kavling === selectedId) ?? null : null;
 
-  const selectedSale = selected ? sales.find((row) => row.id_kavling === selected.id_kavling) : null;
-  const selectedSpk = selected ? spks.find((row) => row.id_kavling === selected.id_kavling) : null;
-  const selectedProgress = selectedSpk
-    ? progressUpdates.filter((row) => row.id_spk === selectedSpk.id_spk).sort((a, b) => String(b.tanggal_update || '').localeCompare(String(a.tanggal_update || '')))[0]
-    : null;
-
-  const visibleRows = useMemo(
-    () => rows.filter((row) => filter === 'ALL' || row.status_kavling === filter),
-    [rows, filter],
+  const kavlingsById = useMemo(
+    () => Object.fromEntries(kavlings.map((row) => [row.id_kavling, row])),
+    [kavlings],
   );
-  const listRows = mappingMode ? kavlings : visibleRows;
-
   const salesByKavling = useMemo(
     () => Object.fromEntries(sales.map((sale) => [sale.id_kavling, sale])),
     [sales],
   );
-
   const spksByKavling = useMemo(
     () => Object.fromEntries(
       spks
@@ -201,9 +190,47 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
     [spks],
   );
 
+  const selected = selectedId ? kavlingsById[selectedId] ?? null : null;
+  const selectedSale = selected ? salesByKavling[selected.id_kavling] ?? null : null;
+  const selectedSpk = selected ? spksByKavling[selected.id_kavling] ?? null : null;
+
+  const [progressBySpk, setProgressBySpk] = useState<Record<string, ProgressUpdate | null>>({});
+  const [progressLoadingSpk, setProgressLoadingSpk] = useState<string | null>(null);
+  const selectedProgress = selectedSpk ? progressBySpk[selectedSpk.id_spk] ?? null : null;
+
+  useEffect(() => {
+    const idSpk = selectedSpk?.id_spk;
+    if (!idSpk || Object.prototype.hasOwnProperty.call(progressBySpk, idSpk)) return;
+
+    let mounted = true;
+    setProgressLoadingSpk(idSpk);
+
+    createClient()
+      .from('progress_update')
+      .select('id_progress,id_spk,tanggal_update,id_kategori,progress_periode,keterangan')
+      .eq('id_spk', idSpk)
+      .order('tanggal_update', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setProgressBySpk((current) => ({ ...current, [idSpk]: data ?? null }));
+        setProgressLoadingSpk((current) => current === idSpk ? null : current);
+      });
+
+    return () => { mounted = false; };
+  }, [selectedSpk?.id_spk, progressBySpk]);
+
+  const visibleRows = useMemo(
+    () => rows.filter((row) => filter === 'ALL' || row.status_kavling === filter),
+    [rows, filter],
+  );
+  const listRows = mappingMode ? kavlings : visibleRows;
+
   const counts = useMemo(
-    () => STATUS_LIST.reduce<Record<string, number>>((acc, status) => {
-      acc[status] = rows.filter((row) => row.status_kavling === status).length;
+    () => rows.reduce<Record<string, number>>((acc, row) => {
+      const status = row.status_kavling || 'AVAILABLE';
+      acc[status] = (acc[status] ?? 0) + 1;
       return acc;
     }, {}),
     [rows],
@@ -671,6 +698,8 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                 src={siteplanSrc}
                 alt={activeSiteplan?.nama_siteplan || 'Siteplan aktif'}
                 className="siteplan-image"
+                fetchPriority="high"
+                decoding="async"
                 onError={(event) => {
                   const image = event.currentTarget;
                   if (image.dataset.fallbackApplied === '1') return;
@@ -868,7 +897,7 @@ export default function SiteplanClient({ kavlings, sales, spks, progressUpdates,
                     <div><span>SPK</span><strong>{selectedSpk.id_spk}</strong></div>
                     <div><span>STATUS SPK</span><strong>{selectedSpk.status_spk || '—'}</strong></div>
                     <div><span>TARGET SELESAI</span><strong>{formatDate(selectedSpk.tgl_target_selesai)}</strong></div>
-                    <div><span>PROGRESS TERAKHIR</span><strong>{selectedProgress?.progress_periode != null ? `${selectedProgress.progress_periode}%` : '—'}</strong></div>
+                    <div><span>PROGRESS TERAKHIR</span><strong>{progressLoadingSpk === selectedSpk.id_spk ? 'MEMUAT…' : selectedProgress?.progress_periode != null ? `${selectedProgress.progress_periode}%` : '—'}</strong></div>
                     <div className="siteplan-related-actions">
                       <Link href={`/master/spk/detail/${selectedSpk.id_spk}`} className="kavio-button secondary">DETAIL SPK</Link>
                       <Link href={`/progress?spk=${selectedSpk.id_spk}`} className="kavio-button secondary">PROGRESS</Link>
