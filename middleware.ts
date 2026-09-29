@@ -9,6 +9,7 @@ export async function middleware(request: NextRequest) {
   if (!url || !key) return NextResponse.next({ request });
 
   const forwardedHeaders = new Headers(request.headers);
+  ['x-kavio-user-email', 'x-kavio-role', 'x-kavio-actions', 'x-kavio-access-ready'].forEach((name) => forwardedHeaders.delete(name));
   let refreshedCookies: { name: string; value: string; options?: any }[] = [];
 
   const supabase = createServerClient(url, key, {
