@@ -62,7 +62,9 @@ export default async function SiteplanPage() {
   }
 
   return (
-    <KavioShell>
+    <>
+      <link rel="preload" as="image" href={siteplanSrc} />
+      <KavioShell>
       <SiteplanClient
         kavlings={kavlingRows}
         savedMappings={(savedMappings ?? []) as { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null; siteplan_version_id?: string | null }[]}
@@ -77,6 +79,7 @@ export default async function SiteplanPage() {
         } : null}
         siteplanSrc={siteplanSrc}
       />
-    </KavioShell>
+      </KavioShell>
+    </>
   );
 }
