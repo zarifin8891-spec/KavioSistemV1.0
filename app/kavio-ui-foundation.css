@@ -578,8 +578,8 @@ select option:hover {
 
 
 /* Master Kavling: denser inventory table and single-line row actions */
-.kavling-page .kavio-table th { height:30px; padding:4px 6px; font-size:8px; }
-.kavling-page .kavio-table td { min-height:30px; padding:3px 6px; font-size:10px; line-height:1.2; }
+.kavling-page .kavio-table th { height:30px; padding:4px 6px; }
+.kavling-page .kavio-table td { min-height:30px; padding:3px 6px; line-height:1.2; }
 .kavling-page .kavio-table th:first-child,.kavling-page .kavio-table td:first-child { padding-left:8px; }
 .kavling-page .kavio-table th:last-child,.kavling-page .kavio-table td:last-child { padding-right:8px; }
 .kavling-page .kavio-inline-actions { display:flex; align-items:center; justify-content:center; gap:5px; flex-wrap:nowrap; white-space:nowrap; }
@@ -1396,4 +1396,31 @@ button.kavio-button,
 }
 @media (max-width:760px){
   .kavio-pagination{flex-wrap:wrap}
+}
+
+
+/* KAVIO GLOBAL TABLE TYPOGRAPHY — canonical final enforcement
+   No module may redefine table font sizes below these shared tokens. */
+.kavio-content table.kavio-table,
+.kavio-content table.simple-table,
+.kavio-content table.sales-table {
+  font-size:var(--kavio-font-table-body) !important;
+}
+.kavio-content table.kavio-table thead th,
+.kavio-content table.simple-table thead th,
+.kavio-content table.sales-table thead th {
+  font-size:var(--kavio-font-table-head) !important;
+}
+.kavio-content table.kavio-table tbody td,
+.kavio-content table.simple-table tbody td,
+.kavio-content table.sales-table tbody td {
+  font-size:var(--kavio-font-table-body) !important;
+}
+.kavio-content table.kavio-table td .kavio-button,
+.kavio-content table.kavio-table td .kavio-command-button,
+.kavio-content table.kavio-table td button,
+.kavio-content table.simple-table td .kavio-button,
+.kavio-content table.sales-table td .kavio-button,
+.kavio-content table.sales-table td button {
+  font-size:var(--kavio-font-table-button) !important;
 }
