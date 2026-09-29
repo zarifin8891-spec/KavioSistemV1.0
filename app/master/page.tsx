@@ -15,10 +15,7 @@ const masterLinks = [
 
 export default async function MasterPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const { data: accessRows } = await supabase.rpc('kavio_get_current_access');
+const { data: accessRows } = await supabase.rpc('kavio_get_current_access');
   const role = normalizeRole(accessRows?.[0]?.role);
   const visibleLinks = masterLinks.filter((item) => canViewPath(role, item.href));
 
