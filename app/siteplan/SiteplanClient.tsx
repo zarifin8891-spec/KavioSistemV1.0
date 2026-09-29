@@ -67,8 +67,6 @@ type ActiveSiteplan = { id: string; nama_siteplan: string; versi: string; file_n
 
 type Props = {
   kavlings: Kavling[];
-  sales: Sale[];
-  spks: Spk[];
   savedMappings: SavedMapping[];
   activeSiteplan: ActiveSiteplan | null;
   siteplanSrc: string;
@@ -122,7 +120,7 @@ function polygonCenter(points: [number, number][]) {
   ] as [number, number];
 }
 
-export default function SiteplanClient({ kavlings, sales, spks, savedMappings, activeSiteplan, siteplanSrc }: Props) {
+export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan, siteplanSrc }: Props) {
   const fallbackSiteplanSrc = '/siteplan/siteplan-clean-source.png';
   const router = useRouter();
   const siteplanWidth = activeSiteplan?.image_width || SITEPLAN_VIEWBOX.width;
@@ -140,6 +138,10 @@ export default function SiteplanClient({ kavlings, sales, spks, savedMappings, a
   const [localSavedMappings, setLocalSavedMappings] = useState(savedMappings);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadingSiteplan, setUploadingSiteplan] = useState(false);
+  const [imageReady, setImageReady] = useState(false);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [spks, setSpks] = useState<Spk[]>([]);
+  const [operationalDataLoaded, setOperationalDataLoaded] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   // Keep the visible Siteplan on the signed Storage URL, but process Auto Detect
@@ -155,6 +157,10 @@ export default function SiteplanClient({ kavlings, sales, spks, savedMappings, a
 
   useEffect(() => {
     processingImageRef.current = null;
+    setImageReady(false);
+    setSales([]);
+    setSpks([]);
+    setOperationalDataLoaded(false);
     setMappingPoints([]);
     setPolygonFinished(false);
     setAutoDetectSeed(null);
@@ -162,6 +168,33 @@ export default function SiteplanClient({ kavlings, sales, spks, savedMappings, a
     setDraggingPointIndex(null);
     setMappingNotice('');
   }, [activeSiteplan?.id]);
+
+  useEffect(() => {
+    if (!imageReady || operationalDataLoaded || !kavlings.length) return;
+
+    let mounted = true;
+    const ids = kavlings.map((row) => row.id_kavling);
+    const supabase = createClient();
+
+    Promise.all([
+      supabase
+        .from('sales')
+        .select('id_sales,id_kavling,nama_konsumen,status_sales,jenis_pembayaran,harga_jual,tgl_booking,target_akad,tgl_akad,id_bank,id_notaris')
+        .in('id_kavling', ids),
+      supabase
+        .from('spk')
+        .select('id_spk,id_kavling,tgl_spk,id_tipe,jenis_bobot,id_kantor,id_mandor,status_spk,tgl_target_selesai,is_active')
+        .in('id_kavling', ids)
+        .eq('is_active', true),
+    ]).then(([salesResult, spkResult]) => {
+      if (!mounted) return;
+      setSales((salesResult.data ?? []) as Sale[]);
+      setSpks((spkResult.data ?? []) as Spk[]);
+      setOperationalDataLoaded(true);
+    });
+
+    return () => { mounted = false; };
+  }, [imageReady, operationalDataLoaded, kavlings]);
   const savedMap = useMemo(() => Object.fromEntries(localSavedMappings.map((row) => [row.id_kavling, row])), [localSavedMappings]);
   // A newly uploaded Siteplan must start from its own version-scoped mappings.
   // Never overlay the old built-in geometry onto a different uploaded drawing.
@@ -700,6 +733,7 @@ export default function SiteplanClient({ kavlings, sales, spks, savedMappings, a
                 className="siteplan-image"
                 fetchPriority="high"
                 decoding="async"
+                onLoad={() => setImageReady(true)}
                 onError={(event) => {
                   const image = event.currentTarget;
                   if (image.dataset.fallbackApplied === '1') return;
