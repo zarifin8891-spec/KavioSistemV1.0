@@ -15,10 +15,7 @@ type Decision = { progress_aktual: number | string; progress_seharusnya: number 
 export default async function ProgressPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const [{ data: spks, error: spkError }, { data: categories, error: categoryError }] = await Promise.all([
+const [{ data: spks, error: spkError }, { data: categories, error: categoryError }] = await Promise.all([
     supabase.from('spk').select('id_spk,id_kavling,id_tipe,tgl_spk,tgl_target_selesai,status_spk,is_active').eq('is_active', true).order('tgl_target_selesai'),
     supabase.from('master_kategori_pekerjaan').select('id_kategori,nama_kategori,urutan').eq('status_aktif', true).order('urutan'),
   ]);
