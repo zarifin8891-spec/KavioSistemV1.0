@@ -75,12 +75,12 @@ body { margin: 0; }
    ============================================================ */
 
 :root {
-  --kavio-font-table-title: 14px;
-  --kavio-font-table-subtitle: 12px;
-  --kavio-font-table-head: 12px;
-  --kavio-font-table-body: 13px;
-  --kavio-font-table-button: 12px;
-  --kavio-font-table-badge: 11px;
+  --kavio-font-table-title: 15px;
+  --kavio-font-table-subtitle: 13px;
+  --kavio-font-table-head: 13px;
+  --kavio-font-table-body: 14px;
+  --kavio-font-table-button: 13px;
+  --kavio-font-table-badge: 12px;
 }
 
 .kavio-table-title,
@@ -931,15 +931,6 @@ button.kavio-button,
 .sales-table td button,
 .sales-table td a.kavio-button,
 .sales-table td a.kavio-command-button {
-  font-size:9px !important;
-}
-.spk-actions .kavio-button,
-.spk-actions .kavio-command-button,
-.spk-actions button,
-.spk-actions a {
-  font-size:9px !important;
-}
-.kavling-page .kavio-table td .kavio-button {
   font-size:9px !important;
 }
 
