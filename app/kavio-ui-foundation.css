@@ -1377,3 +1377,31 @@ button.kavio-button,
     margin-top:10px !important;
   }
 }
+
+
+/* Global data pagination */
+.kavio-pagination{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
+}
+.kavio-pagination > span{
+  font-size:var(--kavio-font-table-head);
+  color:var(--kavio-muted);
+  white-space:nowrap;
+}
+.kavio-pagination .kavio-button{
+  min-height:30px;
+  height:30px;
+  padding:0 10px;
+}
+.kavio-pagination-foot{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--kavio-border);
+}
+@media (max-width:760px){
+  .kavio-pagination{flex-wrap:wrap}
+}
