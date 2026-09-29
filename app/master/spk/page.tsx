@@ -19,10 +19,7 @@ type Spk = { id_spk: string; id_kavling: string; tgl_spk: string; id_tipe: strin
 export default async function MasterSpkPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkRes] = await Promise.all([
+const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkRes] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling, blok, no_kavling, id_tipe, status_kavling').eq('status_aktif', true).order('blok').order('no_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe, nama_tipe').eq('status_aktif', true).order('nama_tipe'),
     supabase.from('master_kantor_pelaksana').select('id_kantor, nama_kantor_pelaksana').eq('status_aktif', true).order('nama_kantor_pelaksana'),
