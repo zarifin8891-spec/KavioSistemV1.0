@@ -1,5 +1,4 @@
-import { headers } from 'next/headers';
-import { normalizeRole } from '../../lib/kavio-permissions';
+import { getKavioRequestContext } from '../../lib/kavio-request-context';
 import KavioShellClient from './kavio-shell-client';
 
 export default async function KavioShell({
@@ -9,14 +8,12 @@ export default async function KavioShell({
   children: React.ReactNode;
   active?: string;
 }) {
-  const requestHeaders = await headers();
-  const initialUserEmail = requestHeaders.get('x-kavio-user-email') ?? '';
-  const initialRole = normalizeRole(requestHeaders.get('x-kavio-role'));
-  const initialActions = (requestHeaders.get('x-kavio-actions') ?? '')
-    .split(',')
-    .map((value) => value.trim())
-    .filter(Boolean);
-  const accessReady = requestHeaders.get('x-kavio-access-ready') === '1';
+  const {
+    userEmail: initialUserEmail,
+    role: initialRole,
+    actions: initialActions,
+    accessReady,
+  } = await getKavioRequestContext();
 
   return (
     <KavioShellClient
