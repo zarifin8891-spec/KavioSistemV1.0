@@ -81,6 +81,7 @@ export default function KavioShellClient({
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    document.cookie = 'kavio_browser_session=; Path=/; Max-Age=0; SameSite=Lax';
     router.push('/login');
   };
 
