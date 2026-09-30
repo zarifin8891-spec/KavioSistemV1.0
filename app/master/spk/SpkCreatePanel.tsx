@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { createSpk } from './actions';
 import KavioActionGate from '../../components/KavioActionGate';
 import WeightConfigurator from './WeightConfigurator';
+import KavioFormModal from '../../components/KavioFormModal';
 
 type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string };
 type Kategori = { id_kategori: string; nama_kategori: string; urutan: number };
@@ -38,14 +39,19 @@ export default function SpkCreatePanel({
           <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span><span>{open ? 'Tutup Form' : 'Tambah SPK'}</span>
         </button>
 
-        {open && (
+        <KavioFormModal open={open} onClose={() => setOpen(false)} size="wide" ariaLabel="Input SPK Baru" closeOnBackdrop={false}>
         <section className="kavio-panel kvio-create-panel">
           <div className="kavio-panel-head">
             <div>
               <h2 className="kavio-panel-title">INPUT SPK BARU</h2>
               <div className="kavio-panel-note">Satu kavling hanya memiliki satu SPK. Jika masih ada SPK DRAFT untuk kavling yang dipilih, data akan diperbarui pada SPK tersebut lalu diaktifkan.</div>
             </div>
-            <span className="kavio-badge">DRAFT</span>
+            <div className="kavio-create-head-actions">
+              <span className="kavio-badge">DRAFT</span>
+              <button type="button" className="kavio-command-button secondary" onClick={() => setOpen(false)}>
+                <span className="kavio-command-icon" aria-hidden="true">×</span><span>Tutup Form</span>
+              </button>
+            </div>
           </div>
           <form action={createSpk} className="kavio-form kvio-spk-form">
             <WeightConfigurator kavlingRows={kavlingRows} kategoriRows={kategoriRows} templateRows={templateRows} />
@@ -57,7 +63,7 @@ export default function SpkCreatePanel({
             <div className="kavio-actions"><button type="submit" className="kavio-button" disabled={!kavlingRows.length || !kantorRows.length || !filteredMandorRows.length || !kategoriRows.length}>SIMPAN SPK SEBAGAI DRAFT</button></div>
           </form>
         </section>
-        )}
+        </KavioFormModal>
       </div>
     </KavioActionGate>
   );
