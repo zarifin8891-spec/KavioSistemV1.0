@@ -7,6 +7,7 @@ import { formatKavioDate } from '../../../lib/date-format';
 import SalesCostPanel from '../SalesCostPanel';
 import { formatKavioMoney } from '../../../lib/number-format';
 import KavioActionGate from '../../../components/KavioActionGate';
+import KavioModalAction from '../../../components/KavioModalAction';
 
 type SearchParams = Promise<{id?:string;error?:string;success?:string}>;
 type Sale={id_sales:string;id_kavling:string;nama_konsumen:string;alamat_konsumen:string|null;hp_konsumen:string|null;status_sales:string;jenis_pembayaran:string;id_bank:string|null;id_notaris:string|null;harga_jual:number|string|null;tgl_booking:string|null;target_akad:string|null;tgl_akad:string|null;status_aktif:boolean};
@@ -28,24 +29,41 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
  return <main className="master-simple-page sales-detail-page">
    {p.error&&<div className="kavio-alert error">{p.error}</div>}{p.success&&<div className="kavio-alert success">{p.success}</div>}
    <section className="kavio-panel">
-     <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DATA SALES — {s.id_kavling}</h2><div className="kavio-panel-note">Informasi konsumen, status penjualan, pembayaran, dan data akad.</div></div><KavioActionGate action="SALES_WRITE"><button type="submit" form="sales-info-form" className="kavio-button">SIMPAN PERUBAHAN</button></KavioActionGate></div>
-     <KavioActionGate action="SALES_WRITE">
-       <form id="sales-info-form" action={updateSalesInfo} className="kavio-form">
-       <input type="hidden" name="id_sales" value={s.id_sales}/>
-       <label className="kavio-field"><span>NAMA KONSUMEN</span><input name="nama_konsumen" defaultValue={s.nama_konsumen}/></label>
-       <label className="kavio-field"><span>HP KONSUMEN</span><input name="hp_konsumen" type="tel" inputMode="tel" defaultValue={s.hp_konsumen??''}/></label>
-       <label className="kavio-field sales-span-2"><span>ALAMAT KONSUMEN</span><input name="alamat_konsumen" defaultValue={s.alamat_konsumen??''}/></label>
-       <label className="kavio-field"><span>STATUS SALES</span><select name="status_sales" defaultValue={s.status_sales}><option value="BOOKING">BOOKING</option><option value="DP">UANG MUKA</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select></label>
-       <label className="kavio-field"><span>JENIS PEMBAYARAN</span><select name="jenis_pembayaran" defaultValue={s.jenis_pembayaran??''}><option>KPR</option><option>CASH</option><option>CASH_BERTAHAP</option></select></label>
-       <label className="kavio-field"><span>BANK KPR</span><select name="id_bank" defaultValue={s.id_bank??''}><option value="">PILIH BANK</option>{br.map(x=><option key={x.id_bank} value={x.id_bank}>{x.nama_bank}</option>)}</select></label>
-       <label className="kavio-field"><span>HARGA JUAL</span><input className="kavio-money" value={formatKavioMoney(s.harga_jual)} readOnly /></label>
-       <label className="kavio-field"><span>TANGGAL BOOKING</span><input value={s.tgl_booking ? formatKavioDate(s.tgl_booking) : ''} readOnly /></label>
-       <label className="kavio-field"><span>TARGET AKAD</span><input type="date" name="target_akad" defaultValue={s.target_akad??''}/></label>
-       <label className="kavio-field"><span>TANGGAL AKAD</span><input type="date" name="tgl_akad" defaultValue={s.tgl_akad??''}/></label>
-       <label className="kavio-field"><span>NOTARIS AKAD</span><select name="id_notaris" defaultValue={s.id_notaris??''}><option value="">PILIH NOTARIS</option>{nr.map(x=><option key={x.id_notaris} value={x.id_notaris}>{x.nama_notaris}</option>)}</select></label>
-       
-       </form>
-     </KavioActionGate>
+     <div className="kavio-panel-head">
+       <div><h2 className="kavio-panel-title">DATA SALES — {s.id_kavling}</h2><div className="kavio-panel-note">Informasi konsumen, status penjualan, pembayaran, dan data akad.</div></div>
+       <KavioActionGate action="SALES_WRITE">
+         <KavioModalAction buttonLabel="EDIT DATA SALES" title={`EDIT DATA SALES — ${s.id_kavling}`} note="Perbarui data transaksi dan lifecycle Sales lalu simpan." size="wide">
+           <form id="sales-info-form" action={updateSalesInfo} className="kavio-form kavio-panel-body">
+             <input type="hidden" name="id_sales" value={s.id_sales}/>
+             <label className="kavio-field"><span>NAMA KONSUMEN</span><input name="nama_konsumen" defaultValue={s.nama_konsumen}/></label>
+             <label className="kavio-field"><span>HP KONSUMEN</span><input name="hp_konsumen" type="tel" inputMode="tel" defaultValue={s.hp_konsumen??''}/></label>
+             <label className="kavio-field sales-span-2"><span>ALAMAT KONSUMEN</span><input name="alamat_konsumen" defaultValue={s.alamat_konsumen??''}/></label>
+             <label className="kavio-field"><span>STATUS SALES</span><select name="status_sales" defaultValue={s.status_sales}><option value="BOOKING">BOOKING</option><option value="DP">UANG MUKA</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select></label>
+             <label className="kavio-field"><span>JENIS PEMBAYARAN</span><select name="jenis_pembayaran" defaultValue={s.jenis_pembayaran??''}><option>KPR</option><option>CASH</option><option>CASH_BERTAHAP</option></select></label>
+             <label className="kavio-field"><span>BANK KPR</span><select name="id_bank" defaultValue={s.id_bank??''}><option value="">PILIH BANK</option>{br.map(x=><option key={x.id_bank} value={x.id_bank}>{x.nama_bank}</option>)}</select></label>
+             <label className="kavio-field"><span>HARGA JUAL</span><input className="kavio-money" value={formatKavioMoney(s.harga_jual)} readOnly /></label>
+             <label className="kavio-field"><span>TANGGAL BOOKING</span><input value={s.tgl_booking ? formatKavioDate(s.tgl_booking) : ''} readOnly /></label>
+             <label className="kavio-field"><span>TARGET AKAD</span><input type="date" name="target_akad" defaultValue={s.target_akad??''}/></label>
+             <label className="kavio-field"><span>TANGGAL AKAD</span><input type="date" name="tgl_akad" defaultValue={s.tgl_akad??''}/></label>
+             <label className="kavio-field"><span>NOTARIS AKAD</span><select name="id_notaris" defaultValue={s.id_notaris??''}><option value="">PILIH NOTARIS</option>{nr.map(x=><option key={x.id_notaris} value={x.id_notaris}>{x.nama_notaris}</option>)}</select></label>
+             <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN PERUBAHAN</button></div>
+           </form>
+         </KavioModalAction>
+       </KavioActionGate>
+     </div>
+     <div className="kavio-read-grid kavio-panel-body">
+       <div><span>KONSUMEN</span><strong>{s.nama_konsumen}</strong></div>
+       <div><span>HP</span><strong>{s.hp_konsumen??'—'}</strong></div>
+       <div><span>STATUS</span><strong>{s.status_sales}</strong></div>
+       <div><span>PEMBAYARAN</span><strong>{s.jenis_pembayaran}</strong></div>
+       <div><span>BANK</span><strong>{br.find(x=>x.id_bank===s.id_bank)?.nama_bank??'—'}</strong></div>
+       <div><span>HARGA JUAL</span><strong className="kavio-money">{formatKavioMoney(s.harga_jual)}</strong></div>
+       <div><span>BOOKING</span><strong>{s.tgl_booking?formatKavioDate(s.tgl_booking):'—'}</strong></div>
+       <div><span>TARGET AKAD</span><strong>{s.target_akad?formatKavioDate(s.target_akad):'—'}</strong></div>
+       <div><span>TANGGAL AKAD</span><strong>{s.tgl_akad?formatKavioDate(s.tgl_akad):'—'}</strong></div>
+       <div><span>NOTARIS</span><strong>{nr.find(x=>x.id_notaris===s.id_notaris)?.nama_notaris??'—'}</strong></div>
+       <div className="kavio-read-span-2"><span>ALAMAT</span><strong>{s.alamat_konsumen??'—'}</strong></div>
+     </div>
    </section>
 
    <KavioActionGate action="SALES_WRITE">
@@ -53,17 +71,24 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
    </KavioActionGate>
 
    {(s.jenis_pembayaran==='KPR'||s.status_sales==='PROSES_KPR')&&<section className="kavio-panel">
-     <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PROSES KPR</h2><div className="kavio-panel-note">Setiap tahap disimpan sebagai histori proses KPR.</div></div><div className="sales-kpr-head-actions"><span className="kavio-badge">{kr.length} UPDATE</span><KavioActionGate action="SALES_WRITE"><button type="submit" form="sales-kpr-form" className="kavio-button">SIMPAN UPDATE KPR</button></KavioActionGate></div></div>
-     
+     <div className="kavio-panel-head">
+       <div><h2 className="kavio-panel-title">PROGRESS PROSES KPR</h2><div className="kavio-panel-note">Setiap tahap disimpan sebagai histori proses KPR.</div></div>
+       <div className="sales-kpr-head-actions">
+         <span className="kavio-badge">{kr.length} UPDATE</span>
+         <KavioActionGate action="SALES_WRITE">
+           <KavioModalAction buttonLabel="INPUT UPDATE KPR" title="UPDATE PROSES KPR" note="Simpan satu tahap proses KPR pada transaksi ini." size="compact">
+             <form id="sales-kpr-form" action={upsertKprProgress} className="kavio-form kavio-panel-body">
+               <input type="hidden" name="id_sales" value={s.id_sales}/>
+               <label className="kavio-field"><span>TAHAP</span><select name="tahap" defaultValue="KELENGKAPAN_DATA">{STAGES.map(x=><option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>
+               <label className="kavio-field"><span>TANGGAL UPDATE</span><input type="date" name="tanggal_update" required/></label>
+               <label className="kavio-field sales-span-2"><span>KETERANGAN</span><input name="keterangan" placeholder="CATATAN PROSES KPR"/></label>
+               <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN UPDATE KPR</button></div>
+             </form>
+           </KavioModalAction>
+         </KavioActionGate>
+       </div>
+     </div>
      <div className="sales-kpr-grid kavio-panel-body">{STAGES.map(([key,label])=>{const row=kprMap.get(key);return <div key={key} className={`sales-kpr-stage ${row?'is-done':''}`}><div className="sales-kpr-stage-title">{label}</div><div className="sales-kpr-stage-date">{row ? formatKavioDate(row.tanggal_update) : 'BELUM UPDATE'}</div><div className="sales-kpr-stage-note">{row?.keterangan??'—'}</div></div>})}</div>
-     <KavioActionGate action="SALES_WRITE">
-       <form id="sales-kpr-form" action={upsertKprProgress} className="kavio-form kavio-panel-body">
-       <input type="hidden" name="id_sales" value={s.id_sales}/>
-       <label className="kavio-field"><span>TAHAP</span><select name="tahap" defaultValue="KELENGKAPAN_DATA">{STAGES.map(x=><option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>
-       <label className="kavio-field"><span>TANGGAL UPDATE</span><input type="date" name="tanggal_update" required/></label>
-       <label className="kavio-field sales-span-2"><span>KETERANGAN</span><input name="keterangan" placeholder="CATATAN PROSES KPR"/></label>
-       </form>
-     </KavioActionGate>
    </section>}
  </main>;
 }
