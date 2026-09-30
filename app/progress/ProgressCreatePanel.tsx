@@ -14,6 +14,7 @@ export default function ProgressCreatePanel({
   configs,
   categories,
   completedCategoryIds,
+  currentProgressRows,
   autoOpen = false,
 }: {
   idSpk: string;
@@ -21,6 +22,7 @@ export default function ProgressCreatePanel({
   configs: Config[];
   categories: Category[];
   completedCategoryIds: string[];
+  currentProgressRows: Array<{ id_kategori: string; progress_akumulasi: number }>;
   autoOpen?: boolean;
 }) {
   const router = useRouter();
@@ -30,6 +32,7 @@ export default function ProgressCreatePanel({
   const categoryMap = new Map(categories.map((row) => [row.id_kategori, row]));
   const completedSet = new Set(completedCategoryIds);
   const availableConfigs = configs.filter((config) => !completedSet.has(config.id_kategori));
+  const currentProgressMap = new Map(currentProgressRows.map((row) => [row.id_kategori, Number(row.progress_akumulasi ?? 0)]));
   const today = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
@@ -66,6 +69,31 @@ export default function ProgressCreatePanel({
     router.replace(query ? `/progress?${query}` : '/progress', { scroll: false });
   };
 
+  const validateBeforeSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const categoryId = String(data.get('id_kategori') ?? '');
+    const period = Number(data.get('progress_periode') ?? NaN);
+
+    if (!categoryId || !Number.isFinite(period)) return;
+
+    const currentPct = (currentProgressMap.get(categoryId) ?? 0) * 100;
+    const nextPct = currentPct + period;
+
+    if (nextPct > 100.000001) {
+      event.preventDefault();
+      const maxAllowed = Math.max(0, 100 - currentPct);
+      window.dispatchEvent(new CustomEvent('kavio-message', {
+        detail: {
+          tone: 'error',
+          title: 'PROGRESS MELEBIHI 100%',
+          message: `Progress kategori saat ini ${currentPct.toFixed(2)}%. Maksimal progress periode yang dapat ditambahkan adalah ${maxAllowed.toFixed(2)}%. Input ${period.toFixed(2)}% akan membuat akumulasi menjadi ${nextPct.toFixed(2)}%.`,
+          focusTarget: 'progress_periode',
+        },
+      }));
+    }
+  };
+
   return (
     <KavioActionGate action="PROGRESS_WRITE">
       <div className="progress-create-wrap">
@@ -86,7 +114,7 @@ export default function ProgressCreatePanel({
               <span className="kavio-command-icon" aria-hidden="true">×</span><span>Tutup Form</span>
             </button>
           </div>
-          <form action={createProgressUpdate} className="kavio-form progress-input-form">
+          <form action={createProgressUpdate} className="kavio-form progress-input-form" onSubmit={validateBeforeSubmit}>
             <input type="hidden" name="id_spk" value={idSpk} />
             <label className="kavio-field"><span>TANGGAL UPDATE</span><input type="date" name="tanggal_update" min={tglSpk} defaultValue={today} required /></label>
             <label className="kavio-field"><span>KATEGORI PEKERJAAN</span><select name="id_kategori" defaultValue="" required><option value="" disabled>PILIH KATEGORI</option>{availableConfigs.map((config) => { const category = categoryMap.get(config.id_kategori); return <option key={config.id_kategori} value={config.id_kategori}>{category?.urutan ?? ''}. {category?.nama_kategori ?? config.id_kategori} — BOBOT {(Number(config.bobot_final) * 100).toFixed(2)}%</option>; })}</select></label>
