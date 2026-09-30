@@ -51,6 +51,36 @@ export async function createTipeRumah(formData: FormData) {
   redirect('/master/tipe-rumah?success=Tipe%20rumah%20berhasil%20ditambahkan');
 }
 
+
+export async function updateTipeRumah(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/tipe-rumah?error=');
+
+  const idTipe = text(formData.get('id_tipe'));
+  const namaTipe = text(formData.get('nama_tipe'));
+  const luasTanah = number(formData.get('luas_tanah'));
+  const luasBangunan = number(formData.get('luas_bangunan'));
+  if (!idTipe || !namaTipe) redirect('/master/tipe-rumah?error=ID%20dan%20nama%20tipe%20wajib%20diisi');
+  if (!Number.isFinite(luasTanah) || luasTanah <= 0 || !Number.isFinite(luasBangunan) || luasBangunan <= 0) {
+    redirect('/master/tipe-rumah?error=Luas%20tanah%20dan%20luas%20bangunan%20harus%20bernilai%20positif');
+  }
+
+  const { error } = await supabase.from('master_tipe_rumah').update({
+    nama_tipe: namaTipe,
+    luas_tanah_m2: luasTanah,
+    luas_bangunan_m2: luasBangunan,
+  }).eq('id_tipe', idTipe);
+  if (error) redirect(`/master/tipe-rumah?error=${encodeURIComponent(error.message)}`);
+
+  revalidatePath('/master/tipe-rumah');
+  revalidatePath('/master/kavling');
+  revalidatePath('/master/template-progress');
+  revalidatePath('/dashboard');
+  redirect('/master/tipe-rumah?success=Tipe%20rumah%20berhasil%20diperbarui');
+}
+
 export async function toggleTipeRumah(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
