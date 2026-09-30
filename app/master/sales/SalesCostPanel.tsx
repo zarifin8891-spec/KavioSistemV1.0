@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { saveSalesBiaya } from './actions';
 import KavioActionGate from '../../components/KavioActionGate';
+import { formatKavioMoney } from '../../lib/number-format';
 
 type Cost = { jenis_biaya: string; nominal: number | string };
 
@@ -12,14 +13,6 @@ const ITEMS = [
   ['PEMILIHAN LOKASI HOOK', 'biaya_hook'],
   ['BIAYA LAINNYA', 'biaya_lainnya'],
 ] as const;
-
-function money(value: number) {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 export default function SalesCostPanel({
   idSales,
@@ -65,9 +58,9 @@ export default function SalesCostPanel({
           ))}
         </div>
         <div className="sales-cost-summary">
-          <div><span>HARGA JUAL DASAR</span><strong>{money(base)}</strong></div>
-          <div><span>TOTAL BIAYA TAMBAHAN</span><strong>{money(totalBiaya)}</strong></div>
-          <div><span>TOTAL HARGA SALES</span><strong>{money(totalHarga)}</strong></div>
+          <div><span>HARGA JUAL DASAR</span><strong className="kavio-money">{formatKavioMoney(base)}</strong></div>
+          <div><span>TOTAL BIAYA TAMBAHAN</span><strong className="kavio-money">{formatKavioMoney(totalBiaya)}</strong></div>
+          <div><span>TOTAL HARGA SALES</span><strong className="kavio-money">{formatKavioMoney(totalHarga)}</strong></div>
         </div>
          
       </form></KavioActionGate>
