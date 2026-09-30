@@ -4,6 +4,18 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import KavioFormModal from './KavioFormModal';
 
+function prettyLabel(value: string) {
+  return value
+    .replaceAll('+', '')
+    .replaceAll('×', '')
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export default function KavioCreatePanel({
   buttonLabel,
   closeLabel = '× TUTUP FORM',
@@ -37,7 +49,7 @@ export default function KavioCreatePanel({
   const trigger = (
     <button type="button" className="kavio-command-button" onClick={() => setOpen(true)}>
       <span className="kavio-command-icon" aria-hidden="true">+</span>
-      <span>{buttonLabel.replace(/^+s*/, '').toLowerCase().replace(/w/g, (char) => char.toUpperCase())}</span>
+      <span>{prettyLabel(buttonLabel)}</span>
     </button>
   );
 
@@ -54,7 +66,7 @@ export default function KavioCreatePanel({
             {headerActions}
             <button type="button" className="kavio-command-button secondary" onClick={close}>
               <span className="kavio-command-icon" aria-hidden="true">×</span>
-              <span>{closeLabel.replace(/^[×+]?s*/, '').toLowerCase().replace(/w/g, (char) => char.toUpperCase())}</span>
+              <span>{prettyLabel(closeLabel)}</span>
             </button>
           </div>
         </div>
