@@ -1722,3 +1722,43 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
   background:rgba(2,12,25,.66);
   backdrop-filter:blur(3px);
 }
+
+
+/* Read-only detail grid shown behind modal edit actions. */
+.kavio-read-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px 14px;
+}
+.kavio-read-grid > div {
+  min-width:0;
+  padding:9px 10px;
+  border:1px solid rgba(216,180,90,.14);
+  border-radius:8px;
+  background:rgba(4,24,47,.18);
+}
+.kavio-read-grid span {
+  display:block;
+  color:var(--kavio-muted);
+  font-size:var(--kavio-font-form-label);
+  line-height:1.2;
+  text-transform:uppercase;
+}
+.kavio-read-grid strong {
+  display:block;
+  margin-top:4px;
+  color:var(--kavio-ivory);
+  font-size:var(--kavio-font-input);
+  font-weight:400;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+.kavio-read-span-2 { grid-column:span 2; }
+
+@media (max-width:900px) {
+  .kavio-read-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:650px) {
+  .kavio-read-grid { grid-template-columns:1fr; }
+  .kavio-read-span-2 { grid-column:span 1; }
+}
