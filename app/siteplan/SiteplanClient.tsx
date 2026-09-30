@@ -8,6 +8,7 @@ import { formatKavioDate } from '../lib/date-format';
 import { SITEPLAN_MAP, SITEPLAN_VIEWBOX } from './siteplan-map';
 import { detectLotPolygon } from './siteplan-mapping-engine';
 import KavioActionGate from '../components/KavioActionGate';
+import { formatKavioMoney } from '../lib/number-format';
 
 type Kavling = {
   id_kavling: string;
@@ -80,10 +81,7 @@ function statusClass(status?: string | null) {
 
 function formatDate(value?: string | null) { return formatKavioDate(value); }
 
-function formatMoney(value?: number | string | null) {
-  if (value == null || value === '') return '—';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value));
-}
+
 
 function polygonPoints(points: [number, number][]) {
   return points.map(([x, y]) => `${x},${y}`).join(' ');
@@ -926,7 +924,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
                   <div className="siteplan-related-grid">
                     <div><span>KONSUMEN</span><strong>{selectedSale.nama_konsumen || '—'}</strong></div>
                     <div><span>PEMBAYARAN</span><strong>{selectedSale.jenis_pembayaran || '—'}</strong></div>
-                    <div><span>HARGA JUAL</span><strong>{formatMoney(selectedSale.harga_jual)}</strong></div>
+                    <div><span>HARGA JUAL</span><strong className="kavio-money">{formatKavioMoney(selectedSale.harga_jual)}</strong></div>
                     <div><span>TARGET AKAD</span><strong>{formatDate(selectedSale.target_akad)}</strong></div>
                     <div className="siteplan-related-actions"><Link href={`/master/sales/detail?id=${selectedSale.id_sales}`} className="kavio-button secondary">DETAIL SALES</Link></div>
                   </div>
