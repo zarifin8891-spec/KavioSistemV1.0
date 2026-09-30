@@ -116,45 +116,20 @@ export async function saveSalesBiaya(formData: FormData) {
   const idSales = text(formData.get('id_sales'));
   if (!idSales) return detailError('', 'ID SALES TIDAK VALID');
 
-  const items = [
-    ['PENAMBAHAN BANGUNAN', Number(formData.get('biaya_penambahan_bangunan') ?? 0)],
-    ['NOTARIS', Number(formData.get('biaya_notaris') ?? 0)],
-    ['PEMILIHAN LOKASI HOOK', Number(formData.get('biaya_hook') ?? 0)],
-    ['BIAYA LAINNYA', Number(formData.get('biaya_lainnya') ?? 0)],
-  ] as const;
+  const biayaPenambahanBangunan = Number(formData.get('biaya_penambahan_bangunan') ?? 0);
+  const biayaNotaris = Number(formData.get('biaya_notaris') ?? 0);
+  const biayaHook = Number(formData.get('biaya_hook') ?? 0);
+  const biayaLainnya = Number(formData.get('biaya_lainnya') ?? 0);
 
-  if (!items.every(([, nominal]) => Number.isFinite(nominal) && nominal >= 0)) {
-    return detailError(idSales, 'BIAYA TAMBAHAN TIDAK VALID');
-  }
+  const { error } = await supabase.rpc('save_sales_biaya_atomic', {
+    p_id_sales: idSales,
+    p_biaya_penambahan_bangunan: biayaPenambahanBangunan,
+    p_biaya_notaris: biayaNotaris,
+    p_biaya_hook: biayaHook,
+    p_biaya_lainnya: biayaLainnya,
+  });
 
-  const { data: sale, error: saleError } = await supabase
-    .from('sales')
-    .select('id_sales')
-    .eq('id_sales', idSales)
-    .maybeSingle();
-
-  if (saleError || !sale) return detailError(idSales, saleError?.message ?? 'DATA SALES TIDAK DITEMUKAN');
-
-  const { error: upsertError } = await supabase
-    .from('sales_biaya_tambahan')
-    .upsert(
-      items
-        .filter(([, nominal]) => nominal > 0)
-        .map(([jenis_biaya, nominal]) => ({ id_sales: idSales, jenis_biaya, nominal, status_aktif: true })),
-      { onConflict: 'id_sales,jenis_biaya' },
-    );
-
-  if (upsertError) return detailError(idSales, upsertError.message);
-
-  const zeroTypes = items.filter(([, nominal]) => nominal === 0).map(([jenis_biaya]) => jenis_biaya);
-  if (zeroTypes.length) {
-    const { error: deleteError } = await supabase
-      .from('sales_biaya_tambahan')
-      .delete()
-      .eq('id_sales', idSales)
-      .in('jenis_biaya', zeroTypes);
-    if (deleteError) return detailError(idSales, deleteError.message);
-  }
+  if (error) return detailError(idSales, error.message);
 
   revalidatePath('/master/sales');
   revalidatePath('/master/sales/detail');
@@ -168,15 +143,19 @@ export async function deactivateSales(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
   await requireKavioAction('SALES_WRITE', '/master/sales?error=');
-  const idSales = text(formData.get('id_sales')); if (!idSales) return redirectError('ID SALES TIDAK VALID');
-  const { data: sales, error } = await supabase.from('sales').select('id_sales,id_kavling,status_sales,status_aktif').eq('id_sales', idSales).maybeSingle();
-  if (error || !sales) return redirectError(error?.message ?? 'DATA SALES TIDAK DITEMUKAN');
-  const { error: updateError } = await supabase.from('sales').update({ status_aktif:false, status_sales:sales.status_sales === 'AKAD' ? 'AKAD' : 'BATAL' }).eq('id_sales',idSales).eq('status_aktif',true);
-  if (updateError) return redirectError(updateError.message);
-  const [{ data: activeSpk, error:spkError },{data:kavling,error:kavlingError},{data:completedSpk,error:completedError}] = await Promise.all([supabase.from('spk').select('id_spk').eq('id_kavling',sales.id_kavling).eq('is_active',true).maybeSingle(),supabase.from('master_kavling').select('status_kavling').eq('id_kavling',sales.id_kavling).maybeSingle(),supabase.from('spk').select('id_spk').eq('id_kavling',sales.id_kavling).eq('status_spk','SELESAI').limit(1).maybeSingle()]);
-  if (spkError || kavlingError || completedError) return redirectError((spkError??kavlingError??completedError)?.message ?? 'GAGAL MEMBACA STATUS KAVLING');
-  if (!kavling) return redirectError('KAVLING SALES TIDAK DITEMUKAN');
-  if (!activeSpk) { const nextStatus = sales.status_sales === 'AKAD' ? 'SOLD' : completedSpk ? 'READY_STOCK' : 'AVAILABLE'; const {error:kErr}=await supabase.from('master_kavling').update({status_kavling:nextStatus}).eq('id_kavling',sales.id_kavling); if(kErr)return redirectError(kErr.message); }
-  revalidatePath('/master/sales'); revalidatePath('/master/kavling'); revalidatePath('/master/spk'); revalidatePath('/dashboard');
+
+  const idSales = text(formData.get('id_sales'));
+  if (!idSales) return redirectError('ID SALES TIDAK VALID');
+
+  const { error } = await supabase.rpc('close_sales_atomic', { p_id_sales: idSales });
+  if (error) return redirectError(error.message);
+
+  revalidatePath('/master/sales');
+  revalidatePath('/master/sales/detail');
+  revalidatePath('/master/kavling');
+  revalidatePath('/master/spk');
+  revalidatePath('/siteplan');
+  revalidatePath('/dashboard');
   redirect('/master/sales?success=SALES%20BERHASIL%20DITUTUP');
 }
+
