@@ -24,6 +24,23 @@ export async function createNotaris(formData: FormData) {
   revalidatePath('/master/notaris'); revalidatePath('/master/sales'); redirect('/master/notaris?success=Notaris%20berhasil%20ditambahkan');
 }
 
+
+export async function updateNotaris(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/notaris?error=');
+  const idNotaris = text(formData.get('id_notaris'));
+  const namaNotaris = text(formData.get('nama_notaris'));
+  const noIzin = text(formData.get('no_izin')) || null;
+  const noHp = text(formData.get('no_hp')) || null;
+  const alamat = text(formData.get('alamat')) || null;
+  if (!idNotaris || !namaNotaris) { fail('ID notaris dan nama notaris wajib diisi'); return; }
+  const { error } = await supabase.from('master_notaris').update({ nama_notaris: namaNotaris, no_izin: noIzin, no_hp: noHp, alamat }).eq('id_notaris', idNotaris);
+  if (error) { fail(error.message); return; }
+  revalidatePath('/master/notaris'); revalidatePath('/master/sales'); redirect('/master/notaris?success=Notaris%20berhasil%20diperbarui');
+}
+
 export async function toggleNotaris(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
