@@ -5,6 +5,7 @@ import { updateSalesInfo } from '../actions';
 import { upsertKprProgress } from '../kpr-actions';
 import { formatKavioDate } from '../../../lib/date-format';
 import SalesCostPanel from '../SalesCostPanel';
+import { formatKavioMoney } from '../../../lib/number-format';
 import KavioActionGate from '../../../components/KavioActionGate';
 
 type SearchParams = Promise<{id?:string;error?:string;success?:string}>;
@@ -37,7 +38,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
        <label className="kavio-field"><span>STATUS SALES</span><select name="status_sales" defaultValue={s.status_sales}><option value="BOOKING">BOOKING</option><option value="DP">UANG MUKA</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select></label>
        <label className="kavio-field"><span>JENIS PEMBAYARAN</span><select name="jenis_pembayaran" defaultValue={s.jenis_pembayaran??''}><option>KPR</option><option>CASH</option><option>CASH_BERTAHAP</option></select></label>
        <label className="kavio-field"><span>BANK KPR</span><select name="id_bank" defaultValue={s.id_bank??''}><option value="">PILIH BANK</option>{br.map(x=><option key={x.id_bank} value={x.id_bank}>{x.nama_bank}</option>)}</select></label>
-       <label className="kavio-field"><span>HARGA JUAL</span><input value={s.harga_jual??''} readOnly /></label>
+       <label className="kavio-field"><span>HARGA JUAL</span><input className="kavio-money" value={formatKavioMoney(s.harga_jual)} readOnly /></label>
        <label className="kavio-field"><span>TANGGAL BOOKING</span><input value={s.tgl_booking ? formatKavioDate(s.tgl_booking) : ''} readOnly /></label>
        <label className="kavio-field"><span>TARGET AKAD</span><input type="date" name="target_akad" defaultValue={s.target_akad??''}/></label>
        <label className="kavio-field"><span>TANGGAL AKAD</span><input type="date" name="tgl_akad" defaultValue={s.tgl_akad??''}/></label>
