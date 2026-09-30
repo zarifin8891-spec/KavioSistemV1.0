@@ -26,7 +26,12 @@ export default function KavioMessageBox() {
   if (!message || !tone || dismissedKey === key) return null;
 
   const close = () => {
-    if (focusTarget) sessionStorage.setItem('kavio_focus_target', focusTarget);
+    if (focusTarget) {
+      sessionStorage.setItem('kavio_focus_target', focusTarget);
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('kavio-focus-request', { detail: { target: focusTarget } }));
+      }, 60);
+    }
 
     setDismissedKey(key);
 
