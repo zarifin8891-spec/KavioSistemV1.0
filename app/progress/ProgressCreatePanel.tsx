@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createProgressBatchUpdate } from './actions';
 import KavioActionGate from '../components/KavioActionGate';
+import KavioFormModal from '../components/KavioFormModal';
 
 type Config = { id_kategori: string; bobot_final: number | string };
 type Category = { id_kategori: string; nama_kategori: string; urutan: number };
@@ -132,7 +133,7 @@ export default function ProgressCreatePanel({
           </button>
         )}
 
-        {open && (
+        <KavioFormModal open={open} onClose={closePanel} size="full" ariaLabel="Input Progress Batch" closeOnBackdrop={false}>
           <section className="kavio-panel progress-create-panel kavio-batch-entry">
             <div className="kavio-panel-head progress-create-head">
               <div>
@@ -238,7 +239,7 @@ export default function ProgressCreatePanel({
               </div>
             </form>
           </section>
-        )}
+        </KavioFormModal>
       </div>
     </KavioActionGate>
   );
