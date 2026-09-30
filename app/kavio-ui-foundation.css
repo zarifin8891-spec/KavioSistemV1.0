@@ -134,6 +134,7 @@ body { margin: 0; }
 .kavio-table .kavio-badge,
 .kavio-table .kavio-status,
 .kavio-table .status-badge,
+.kavio-table .spk-badge,
 .kavio-table .badge,
 .kavio-table .salesBadge,
 .kavio-table .siteplan-status {
@@ -458,7 +459,7 @@ select option:hover {
 .spk-actions .kavio-button,
 .spk-actions .kavio-command-button,
 .spk-actions button,
-.spk-actions a { min-height:25px !important; height:25px !important; padding:0 7px !important; border-radius:6px !important; font-size:8px !important; line-height:1 !important; }
+.spk-actions a { min-height:25px !important; height:25px !important; padding:0 7px !important; border-radius:6px !important; line-height:1 !important; }
 .spk-actions .kavio-command-icon { width:11px !important; height:11px !important; font-size:10px !important; }
 @media (max-width:900px) { .spk-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:650px) { .spk-stats { grid-template-columns:1fr; } }
@@ -873,68 +874,6 @@ select option:hover {
 }
 
 
-/* FINAL KAVIO TYPOGRAPHY FOUNDATION
-   Shared component typography. Intentional special layouts (for example Dashboard KPI)
-   keep their explicitly approved sizes in their more-specific component rules. */
-.kavio-panel-title,
-.kavio-dashboard-panel-title,
-.progress-section-head,
-.spk-detail-section-title {
-  font-size:13px !important;
-}
-.kavio-panel-note,
-.kavio-dashboard-panel-note {
-  font-size:9px !important;
-}
-.kavio-field,
-.kavio-create-panel .kavio-field > span,
-.sales-create-grid .kavio-field,
-.kvio-spk-form .kavio-field {
-  font-size:9px !important;
-}
-.kavio-field input,
-.kavio-field select,
-.kavio-field textarea,
-.kavio-create-panel .kavio-field input,
-.kavio-create-panel .kavio-field select,
-.kavio-create-panel .kavio-field textarea {
-  font-size:11px !important;
-}
-.kavio-button,
-button.kavio-button,
-.kavio-command-button {
-  font-size:10px !important;
-}
-.kavio-table,
-.simple-table,
-.sales-table {
-  font-size:11px !important;
-}
-.kavio-table th,
-.simple-table th,
-.sales-table th {
-  font-size:10px !important;
-}
-.kavio-table td,
-.simple-table td,
-.sales-table td {
-  font-size:11px !important;
-}
-.kavio-badge,
-.sales-status-badge,
-.spk-badge,
-.kavio-dashboard-priority {
-  font-size:9px !important;
-}
-.sales-table td .kavio-button,
-.sales-table td .kavio-command-button,
-.sales-table td button,
-.sales-table td a.kavio-button,
-.sales-table td a.kavio-command-button {
-  font-size:9px !important;
-}
-
-
 /* ============================================================
    KAVIO TYPOGRAPHY FOUNDATION — REVISION 2
    Increased shared readability globally without page-level overrides.
@@ -947,8 +886,6 @@ button.kavio-button,
   --kavio-font-form-label: 10px;
   --kavio-font-input: 12px;
   --kavio-font-button: 11px;
-  --kavio-font-table-head: 10px;
-  --kavio-font-table-body: 11px;
   --kavio-font-badge: 10px;
   --kavio-font-kpi-label: 14px;
   --kavio-font-kpi-value: 28px;
@@ -1423,4 +1360,15 @@ button.kavio-button,
 .kavio-content table.sales-table td .kavio-button,
 .kavio-content table.sales-table td button {
   font-size:var(--kavio-font-table-button) !important;
+}
+
+.kavio-content table.kavio-table td .spk-badge,
+.kavio-content table.kavio-table td .kavio-badge,
+.kavio-content table.kavio-table td .status-badge,
+.kavio-content table.kavio-table td .sales-status-badge,
+.kavio-content table.kavio-table td .master-status,
+.kavio-content table.simple-table td .spk-badge,
+.kavio-content table.simple-table td .kavio-badge,
+.kavio-content table.sales-table td .sales-status-badge {
+  font-size:var(--kavio-font-table-badge) !important;
 }
