@@ -5,7 +5,7 @@ import { formatKavioDate } from '../lib/date-format';
 
 const HISTORY_PAGE_SIZE = 25;
 
-type SearchParams = Promise<{ spk?: string; error?: string; success?: string; hpage?: string }>;
+type SearchParams = Promise<{ spk?: string; error?: string; success?: string; hpage?: string; panel?: string; focus?: string }>;
 type Spk = { id_spk: string; id_kavling: string; id_tipe: string; tgl_spk: string; tgl_target_selesai: string; status_spk: string; is_active: boolean };
 type Config = { id_kategori: string; bobot_final: number | string };
 type Category = { id_kategori: string; nama_kategori: string; urutan: number };
@@ -118,7 +118,7 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
             {historyPage < historyTotalPages ? <Link href={historyHref(historyPage + 1)} className="kavio-button secondary">BERIKUTNYA →</Link> : <span />}
           </div>
         </section>
-                <ProgressCreatePanel idSpk={selected.id_spk} tglSpk={selected.tgl_spk} configs={configRows} categories={categoryRows} completedCategoryIds={completedCategoryIds} />
+                <ProgressCreatePanel idSpk={selected.id_spk} tglSpk={selected.tgl_spk} configs={configRows} categories={categoryRows} completedCategoryIds={completedCategoryIds} autoOpen={params.panel === 'progress' || Boolean(params.error)} />
         </section>
 
       </>}
