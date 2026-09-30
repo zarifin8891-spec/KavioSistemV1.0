@@ -127,9 +127,9 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
               <td className="sales-highlight">{row.nama_konsumen}</td>
               <td>{row.hp_konsumen??'—'}</td>
               <td>{row.nama_tipe??'—'}</td>
-              <td>{formatCurrency(row.harga_jual_dasar ?? row.harga_jual)}</td>
-              <td>{formatCurrency(row.total_biaya_tambahan ?? 0)}</td>
-              <td>{formatCurrency(row.total_harga ?? row.harga_jual)}</td>
+              <td>{formatNominal(row.harga_jual_dasar ?? row.harga_jual)}</td>
+              <td>{formatNominal(row.total_biaya_tambahan ?? 0)}</td>
+              <td>{formatNominal(row.total_harga ?? row.harga_jual)}</td>
               <td>{row.jenis_pembayaran??'—'}</td>
               <td>{row.jenis_pembayaran==='KPR'?(row.nama_bank??'—'):'—'}</td>
               <td><span className={`sales-status-badge ${row.status_sales.toLowerCase()}`}>{statusLabel(row.status_sales)}</span></td>
@@ -152,5 +152,5 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
 }
 
 function Summary({label,value}:{label:string;value:number}){return <div className="kavio-kpi sales-summary-card"><div className="kavio-kpi-label sales-summary-label">{label}</div><div className="kavio-kpi-value sales-summary-value">{value}</div></div>}
-function formatCurrency(value:number|string|null){const n=Number(value);return Number.isFinite(n)&&n>0?new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n):'—'}
+function formatNominal(value:number|string|null){const n=Number(value);return Number.isFinite(n)&&n>0?new Intl.NumberFormat('id-ID',{maximumFractionDigits:0}).format(n):'—'}
 function statusLabel(status:string){return status==='PROSES_KPR'?'PROSES KPR':status==='DP'?'UANG MUKA':status}
