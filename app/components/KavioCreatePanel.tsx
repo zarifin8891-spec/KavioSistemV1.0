@@ -54,7 +54,7 @@ export default function KavioCreatePanel({
   );
 
   const modal = (
-    <KavioFormModal open={open} onClose={close} size={modalSize} ariaLabel={title}>
+    <KavioFormModal open={open} onClose={close} size={modalSize} ariaLabel={title} closeOnBackdrop={false}>
       <section className="kavio-panel kavio-create-panel">
         <div className="kavio-panel-head">
           <div>
