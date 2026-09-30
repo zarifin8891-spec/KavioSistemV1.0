@@ -883,8 +883,8 @@ select option:hover {
   --kavio-font-page-title: 30px;
   --kavio-font-panel-title: 14px;
   --kavio-font-panel-note: 11px;
-  --kavio-font-form-label: 10px;
-  --kavio-font-input: 12px;
+  --kavio-font-form-label: 11px;
+  --kavio-font-input: 13px;
   --kavio-font-button: 11px;
   --kavio-font-badge: 10px;
   --kavio-font-kpi-label: 14px;
@@ -1388,3 +1388,43 @@ button.kavio-button,
 .kavio-shell .kavio-main .kavio-content table td.kavio-money {
   text-align:right !important;
 }
+
+
+/* KAVIO GLOBAL FORM TYPOGRAPHY — FINAL CANONICAL ENFORCEMENT
+   Labels and field controls use one shared readable/compact scale in every module. */
+.kavio-shell .kavio-main .kavio-content .kavio-field,
+.kavio-shell .kavio-main .kavio-content .kavio-field > span,
+.kavio-shell .kavio-main .kavio-content label.kavio-field,
+.kavio-shell .kavio-main .kavio-content .sales-create-grid .kavio-field,
+.kavio-shell .kavio-main .kavio-content .kvio-spk-form .kavio-field,
+.kavio-shell .kavio-main .kavio-content .progress-input-form .kavio-field > span {
+  font-size:var(--kavio-font-form-label) !important;
+  line-height:1.2 !important;
+  font-weight:400 !important;
+}
+.kavio-shell .kavio-main .kavio-content .kavio-field input,
+.kavio-shell .kavio-main .kavio-content .kavio-field select,
+.kavio-shell .kavio-main .kavio-content .kavio-field textarea,
+.kavio-shell .kavio-main .kavio-content .sales-create-grid input,
+.kavio-shell .kavio-main .kavio-content .sales-create-grid select,
+.kavio-shell .kavio-main .kavio-content .kvio-spk-form input,
+.kavio-shell .kavio-main .kavio-content .kvio-spk-form select,
+.kavio-shell .kavio-main .kavio-content .progress-input-form input,
+.kavio-shell .kavio-main .kavio-content .progress-input-form select {
+  font-size:var(--kavio-font-input) !important;
+  line-height:1.25 !important;
+}
+.kavio-shell .kavio-main .kavio-content .kavio-field input,
+.kavio-shell .kavio-main .kavio-content .kavio-field select {
+  min-height:36px !important;
+}
+.kavio-master-row-actions {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:6px;
+  flex-wrap:nowrap;
+  white-space:nowrap;
+}
+.kavio-master-row-actions form { margin:0; }
+.kavio-master-edit-panel { margin-top:10px; }
