@@ -118,7 +118,7 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
             {historyPage < historyTotalPages ? <Link href={historyHref(historyPage + 1)} className="kavio-button secondary">BERIKUTNYA →</Link> : <span />}
           </div>
         </section>
-                <ProgressCreatePanel idSpk={selected.id_spk} tglSpk={selected.tgl_spk} configs={configRows} categories={categoryRows} completedCategoryIds={completedCategoryIds} autoOpen={params.panel === 'progress' || Boolean(params.error)} />
+                <ProgressCreatePanel idSpk={selected.id_spk} tglSpk={selected.tgl_spk} configs={configRows} categories={categoryRows} completedCategoryIds={completedCategoryIds} currentProgressRows={currentRows.map((row) => ({ id_kategori: row.id_kategori, progress_akumulasi: Number(row.progress_akumulasi ?? 0) }))} autoOpen={params.panel === 'progress' || Boolean(params.error)} />
         </section>
 
       </>}
