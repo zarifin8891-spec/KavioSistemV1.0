@@ -1,7 +1,32 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+
+type LocalMessage = {
+  tone: 'error' | 'success';
+  message: string;
+  title?: string;
+  focusTarget?: string;
+};
+
+function fieldLabel(element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+  const label = element.closest('label')?.querySelector('span')?.textContent?.trim();
+  return label || element.getAttribute('aria-label') || element.name || 'Field';
+}
+
+function browserValidationMessage(element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+  const label = fieldLabel(element);
+  const validity = element.validity;
+
+  if (validity.valueMissing) return `${label} wajib diisi.`;
+  if (validity.rangeOverflow) return `${label} maksimal ${element.getAttribute('max') ?? 'nilai yang diizinkan'}.`;
+  if (validity.rangeUnderflow) return `${label} minimal ${element.getAttribute('min') ?? 'nilai yang diizinkan'}.`;
+  if (validity.stepMismatch) return `${label} tidak sesuai kelipatan nilai yang diizinkan.`;
+  if (validity.typeMismatch) return `${label} tidak memiliki format yang valid.`;
+  if (validity.patternMismatch) return `${label} tidak sesuai format yang diwajibkan.`;
+  return element.validationMessage || `${label} belum valid.`;
+}
 
 export default function KavioMessageBox() {
   const pathname = usePathname();
@@ -9,38 +34,104 @@ export default function KavioMessageBox() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
   const success = searchParams.get('success');
-  const focusTarget = searchParams.get('focus');
-  const message = error || success;
-  const tone = error ? 'error' : success ? 'success' : null;
-  const key = useMemo(() => `${pathname}|${tone ?? ''}|${message ?? ''}|${searchParams.toString()}`, [pathname, tone, message, searchParams]);
+  const urlFocusTarget = searchParams.get('focus');
+  const urlMessage = error || success;
+  const urlTone: 'error' | 'success' | null = error ? 'error' : success ? 'success' : null;
+  const urlKey = useMemo(
+    () => `${pathname}|${urlTone ?? ''}|${urlMessage ?? ''}|${searchParams.toString()}`,
+    [pathname, urlTone, urlMessage, searchParams],
+  );
+
   const [dismissedKey, setDismissedKey] = useState('');
+  const [localMessage, setLocalMessage] = useState<LocalMessage | null>(null);
+  const invalidElementRef = useRef<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
-    if (message && dismissedKey !== key) {
+    if (!urlMessage && dismissedKey) setDismissedKey('');
+  }, [urlMessage, dismissedKey]);
+
+  useEffect(() => {
+    const handleKavioMessage = (event: Event) => {
+      const detail = (event as CustomEvent<LocalMessage>).detail;
+      if (!detail?.message) return;
+      setLocalMessage({
+        tone: detail.tone || 'error',
+        message: detail.message,
+        title: detail.title,
+        focusTarget: detail.focusTarget,
+      });
+    };
+
+    const handleInvalid = (event: Event) => {
+      const element = event.target;
+      if (!(element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement)) return;
+
+      event.preventDefault();
+      invalidElementRef.current = element;
+      setLocalMessage({
+        tone: 'error',
+        title: 'DATA BELUM DAPAT DISIMPAN',
+        message: browserValidationMessage(element),
+      });
+    };
+
+    window.addEventListener('kavio-message', handleKavioMessage);
+    document.addEventListener('invalid', handleInvalid, true);
+
+    return () => {
+      window.removeEventListener('kavio-message', handleKavioMessage);
+      document.removeEventListener('invalid', handleInvalid, true);
+    };
+  }, []);
+
+  const activeUrlMessage = Boolean(urlMessage && urlTone && dismissedKey !== urlKey);
+  const active = localMessage || (activeUrlMessage && urlTone && urlMessage
+    ? { tone: urlTone, message: urlMessage, focusTarget: urlFocusTarget ?? undefined }
+    : null);
+
+  useEffect(() => {
+    if (active) {
       document.body.classList.add('kavio-messagebox-open');
       return () => document.body.classList.remove('kavio-messagebox-open');
     }
     document.body.classList.remove('kavio-messagebox-open');
-  }, [message, dismissedKey, key]);
+  }, [active]);
 
-  if (!message || !tone || dismissedKey === key) return null;
+  if (!active) return null;
 
   const close = () => {
+    const focusTarget = localMessage?.focusTarget || urlFocusTarget || '';
+
     if (focusTarget) {
       sessionStorage.setItem('kavio_focus_target', focusTarget);
       window.setTimeout(() => {
         window.dispatchEvent(new CustomEvent('kavio-focus-request', { detail: { target: focusTarget } }));
-      }, 60);
+      }, 40);
+    } else if (invalidElementRef.current) {
+      const element = invalidElementRef.current;
+      window.setTimeout(() => element.focus(), 40);
     }
 
-    setDismissedKey(key);
+    invalidElementRef.current = null;
+
+    if (localMessage) {
+      setLocalMessage(null);
+      return;
+    }
+
+    setDismissedKey(urlKey);
 
     const next = new URLSearchParams(searchParams.toString());
     next.delete('error');
     next.delete('success');
     next.delete('focus');
     const query = next.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    const cleanUrl = query ? `${pathname}?${query}` : pathname;
+
+    // Remove stale feedback params immediately so the same error can be shown
+    // again on the very next submit without falling back to the old inline alert.
+    window.history.replaceState(window.history.state, '', cleanUrl);
+    router.replace(cleanUrl, { scroll: false });
   };
 
   return (
@@ -48,18 +139,18 @@ export default function KavioMessageBox() {
       if (event.currentTarget === event.target) close();
     }}>
       <section
-        className={`kavio-messagebox ${tone}`}
+        className={`kavio-messagebox ${active.tone}`}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="kavio-messagebox-title"
         aria-describedby="kavio-messagebox-message"
       >
-        <div className="kavio-messagebox-icon" aria-hidden="true">{tone === 'error' ? '!' : '✓'}</div>
+        <div className="kavio-messagebox-icon" aria-hidden="true">{active.tone === 'error' ? '!' : '✓'}</div>
         <div className="kavio-messagebox-content">
           <div id="kavio-messagebox-title" className="kavio-messagebox-title">
-            {tone === 'error' ? 'DATA BELUM DAPAT DISIMPAN' : 'PROSES BERHASIL'}
+            {active.title ?? (active.tone === 'error' ? 'DATA BELUM DAPAT DISIMPAN' : 'PROSES BERHASIL')}
           </div>
-          <div id="kavio-messagebox-message" className="kavio-messagebox-message">{message}</div>
+          <div id="kavio-messagebox-message" className="kavio-messagebox-message">{active.message}</div>
         </div>
         <button type="button" className="kavio-button kavio-messagebox-ok" autoFocus onClick={close}>OK</button>
       </section>
