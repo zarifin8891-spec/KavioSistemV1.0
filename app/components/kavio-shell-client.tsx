@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
 import { KAVIO_LOGO_DATA_URI } from './kavio-sidebar-logo';
 import { canViewPath, type KavioRole } from '../../lib/kavio-permissions';
 import { KavioPermissionProvider } from './KavioPermissionContext';
+import KavioMessageBox from './KavioMessageBox';
 
 const sections = [
   { title: 'UTAMA', items: [['Beranda', '/dashboard']] },
@@ -112,6 +113,7 @@ export default function KavioShellClient({
   return (
     <KavioPermissionProvider actions={actions} ready={accessReady}>
       <div className="kavio-shell">
+      <Suspense fallback={null}><KavioMessageBox /></Suspense>
       <aside className="kavio-sidebar">
         <Link href="/dashboard" className="kavio-brand" aria-label="KAVIO">
           <img src={KAVIO_LOGO_DATA_URI} alt="KAVIO — Satu Data, Satu Kendali, Satu Hasil" className="kavio-brand-logo" />
