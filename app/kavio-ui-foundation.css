@@ -1511,3 +1511,121 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
     width:100%;
   }
 }
+
+
+/* ============================================================
+   KAVIO GLOBAL BATCH ENTRY FOUNDATION
+   Reusable spreadsheet-like input pattern for operational modules.
+   ============================================================ */
+.kavio-batch-entry form {
+  display:block;
+}
+.kavio-batch-toolbar {
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:14px;
+  padding:12px 16px;
+  border-bottom:1px solid rgba(216,180,90,.14);
+}
+.kavio-batch-toolbar .kavio-field {
+  width:min(240px,100%);
+}
+.kavio-batch-summary {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  color:var(--kavio-muted);
+  font-size:var(--kavio-font-form-label);
+}
+.kavio-batch-table {
+  min-width:1040px;
+}
+.kavio-batch-table th:nth-child(1),
+.kavio-batch-table td:nth-child(1) {
+  width:42px;
+  text-align:center;
+}
+.kavio-batch-table th:nth-child(3),
+.kavio-batch-table th:nth-child(4),
+.kavio-batch-table th:nth-child(5),
+.kavio-batch-table th:nth-child(6),
+.kavio-batch-table th:nth-child(7),
+.kavio-batch-table td:nth-child(3),
+.kavio-batch-table td:nth-child(4),
+.kavio-batch-table td:nth-child(5),
+.kavio-batch-table td:nth-child(6),
+.kavio-batch-table td:nth-child(7) {
+  text-align:right;
+}
+.kavio-batch-input {
+  width:100%;
+  min-width:92px;
+  height:32px;
+  padding:5px 8px;
+  border:1px solid rgba(216,180,90,.30);
+  border-radius:6px;
+  background:linear-gradient(180deg,var(--kavio-panel-3),var(--kavio-panel-2));
+  color:var(--kavio-ivory);
+  font-size:var(--kavio-font-input);
+  outline:none;
+}
+.kavio-batch-input:focus {
+  border-color:var(--kavio-champagne);
+  box-shadow:0 0 0 2px rgba(240,212,138,.08);
+}
+.kavio-batch-input:disabled {
+  opacity:.48;
+  cursor:not-allowed;
+}
+.kavio-batch-note {
+  min-width:180px;
+  text-align:left !important;
+}
+.kavio-number {
+  text-align:right !important;
+  font-variant-numeric:tabular-nums;
+}
+.kavio-batch-after {
+  color:var(--kavio-champagne) !important;
+}
+.kavio-batch-row-complete {
+  opacity:.58;
+}
+.kavio-batch-row-complete td {
+  background:rgba(134,239,172,.025);
+}
+.kavio-batch-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:12px 16px 14px;
+  border-top:1px solid rgba(216,180,90,.14);
+}
+.kavio-batch-footer .kavio-form-note {
+  flex:1;
+  margin:0;
+}
+.kavio-batch-footer > .kavio-button {
+  flex:0 0 auto;
+  min-width:160px;
+}
+@media (max-width:700px) {
+  .kavio-batch-toolbar,
+  .kavio-batch-footer {
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .kavio-batch-toolbar .kavio-field {
+    width:100%;
+  }
+  .kavio-batch-summary {
+    justify-content:flex-start;
+    flex-wrap:wrap;
+  }
+  .kavio-batch-footer > .kavio-button {
+    width:100%;
+  }
+}
