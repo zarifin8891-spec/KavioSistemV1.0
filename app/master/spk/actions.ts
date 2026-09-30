@@ -84,84 +84,32 @@ export async function createSpk(formData: FormData) {
     errorRedirect(`Total bobot harus 100%. Saat ini ${(totalBobot * 100).toFixed(2)}%`);
   }
 
-  if (existingSpk) {
-    const { error: deleteConfigError } = await supabase
-      .from('spk_progress_config')
-      .delete()
-      .eq('id_spk', existingSpk.id_spk);
+  const { data: writeResult, error: writeError } = await supabase.rpc('create_or_update_spk_atomic', {
+    p_id_kavling: idKavling,
+    p_tgl_spk: tglSpk,
+    p_tgl_target_selesai: tglTargetSelesai,
+    p_id_kantor: idKantor,
+    p_id_mandor: idMandor,
+    p_jenis_bobot: jenisBobot,
+    p_config: config,
+  });
 
-    if (deleteConfigError) errorRedirect(deleteConfigError.message);
+  if (writeError) errorRedirect(writeError.message);
 
-    const { error: configError } = await supabase.from('spk_progress_config').insert(
-      config.map((row) => ({ id_spk: existingSpk.id_spk, id_kategori: row.id_kategori, bobot_final: row.bobot_final })),
-    );
-
-    if (configError) errorRedirect(configError.message);
-
-    const { error: updateError } = await supabase
-      .from('spk')
-      .update({
-        tgl_spk: tglSpk,
-        id_tipe: kavling.id_tipe,
-        jenis_bobot: jenisBobot,
-        id_kantor: idKantor,
-        id_mandor: idMandor,
-        status_spk: 'AKTIF',
-        tgl_target_selesai: tglTargetSelesai,
-        is_active: true,
-      })
-      .eq('id_spk', existingSpk.id_spk)
-      .eq('status_spk', 'DRAFT')
-      .eq('is_active', false);
-
-    if (updateError) errorRedirect(updateError.message);
-
-    const { error: kavlingUpdateError } = await supabase
-      .from('master_kavling')
-      .update({ status_kavling: 'BUILDING' })
-      .eq('id_kavling', idKavling)
-      .eq('status_aktif', true);
-
-    if (kavlingUpdateError) errorRedirect(kavlingUpdateError.message);
-
-    revalidatePath('/master/spk');
-    revalidatePath('/master/kavling');
-    revalidatePath('/master/sales');
-    revalidatePath('/dashboard');
-    revalidatePath(`/master/spk/detail/${existingSpk.id_spk}`);
-    redirect('/master/spk?success=SPK%20DRAFT%20berhasil%20diperbarui%20dan%20diaktifkan');
-  }
-
-  const { data: spk, error: spkError } = await supabase
-    .from('spk')
-    .insert({
-      id_kavling: idKavling,
-      tgl_spk: tglSpk,
-      id_tipe: kavling.id_tipe,
-      jenis_bobot: jenisBobot,
-      id_kantor: idKantor,
-      id_mandor: idMandor,
-      status_spk: 'DRAFT',
-      tgl_target_selesai: tglTargetSelesai,
-      is_active: false,
-    })
-    .select('id_spk')
-    .single();
-
-  if (spkError || !spk) errorRedirect(spkError?.message ?? 'SPK gagal dibuat');
-
-  const { error: configError } = await supabase.from('spk_progress_config').insert(
-    config.map((row) => ({ id_spk: spk.id_spk, id_kategori: row.id_kategori, bobot_final: row.bobot_final })),
-  );
-
-  if (configError) {
-    await supabase.from('spk').delete().eq('id_spk', spk.id_spk);
-    errorRedirect(configError.message);
-  }
+  const result = (writeResult ?? {}) as { id_spk?: string; status_spk?: string };
+  const idSpk = result.id_spk;
+  const statusSpk = result.status_spk ?? 'DRAFT';
 
   revalidatePath('/master/spk');
+  revalidatePath('/master/kavling');
+  revalidatePath('/master/sales');
+  revalidatePath('/siteplan');
   revalidatePath('/dashboard');
-  redirect('/master/spk?success=SPK%20berhasil%20dibuat%20sebagai%20DRAFT');
+  if (idSpk) revalidatePath(`/master/spk/detail/${idSpk}`);
+
+  redirect(statusSpk === 'AKTIF'
+    ? '/master/spk?success=SPK%20DRAFT%20berhasil%20diperbarui%20dan%20diaktifkan'
+    : '/master/spk?success=SPK%20berhasil%20dibuat%20sebagai%20DRAFT');
 }
 
 export async function activateSpk(formData: FormData) {
