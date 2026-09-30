@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
+import KavioFormModal from '../components/KavioFormModal';
 
 type UserRow = {
   user_id: string;
@@ -269,7 +270,8 @@ export default function UserManagementClient() {
         </div>
       </section>
 
-      {passwordUser && (
+      <KavioFormModal open={Boolean(passwordUser)} onClose={resetForm} size="compact" ariaLabel="Ganti Password" closeOnBackdrop={false}>
+        {passwordUser && (
         <section className="kavio-panel manajemen-user-form-panel">
           <div className="kavio-panel-head">
             <div>
@@ -337,8 +339,10 @@ export default function UserManagementClient() {
             </div>
           </form>
         </section>
-      )}
+        )}
+      </KavioFormModal>
 
+      <KavioFormModal open={Boolean(showCreate || editing)} onClose={resetForm} size="standard" ariaLabel={editing ? 'Edit Pengguna' : 'Tambah Pengguna'} closeOnBackdrop={false}>
       {(showCreate || editing) && (
         <section className="kavio-panel manajemen-user-form-panel">
           <div className="kavio-panel-head">
@@ -439,6 +443,7 @@ export default function UserManagementClient() {
           </form>
         </section>
       )}
+      </KavioFormModal>
     </main>
   );
 }
