@@ -1428,3 +1428,86 @@ button.kavio-button,
 }
 .kavio-master-row-actions form { margin:0; }
 .kavio-master-edit-panel { margin-top:10px; }
+
+
+/* ============================================================
+   KAVIO GLOBAL MESSAGE BOX FOUNDATION
+   Canonical feedback surface for action errors/success messages.
+   ============================================================ */
+body.kavio-messagebox-open { overflow:hidden; }
+
+.kavio-messagebox-backdrop {
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(2,12,25,.62);
+  backdrop-filter:blur(3px);
+}
+
+.kavio-messagebox {
+  width:min(520px,calc(100vw - 32px));
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr) auto;
+  align-items:center;
+  gap:14px;
+  padding:18px;
+  border:1px solid var(--kavio-line);
+  border-radius:14px;
+  background:linear-gradient(180deg,#102E4D,#071E37);
+  box-shadow:0 24px 70px rgba(0,0,0,.42);
+  color:var(--kavio-ivory);
+}
+
+.kavio-messagebox.error { border-color:rgba(248,113,113,.58); }
+.kavio-messagebox.success { border-color:rgba(134,239,172,.48); }
+
+.kavio-messagebox-icon {
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  font-size:22px;
+  line-height:1;
+  border:1px solid currentColor;
+}
+
+.kavio-messagebox.error .kavio-messagebox-icon { color:#FCA5A5; background:rgba(248,113,113,.08); }
+.kavio-messagebox.success .kavio-messagebox-icon { color:#BBF7D0; background:rgba(134,239,172,.08); }
+
+.kavio-messagebox-title {
+  color:var(--kavio-champagne);
+  font-size:15px;
+  line-height:1.2;
+  font-weight:400;
+  text-transform:uppercase;
+}
+
+.kavio-messagebox-message {
+  margin-top:5px;
+  color:var(--kavio-ivory);
+  font-size:13px;
+  line-height:1.45;
+  white-space:pre-wrap;
+}
+
+.kavio-messagebox-ok {
+  min-width:72px;
+}
+
+body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
+  display:none !important;
+}
+
+@media (max-width:650px) {
+  .kavio-messagebox {
+    grid-template-columns:38px minmax(0,1fr);
+  }
+  .kavio-messagebox-ok {
+    grid-column:1 / -1;
+    width:100%;
+  }
+}
