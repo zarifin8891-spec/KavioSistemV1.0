@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { formatKavioDate } from '../lib/date-format';
+import { formatKavioMoney } from '../lib/number-format';
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -19,15 +20,6 @@ const textParam = (params: Record<string, string | string[] | undefined>, key: s
 const pct = (value: number | string | null | undefined) => {
   const n = Number(value ?? 0);
   return Number.isFinite(n) ? `${(n * 100).toFixed(1)}%` : '—';
-};
-
-const money = (value: number | string | null | undefined) => {
-  if (value == null || value === '') return '—';
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(Number(value));
 };
 
 const statusClass = (value: string | null | undefined) =>
@@ -268,7 +260,7 @@ const [
             <table className="kavio-table">
               <thead><tr><th>NO</th><th>ID SALES</th><th>TANGGAL BOOKING</th><th>KAVLING</th><th>NAMA KONSUMEN</th><th>PEMBAYARAN</th><th>BANK KPR</th><th>HARGA JUAL</th><th>TARGET AKAD</th><th>STATUS</th></tr></thead>
               <tbody>
-                {filteredSales.map((row, index) => <tr key={row.id_sales}><td>{index + 1}</td><td>{row.displayId}</td><td>{formatKavioDate(row.tgl_booking)}</td><td>{row.id_kavling}</td><td>{row.nama_konsumen || '—'}</td><td>{row.jenis_pembayaran || '—'}</td><td>{row.id_bank ? (bankMap.get(String(row.id_bank)) || row.id_bank) : '—'}</td><td>{money(row.harga_jual)}</td><td>{formatKavioDate(row.target_akad)}</td><td><span className={`kavio-badge status-${statusClass(displaySalesStatus(row.status_sales))}`}>{displaySalesStatus(row.status_sales)}</span></td></tr>)}
+                {filteredSales.map((row, index) => <tr key={row.id_sales}><td>{index + 1}</td><td>{row.displayId}</td><td>{formatKavioDate(row.tgl_booking)}</td><td>{row.id_kavling}</td><td>{row.nama_konsumen || '—'}</td><td>{row.jenis_pembayaran || '—'}</td><td>{row.id_bank ? (bankMap.get(String(row.id_bank)) || row.id_bank) : '—'}</td><td className="kavio-money">{formatKavioMoney(row.harga_jual)}</td><td>{formatKavioDate(row.target_akad)}</td><td><span className={`kavio-badge status-${statusClass(displaySalesStatus(row.status_sales))}`}>{displaySalesStatus(row.status_sales)}</span></td></tr>)}
                 {!filteredSales.length && <tr><td colSpan={10} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
               </tbody>
             </table>
