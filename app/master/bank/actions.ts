@@ -22,6 +22,21 @@ export async function createBank(formData: FormData) {
   revalidatePath('/master/bank'); revalidatePath('/master/sales'); redirect('/master/bank?success=Bank%20berhasil%20ditambahkan');
 }
 
+
+export async function updateBank(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+  await requireKavioAction('MASTER_WRITE', '/master/bank?error=');
+  const idBank = text(formData.get('id_bank'));
+  const namaBank = text(formData.get('nama_bank'));
+  const keterangan = text(formData.get('keterangan')) || null;
+  if (!idBank || !namaBank) { fail('ID bank dan nama bank wajib diisi'); return; }
+  const { error } = await supabase.from('master_bank').update({ nama_bank: namaBank, keterangan }).eq('id_bank', idBank);
+  if (error) { fail(error.message); return; }
+  revalidatePath('/master/bank'); revalidatePath('/master/sales'); redirect('/master/bank?success=Bank%20berhasil%20diperbarui');
+}
+
 export async function toggleBank(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
