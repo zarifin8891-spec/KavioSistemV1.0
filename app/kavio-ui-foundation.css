@@ -78,7 +78,7 @@ body { margin: 0; }
   --kavio-font-table-title: 15px;
   --kavio-font-table-subtitle: 13px;
   --kavio-font-table-head: 14px;
-  --kavio-font-table-body: 15px;
+  --kavio-font-table-body: 14px;
   --kavio-font-table-button: 13px;
   --kavio-font-table-badge: 13px;
 }
@@ -1336,39 +1336,40 @@ button.kavio-button,
 }
 
 
-/* KAVIO GLOBAL TABLE TYPOGRAPHY — canonical final enforcement
-   No module may redefine table font sizes below these shared tokens. */
-.kavio-content table.kavio-table,
-.kavio-content table.simple-table,
-.kavio-content table.sales-table {
+/* KAVIO GLOBAL TABLE TYPOGRAPHY — FINAL CANONICAL ENFORCEMENT
+   One source of truth for every real table rendered inside KAVIO content.
+   Module CSS may control width, spacing, alignment and colors, but not typography. */
+.kavio-shell .kavio-main .kavio-content table {
+  font-family:var(--kavio-font) !important;
   font-size:var(--kavio-font-table-body) !important;
 }
-.kavio-content table.kavio-table thead th,
-.kavio-content table.simple-table thead th,
-.kavio-content table.sales-table thead th {
+.kavio-shell .kavio-main .kavio-content table thead th {
+  font-family:var(--kavio-font) !important;
   font-size:var(--kavio-font-table-head) !important;
+  font-weight:400 !important;
 }
-.kavio-content table.kavio-table tbody td,
-.kavio-content table.simple-table tbody td,
-.kavio-content table.sales-table tbody td {
+.kavio-shell .kavio-main .kavio-content table tbody td {
+  font-family:var(--kavio-font) !important;
   font-size:var(--kavio-font-table-body) !important;
+  font-weight:400 !important;
 }
-.kavio-content table.kavio-table td .kavio-button,
-.kavio-content table.kavio-table td .kavio-command-button,
-.kavio-content table.kavio-table td button,
-.kavio-content table.simple-table td .kavio-button,
-.kavio-content table.sales-table td .kavio-button,
-.kavio-content table.sales-table td button {
+.kavio-shell .kavio-main .kavio-content table tbody td .kavio-button,
+.kavio-shell .kavio-main .kavio-content table tbody td .kavio-command-button,
+.kavio-shell .kavio-main .kavio-content table tbody td button,
+.kavio-shell .kavio-main .kavio-content table tbody td a.kavio-button,
+.kavio-shell .kavio-main .kavio-content table tbody td a.kavio-command-button {
+  font-family:var(--kavio-font) !important;
   font-size:var(--kavio-font-table-button) !important;
 }
-
-.kavio-content table.kavio-table td .spk-badge,
-.kavio-content table.kavio-table td .kavio-badge,
-.kavio-content table.kavio-table td .status-badge,
-.kavio-content table.kavio-table td .sales-status-badge,
-.kavio-content table.kavio-table td .master-status,
-.kavio-content table.simple-table td .spk-badge,
-.kavio-content table.simple-table td .kavio-badge,
-.kavio-content table.sales-table td .sales-status-badge {
+.kavio-shell .kavio-main .kavio-content table tbody td .spk-badge,
+.kavio-shell .kavio-main .kavio-content table tbody td .kavio-badge,
+.kavio-shell .kavio-main .kavio-content table tbody td .status-badge,
+.kavio-shell .kavio-main .kavio-content table tbody td .sales-status-badge,
+.kavio-shell .kavio-main .kavio-content table tbody td .master-status,
+.kavio-shell .kavio-main .kavio-content table tbody td .siteplan-status,
+.kavio-shell .kavio-main .kavio-content table tbody td [class*="status"],
+.kavio-shell .kavio-main .kavio-content table tbody td [class*="Status"] {
+  font-family:var(--kavio-font) !important;
   font-size:var(--kavio-font-table-badge) !important;
+  font-weight:400 !important;
 }
