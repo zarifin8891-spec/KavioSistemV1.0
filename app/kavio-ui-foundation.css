@@ -1373,3 +1373,18 @@ button.kavio-button,
   font-size:var(--kavio-font-table-badge) !important;
   font-weight:400 !important;
 }
+
+
+/* KAVIO GLOBAL MONEY FOUNDATION
+   Currency values are displayed without an Rp prefix and aligned right.
+   Formatting is centralized in app/lib/number-format.ts. */
+.kavio-money,
+.kavio-shell .kavio-main .kavio-content input[name*="harga" i],
+.kavio-shell .kavio-main .kavio-content input[name*="biaya" i],
+.kavio-shell .kavio-main .kavio-content input[name*="nominal" i] {
+  text-align:right !important;
+  font-variant-numeric:tabular-nums;
+}
+.kavio-shell .kavio-main .kavio-content table td.kavio-money {
+  text-align:right !important;
+}
