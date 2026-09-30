@@ -15,7 +15,7 @@ function percent(value: FormDataEntryValue | null) {
 }
 
 function progressError(idSpk: string, message: string): never {
-  redirect(`/progress?spk=${encodeURIComponent(idSpk)}&error=${encodeURIComponent(message)}`);
+  redirect(`/progress?spk=${encodeURIComponent(idSpk)}&panel=progress&focus=progress_periode&error=${encodeURIComponent(message)}`);
 }
 
 export async function createProgressUpdate(formData: FormData) {
