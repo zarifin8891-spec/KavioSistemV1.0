@@ -32,7 +32,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
      <div className="kavio-panel-head">
        <div><h2 className="kavio-panel-title">DATA SALES — {s.id_kavling}</h2><div className="kavio-panel-note">Informasi konsumen, status penjualan, pembayaran, dan data akad.</div></div>
        <KavioActionGate action="SALES_WRITE">
-         <KavioModalAction buttonLabel="EDIT DATA SALES" title={`EDIT DATA SALES — ${s.id_kavling}`} note="Perbarui data transaksi dan lifecycle Sales lalu simpan." size="wide">
+         <KavioModalAction formKey="sales-edit" buttonLabel="EDIT DATA SALES" title={`EDIT DATA SALES — ${s.id_kavling}`} note="Perbarui data transaksi dan lifecycle Sales lalu simpan." size="wide">
            <form id="sales-info-form" action={updateSalesInfo} className="kavio-form kavio-panel-body">
              <input type="hidden" name="id_sales" value={s.id_sales}/>
              <label className="kavio-field"><span>NAMA KONSUMEN</span><input name="nama_konsumen" defaultValue={s.nama_konsumen}/></label>
@@ -76,7 +76,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
        <div className="sales-kpr-head-actions">
          <span className="kavio-badge">{kr.length} UPDATE</span>
          <KavioActionGate action="SALES_WRITE">
-           <KavioModalAction buttonLabel="INPUT UPDATE KPR" title="UPDATE PROSES KPR" note="Simpan satu tahap proses KPR pada transaksi ini." size="compact">
+           <KavioModalAction formKey="sales-kpr" buttonLabel="INPUT UPDATE KPR" title="UPDATE PROSES KPR" note="Simpan satu tahap proses KPR pada transaksi ini." size="compact">
              <form id="sales-kpr-form" action={upsertKprProgress} className="kavio-form kavio-panel-body">
                <input type="hidden" name="id_sales" value={s.id_sales}/>
                <label className="kavio-field"><span>TAHAP</span><select name="tahap" defaultValue="KELENGKAPAN_DATA">{STAGES.map(x=><option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>

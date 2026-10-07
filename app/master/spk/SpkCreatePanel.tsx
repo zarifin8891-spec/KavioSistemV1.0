@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSpk } from './actions';
 import KavioActionGate from '../../components/KavioActionGate';
 import WeightConfigurator from './WeightConfigurator';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import KavioFormModal from '../../components/KavioFormModal';
 
 type Kavling = { id_kavling: string; id_tipe: string; status_kavling: string };
@@ -27,19 +28,42 @@ export default function SpkCreatePanel({
 }) {
   const [open, setOpen] = useState(false);
   const [selectedKantor, setSelectedKantor] = useState('');
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const filteredMandorRows = useMemo(
     () => mandorRows.filter((item) => item.id_kantor === selectedKantor),
     [mandorRows, selectedKantor],
   );
 
+  useEffect(() => {
+    if (searchParams.get('form') === 'spk-create') {
+      setOpen(true);
+      return;
+    }
+    if (searchParams.get('success')) setOpen(false);
+  }, [searchParams]);
+
+  const closePanel = useCallback(() => {
+    setOpen(false);
+    if (searchParams.get('form') !== 'spk-create') return;
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete('form');
+    next.delete('error');
+    next.delete('focus');
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
+
   return (
     <KavioActionGate action="SPK_WRITE">
       <div className="kavio-create-wrap">
-        <button type="button" className="kavio-command-button" onClick={() => setOpen((value) => !value)}>
+        <button type="button" className="kavio-command-button" onClick={() => open ? closePanel() : setOpen(true)}>
           <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span><span>{open ? 'Tutup Form' : 'Tambah SPK'}</span>
         </button>
 
-        <KavioFormModal open={open} onClose={() => setOpen(false)} size="wide" ariaLabel="Input SPK Baru" closeOnBackdrop={false}>
+        <KavioFormModal open={open} onClose={closePanel} size="wide" ariaLabel="Input SPK Baru" closeOnBackdrop={false}>
         <section className="kavio-panel kvio-create-panel">
           <div className="kavio-panel-head">
             <div>
@@ -48,7 +72,7 @@ export default function SpkCreatePanel({
             </div>
             <div className="kavio-create-head-actions">
               <span className="kavio-badge">DRAFT</span>
-              <button type="button" className="kavio-command-button secondary" onClick={() => setOpen(false)}>
+              <button type="button" className="kavio-command-button secondary" onClick={closePanel}>
                 <span className="kavio-command-icon" aria-hidden="true">×</span><span>Tutup Form</span>
               </button>
             </div>

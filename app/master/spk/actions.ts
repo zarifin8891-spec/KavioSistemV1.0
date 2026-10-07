@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { requireKavioAction } from '../../../lib/kavio-permissions-server';
+import { redirectKavioFormError } from '../../../lib/kavio-form-feedback';
 
 function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
@@ -14,8 +15,12 @@ function positivePercent(value: FormDataEntryValue | null) {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : NaN;
 }
 
-function errorRedirect(message: string): never {
-  redirect(`/master/spk?error=${encodeURIComponent(message)}`);
+function createError(message: string, focus = 'id_kavling'): never {
+  redirectKavioFormError('/master/spk', message, { form: 'spk-create', focus });
+}
+
+function pageError(message: string): never {
+  redirectKavioFormError('/master/spk', message);
 }
 
 const SPK_READY_STATUSES = ['AVAILABLE', 'BOOKING'] as const;
@@ -34,10 +39,18 @@ export async function createSpk(formData: FormData) {
   const jenisBobot = text(formData.get('jenis_bobot'));
 
   if (!idKavling || !tglSpk || !tglTargetSelesai || !idKantor || !idMandor || !['STANDAR', 'CUSTOM'].includes(jenisBobot)) {
-    errorRedirect('Semua field utama SPK wajib diisi');
+    createError(
+      'Semua field utama SPK wajib diisi',
+      !idKavling ? 'id_kavling'
+        : !['STANDAR', 'CUSTOM'].includes(jenisBobot) ? 'jenis_bobot'
+          : !tglSpk ? 'tgl_spk'
+            : !tglTargetSelesai ? 'tgl_target_selesai'
+              : !idKantor ? 'id_kantor'
+                : 'id_mandor',
+    );
   }
 
-  if (tglTargetSelesai < tglSpk) errorRedirect('Tanggal target selesai tidak boleh sebelum tanggal SPK');
+  if (tglTargetSelesai < tglSpk) createError('Tanggal target selesai tidak boleh sebelum tanggal SPK', 'tgl_target_selesai');
 
   const [{ data: kavling, error: kavlingError }, { data: kantor, error: kantorError }, { data: mandor, error: mandorError }, { data: existingSpk, error: existingSpkError }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling, id_tipe, status_aktif, status_kavling').eq('id_kavling', idKavling).maybeSingle(),
@@ -47,17 +60,22 @@ export async function createSpk(formData: FormData) {
   ]);
 
   if (kavlingError || kantorError || mandorError || existingSpkError) {
-    errorRedirect((kavlingError ?? kantorError ?? mandorError ?? existingSpkError)?.message ?? 'Gagal membaca data relasi SPK');
+    createError(
+      (kavlingError ?? kantorError ?? mandorError ?? existingSpkError)?.message ?? 'Gagal membaca data relasi SPK',
+      kavlingError || existingSpkError ? 'id_kavling' : kantorError ? 'id_kantor' : 'id_mandor',
+    );
   }
 
-  if (!kavling || !kavling.status_aktif) errorRedirect('Kavling tidak ditemukan atau nonaktif');
-  if (!kantor || !kantor.status_aktif) errorRedirect('Kantor/pelaksana tidak ditemukan atau nonaktif');
-  if (!mandor || !mandor.status_aktif) errorRedirect('Mandor tidak ditemukan atau nonaktif');
-  if (existingSpk?.is_active) errorRedirect('Kavling tersebut sudah memiliki SPK aktif');
-  if (existingSpk && existingSpk.status_spk !== 'DRAFT') errorRedirect(`Kavling tersebut sudah memiliki SPK dengan status ${existingSpk.status_spk}. Satu kavling hanya boleh memiliki satu SPK.`);
-  if (mandor.id_kantor !== idKantor) errorRedirect('Mandor harus berasal dari kantor pelaksana yang dipilih');
+  if (!kavling || !kavling.status_aktif) createError('Kavling tidak ditemukan atau nonaktif', 'id_kavling');
+  if (!kantor || !kantor.status_aktif) createError('Kantor/pelaksana tidak ditemukan atau nonaktif', 'id_kantor');
+  if (!mandor || !mandor.status_aktif) createError('Mandor tidak ditemukan atau nonaktif', 'id_mandor');
+  if (existingSpk?.is_active) createError('Kavling tersebut sudah memiliki SPK aktif', 'id_kavling');
+  if (existingSpk && existingSpk.status_spk !== 'DRAFT') {
+    createError(`Kavling tersebut sudah memiliki SPK dengan status ${existingSpk.status_spk}. Satu kavling hanya boleh memiliki satu SPK.`, 'id_kavling');
+  }
+  if (mandor.id_kantor !== idKantor) createError('Mandor harus berasal dari kantor pelaksana yang dipilih', 'id_mandor');
   if (!(SPK_READY_STATUSES as readonly string[]).includes(kavling.status_kavling)) {
-    errorRedirect(`Kavling berstatus ${kavling.status_kavling} tidak dapat dibuatkan SPK baru`);
+    createError(`Kavling berstatus ${kavling.status_kavling} tidak dapat dibuatkan SPK baru`, 'id_kavling');
   }
 
   const { data: templates, error: templateError } = await supabase
@@ -66,22 +84,26 @@ export async function createSpk(formData: FormData) {
     .eq('id_tipe', kavling.id_tipe)
     .order('id_kategori');
 
-  if (templateError) errorRedirect(templateError.message);
+  if (templateError) createError(templateError.message, 'id_kavling');
 
   const templateRows = templates ?? [];
-  if (!templateRows.length) errorRedirect('Tipe rumah kavling belum memiliki template progress');
+  if (!templateRows.length) createError('Tipe rumah kavling belum memiliki template progress', 'id_kavling');
 
   const config = jenisBobot === 'STANDAR'
     ? templateRows.map((row) => ({ id_kategori: row.id_kategori, bobot_final: Number(row.bobot_standar) }))
     : templateRows.map((row) => ({ id_kategori: row.id_kategori, bobot_final: positivePercent(formData.get(`bobot_${row.id_kategori}`)) / 100 }));
 
-  if (config.some((row) => !Number.isFinite(row.bobot_final) || row.bobot_final < 0 || row.bobot_final > 1)) {
-    errorRedirect('Semua bobot custom harus berupa angka 0 sampai 100');
+  const invalidConfigIndex = config.findIndex((row) => !Number.isFinite(row.bobot_final) || row.bobot_final < 0 || row.bobot_final > 1);
+  if (invalidConfigIndex >= 0) {
+    createError('Semua bobot custom harus berupa angka 0 sampai 100', `bobot_${config[invalidConfigIndex].id_kategori}`);
   }
 
   const totalBobot = config.reduce((total, row) => total + row.bobot_final, 0);
   if (Math.abs(totalBobot - 1) > 0.00001) {
-    errorRedirect(`Total bobot harus 100%. Saat ini ${(totalBobot * 100).toFixed(2)}%`);
+    createError(
+      `Total bobot harus 100%. Saat ini ${(totalBobot * 100).toFixed(2)}%`,
+      jenisBobot === 'CUSTOM' && config[0] ? `bobot_${config[0].id_kategori}` : 'jenis_bobot',
+    );
   }
 
   const { data: writeResult, error: writeError } = await supabase.rpc('create_or_update_spk_atomic', {
@@ -94,7 +116,7 @@ export async function createSpk(formData: FormData) {
     p_config: config,
   });
 
-  if (writeError) errorRedirect(writeError.message);
+  if (writeError) createError(writeError.message, 'id_kavling');
 
   const result = (writeResult ?? {}) as { id_spk?: string; status_spk?: string };
   const idSpk = result.id_spk;
@@ -119,10 +141,10 @@ export async function activateSpk(formData: FormData) {
   await requireKavioAction('SPK_WRITE', '/master/spk?error=');
 
   const idSpk = text(formData.get('id_spk'));
-  if (!idSpk) errorRedirect('ID SPK tidak valid');
+  if (!idSpk) pageError('ID SPK tidak valid');
 
   const { error } = await supabase.rpc('activate_spk_atomic', { p_id_spk: idSpk });
-  if (error) errorRedirect(error.message);
+  if (error) pageError(error.message);
 
   revalidatePath('/master/spk');
   revalidatePath('/master/kavling');
@@ -140,10 +162,10 @@ export async function deactivateSpk(formData: FormData) {
   await requireKavioAction('SPK_WRITE', '/master/spk?error=');
 
   const idSpk = text(formData.get('id_spk'));
-  if (!idSpk) errorRedirect('ID SPK tidak valid');
+  if (!idSpk) pageError('ID SPK tidak valid');
 
   const { data: nextStatus, error } = await supabase.rpc('deactivate_spk_atomic', { p_id_spk: idSpk });
-  if (error) errorRedirect(error.message);
+  if (error) pageError(error.message);
 
   const finalStatus = String(nextStatus ?? 'READY_STOCK');
   revalidatePath('/master/spk');

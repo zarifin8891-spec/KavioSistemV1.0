@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { requireKavioAction } from '../../../lib/kavio-permissions-server';
+import { redirectKavioFormError } from '../../../lib/kavio-form-feedback';
 
 const VALID_STATUS = ['AVAILABLE', 'BOOKING', 'SOLD', 'BUILDING', 'READY_STOCK', 'COMPLETED'] as const;
 type KavlingStatus = (typeof VALID_STATUS)[number];
@@ -12,8 +13,16 @@ function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
 }
 
-function errorRedirect(message: string): never {
-  redirect(`/master/kavling?error=${encodeURIComponent(message)}`);
+function createError(message: string, focus = 'id_kavling'): never {
+  redirectKavioFormError('/master/kavling', message, { form: 'master-kavling-create', focus });
+}
+
+function editError(idKavling: string, message: string, focus = 'blok'): never {
+  redirectKavioFormError('/master/kavling', message, { focus, params: { edit: idKavling } });
+}
+
+function pageError(message: string): never {
+  redirectKavioFormError('/master/kavling', message);
 }
 
 export async function createKavling(formData: FormData) {
@@ -32,21 +41,35 @@ export async function createKavling(formData: FormData) {
   const hargaTanahMeter = Number(formData.get('harga_tanah_meter') ?? 0);
   const statusKavling = (text(formData.get('status_kavling')) || 'AVAILABLE') as KavlingStatus;
 
-  if (!idKavling || !blok || !noKavling || !idTipe) errorRedirect('Data wajib belum lengkap');
-  if (!VALID_STATUS.includes(statusKavling)) errorRedirect('Status kavling tidak valid');
-  if (![luasTanahStandar, luasTanahReal, hargaStandar, hargaTanahMeter].every(Number.isFinite)) errorRedirect('Data luas tanah atau harga tidak valid');
-  if (luasTanahStandar < 0 || luasTanahReal < luasTanahStandar) errorRedirect('Luas tanah real harus lebih besar atau sama dengan luas tanah standar');
-  if (hargaStandar < 0 || hargaTanahMeter < 0) errorRedirect('Harga tidak boleh negatif');
-  if (statusKavling === 'READY_STOCK') errorRedirect('READY_STOCK ditetapkan otomatis setelah SPK selesai');
+  if (!idKavling || !blok || !noKavling || !idTipe) {
+    createError('Data wajib belum lengkap', !idKavling ? 'id_kavling' : !blok ? 'blok' : !noKavling ? 'no_kavling' : 'id_tipe');
+  }
+  if (!VALID_STATUS.includes(statusKavling)) createError('Status kavling tidak valid', 'status_kavling');
+  if (![luasTanahStandar, luasTanahReal, hargaStandar, hargaTanahMeter].every(Number.isFinite)) {
+    createError(
+      'Data luas tanah atau harga tidak valid',
+      !Number.isFinite(luasTanahStandar) ? 'luas_tanah_standar'
+        : !Number.isFinite(luasTanahReal) ? 'luas_tanah_real'
+          : !Number.isFinite(hargaStandar) ? 'harga_standar'
+            : 'harga_tanah_meter',
+    );
+  }
+  if (luasTanahStandar < 0 || luasTanahReal < luasTanahStandar) {
+    createError('Luas tanah real harus lebih besar atau sama dengan luas tanah standar', 'luas_tanah_real');
+  }
+  if (hargaStandar < 0 || hargaTanahMeter < 0) {
+    createError('Harga tidak boleh negatif', hargaStandar < 0 ? 'harga_standar' : 'harga_tanah_meter');
+  }
+  if (statusKavling === 'READY_STOCK') createError('READY_STOCK ditetapkan otomatis setelah SPK selesai', 'status_kavling');
 
   const [{ data: tipe, error: tipeError }, { data: existing, error: existingError }] = await Promise.all([
     supabase.from('master_tipe_rumah').select('id_tipe, status_aktif').eq('id_tipe', idTipe).maybeSingle(),
     supabase.from('master_kavling').select('id_kavling').eq('id_kavling', idKavling).maybeSingle(),
   ]);
 
-  if (tipeError || existingError) errorRedirect((tipeError ?? existingError)?.message ?? 'Gagal membaca data master');
-  if (!tipe || !tipe.status_aktif) errorRedirect('Tipe rumah tidak ditemukan atau nonaktif');
-  if (existing) errorRedirect('ID kavling tersebut sudah digunakan');
+  if (tipeError || existingError) createError((tipeError ?? existingError)?.message ?? 'Gagal membaca data master', tipeError ? 'id_tipe' : 'id_kavling');
+  if (!tipe || !tipe.status_aktif) createError('Tipe rumah tidak ditemukan atau nonaktif', 'id_tipe');
+  if (existing) createError('ID kavling tersebut sudah digunakan', 'id_kavling');
 
   const { error } = await supabase.from('master_kavling').insert({
     id_kavling: idKavling,
@@ -61,7 +84,7 @@ export async function createKavling(formData: FormData) {
     harga_tanah_meter: hargaTanahMeter,
   });
 
-  if (error) errorRedirect(error.message);
+  if (error) createError(error.message, 'id_kavling');
 
   revalidatePath('/master/kavling');
   revalidatePath('/master/spk');
@@ -85,10 +108,26 @@ export async function updateKavling(formData: FormData) {
   const hargaStandar = Number(formData.get('harga_standar') ?? 0);
   const hargaTanahMeter = Number(formData.get('harga_tanah_meter') ?? 0);
 
-  if (!idKavling || !blok || !noKavling || !idTipe) errorRedirect('Data wajib belum lengkap');
-  if (![luasTanahStandar, luasTanahReal, hargaStandar, hargaTanahMeter].every(Number.isFinite)) errorRedirect('Data luas tanah atau harga tidak valid');
-  if (luasTanahStandar < 0 || luasTanahReal < luasTanahStandar) errorRedirect('Luas tanah real harus lebih besar atau sama dengan luas tanah standar');
-  if (hargaStandar < 0 || hargaTanahMeter < 0) errorRedirect('Harga tidak boleh negatif');
+  if (!idKavling) pageError('ID kavling tidak valid');
+  if (!blok || !noKavling || !idTipe) {
+    editError(idKavling, 'Data wajib belum lengkap', !blok ? 'blok' : !noKavling ? 'no_kavling' : 'id_tipe');
+  }
+  if (![luasTanahStandar, luasTanahReal, hargaStandar, hargaTanahMeter].every(Number.isFinite)) {
+    editError(
+      idKavling,
+      'Data luas tanah atau harga tidak valid',
+      !Number.isFinite(luasTanahStandar) ? 'luas_tanah_standar'
+        : !Number.isFinite(luasTanahReal) ? 'luas_tanah_real'
+          : !Number.isFinite(hargaStandar) ? 'harga_standar'
+            : 'harga_tanah_meter',
+    );
+  }
+  if (luasTanahStandar < 0 || luasTanahReal < luasTanahStandar) {
+    editError(idKavling, 'Luas tanah real harus lebih besar atau sama dengan luas tanah standar', 'luas_tanah_real');
+  }
+  if (hargaStandar < 0 || hargaTanahMeter < 0) {
+    editError(idKavling, 'Harga tidak boleh negatif', hargaStandar < 0 ? 'harga_standar' : 'harga_tanah_meter');
+  }
 
   const [{ data: kavling, error: kavlingError }, { data: tipe, error: tipeError }, { data: anySales, error: anySalesError }, { data: anySpk, error: anySpkError }] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling,id_tipe,status_aktif').eq('id_kavling', idKavling).maybeSingle(),
@@ -98,13 +137,13 @@ export async function updateKavling(formData: FormData) {
   ]);
 
   if (kavlingError || tipeError || anySalesError || anySpkError) {
-    errorRedirect((kavlingError ?? tipeError ?? anySalesError ?? anySpkError)?.message ?? 'Gagal membaca relasi kavling');
+    editError(idKavling, (kavlingError ?? tipeError ?? anySalesError ?? anySpkError)?.message ?? 'Gagal membaca relasi kavling', tipeError ? 'id_tipe' : 'blok');
   }
-  if (!kavling) errorRedirect('Kavling tidak ditemukan');
-  if (!kavling.status_aktif) errorRedirect('Kavling nonaktif tidak dapat diedit');
-  if (!tipe || !tipe.status_aktif) errorRedirect('Tipe rumah tidak ditemukan atau nonaktif');
+  if (!kavling) editError(idKavling, 'Kavling tidak ditemukan', 'blok');
+  if (!kavling.status_aktif) editError(idKavling, 'Kavling nonaktif tidak dapat diedit', 'blok');
+  if (!tipe || !tipe.status_aktif) editError(idKavling, 'Tipe rumah tidak ditemukan atau nonaktif', 'id_tipe');
   if (kavling.id_tipe !== idTipe && ((anySales ?? []).length > 0 || (anySpk ?? []).length > 0)) {
-    errorRedirect('Tipe rumah tidak dapat diubah karena kavling sudah memiliki histori Sales atau SPK');
+    editError(idKavling, 'Tipe rumah tidak dapat diubah karena kavling sudah memiliki histori Sales atau SPK', 'id_tipe');
   }
 
   const { error } = await supabase.from('master_kavling').update({
@@ -117,7 +156,7 @@ export async function updateKavling(formData: FormData) {
     harga_tanah_meter: hargaTanahMeter,
   }).eq('id_kavling', idKavling);
 
-  if (error) errorRedirect(error.message);
+  if (error) editError(idKavling, error.message);
 
   revalidatePath('/master/kavling');
   revalidatePath('/master/sales');
@@ -136,7 +175,7 @@ export async function toggleKavling(formData: FormData) {
   const idKavling = text(formData.get('id_kavling'));
   const statusAktif = text(formData.get('status_aktif')) === 'true';
 
-  if (!idKavling) errorRedirect('ID kavling tidak valid');
+  if (!idKavling) pageError('ID kavling tidak valid');
 
   if (statusAktif) {
     const [{ data: activeSpk, error: spkError }, { data: activeSales, error: salesError }] = await Promise.all([
@@ -144,9 +183,9 @@ export async function toggleKavling(formData: FormData) {
       supabase.from('sales').select('id_sales').eq('id_kavling', idKavling).eq('status_aktif', true).maybeSingle(),
     ]);
 
-    if (spkError || salesError) errorRedirect((spkError ?? salesError)?.message ?? 'Gagal membaca relasi kavling');
-    if (activeSpk) errorRedirect('Kavling tidak boleh dinonaktifkan karena masih memiliki SPK aktif');
-    if (activeSales) errorRedirect('Kavling tidak boleh dinonaktifkan karena masih memiliki sales aktif');
+    if (spkError || salesError) pageError((spkError ?? salesError)?.message ?? 'Gagal membaca relasi kavling');
+    if (activeSpk) pageError('Kavling tidak boleh dinonaktifkan karena masih memiliki SPK aktif');
+    if (activeSales) pageError('Kavling tidak boleh dinonaktifkan karena masih memiliki sales aktif');
   }
 
   const { error } = await supabase
@@ -154,7 +193,7 @@ export async function toggleKavling(formData: FormData) {
     .update({ status_aktif: !statusAktif })
     .eq('id_kavling', idKavling);
 
-  if (error) errorRedirect(error.message);
+  if (error) pageError(error.message);
 
   revalidatePath('/master/kavling');
   revalidatePath('/master/spk');

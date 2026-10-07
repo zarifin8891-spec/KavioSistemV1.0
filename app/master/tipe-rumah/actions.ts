@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { requireKavioAction } from '../../../lib/kavio-permissions-server';
+import { redirectKavioFormError } from '../../../lib/kavio-form-feedback';
 
 function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
@@ -12,6 +13,14 @@ function text(value: FormDataEntryValue | null) {
 function number(value: FormDataEntryValue | null) {
   const parsed = Number(String(value ?? '').trim());
   return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+function createFail(message: string, focus = 'id_tipe'): never {
+  redirectKavioFormError('/master/tipe-rumah', message, { form: 'master-tipe-create', focus });
+}
+
+function editFail(idTipe: string, message: string, focus = 'nama_tipe'): never {
+  redirectKavioFormError('/master/tipe-rumah', message, { focus, params: { edit: idTipe } });
 }
 
 export async function createTipeRumah(formData: FormData) {
@@ -26,11 +35,11 @@ export async function createTipeRumah(formData: FormData) {
   const luasBangunan = number(formData.get('luas_bangunan'));
 
   if (!idTipe || !namaTipe) {
-    redirect('/master/tipe-rumah?error=ID%20dan%20nama%20tipe%20wajib%20diisi');
+    createFail('ID dan nama tipe wajib diisi', !idTipe ? 'id_tipe' : 'nama_tipe');
   }
 
   if (!Number.isFinite(luasTanah) || luasTanah <= 0 || !Number.isFinite(luasBangunan) || luasBangunan <= 0) {
-    redirect('/master/tipe-rumah?error=Luas%20tanah%20dan%20luas%20bangunan%20harus%20bernilai%20positif');
+    createFail('Luas tanah dan luas bangunan harus bernilai positif', !Number.isFinite(luasTanah) || luasTanah <= 0 ? 'luas_tanah' : 'luas_bangunan');
   }
 
   const { error } = await supabase.from('master_tipe_rumah').insert({
@@ -42,7 +51,7 @@ export async function createTipeRumah(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/master/tipe-rumah?error=${encodeURIComponent(error.message)}`);
+    createFail(error.message);
   }
 
   revalidatePath('/master/tipe-rumah');
@@ -62,9 +71,10 @@ export async function updateTipeRumah(formData: FormData) {
   const namaTipe = text(formData.get('nama_tipe'));
   const luasTanah = number(formData.get('luas_tanah'));
   const luasBangunan = number(formData.get('luas_bangunan'));
-  if (!idTipe || !namaTipe) redirect('/master/tipe-rumah?error=ID%20dan%20nama%20tipe%20wajib%20diisi');
+  if (!idTipe) redirectKavioFormError('/master/tipe-rumah', 'ID tipe tidak valid');
+  if (!namaTipe) editFail(idTipe, 'Nama tipe wajib diisi', 'nama_tipe');
   if (!Number.isFinite(luasTanah) || luasTanah <= 0 || !Number.isFinite(luasBangunan) || luasBangunan <= 0) {
-    redirect('/master/tipe-rumah?error=Luas%20tanah%20dan%20luas%20bangunan%20harus%20bernilai%20positif');
+    editFail(idTipe, 'Luas tanah dan luas bangunan harus bernilai positif', !Number.isFinite(luasTanah) || luasTanah <= 0 ? 'luas_tanah' : 'luas_bangunan');
   }
 
   const { error } = await supabase.from('master_tipe_rumah').update({
@@ -72,7 +82,7 @@ export async function updateTipeRumah(formData: FormData) {
     luas_tanah_m2: luasTanah,
     luas_bangunan_m2: luasBangunan,
   }).eq('id_tipe', idTipe);
-  if (error) redirect(`/master/tipe-rumah?error=${encodeURIComponent(error.message)}`);
+  if (error) editFail(idTipe, error.message);
 
   revalidatePath('/master/tipe-rumah');
   revalidatePath('/master/kavling');
@@ -90,7 +100,7 @@ export async function toggleTipeRumah(formData: FormData) {
   const idTipe = text(formData.get('id_tipe'));
   const statusAktif = text(formData.get('status_aktif')) === 'true';
 
-  if (!idTipe) redirect('/master/tipe-rumah?error=ID%20tipe%20tidak%20valid');
+  if (!idTipe) redirectKavioFormError('/master/tipe-rumah', 'ID tipe tidak valid');
 
   const { error } = await supabase
     .from('master_tipe_rumah')
@@ -98,7 +108,7 @@ export async function toggleTipeRumah(formData: FormData) {
     .eq('id_tipe', idTipe);
 
   if (error) {
-    redirect(`/master/tipe-rumah?error=${encodeURIComponent(error.message)}`);
+    redirectKavioFormError('/master/tipe-rumah', error.message);
   }
 
   revalidatePath('/master/tipe-rumah');

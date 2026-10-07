@@ -31,6 +31,7 @@ export default function SalesCreatePanel({
   return (
     <KavioActionGate action="SALES_WRITE">
       <KavioCreatePanel
+        formKey="sales-create"
         triggerTargetId={triggerTargetId}
         buttonLabel="+ TAMBAH SALES"
         closeLabel="× TUTUP FORM"

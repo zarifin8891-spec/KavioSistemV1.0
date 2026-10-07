@@ -28,6 +28,17 @@ function browserValidationMessage(element: HTMLInputElement | HTMLSelectElement 
   return element.validationMessage || `${label} belum valid.`;
 }
 
+function resolveFocusTarget(target: string) {
+  if (!target) return null;
+  const escaped = typeof CSS !== 'undefined' && CSS.escape
+    ? CSS.escape(target)
+    : target.replace(/["\\]/g, '\\$&');
+
+  return document.querySelector<HTMLElement>(
+    `[data-kavio-focus="${escaped}"], #${escaped}, [name="${escaped}"]`,
+  );
+}
+
 export default function KavioMessageBox() {
   const pathname = usePathname();
   const router = useRouter();
@@ -101,37 +112,43 @@ export default function KavioMessageBox() {
 
   const close = () => {
     const focusTarget = localMessage?.focusTarget || urlFocusTarget || '';
-
-    if (focusTarget) {
-      sessionStorage.setItem('kavio_focus_target', focusTarget);
-      window.setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('kavio-focus-request', { detail: { target: focusTarget } }));
-      }, 40);
-    } else if (invalidElementRef.current) {
-      const element = invalidElementRef.current;
-      window.setTimeout(() => element.focus(), 40);
-    }
+    const invalidElement = invalidElementRef.current;
 
     invalidElementRef.current = null;
 
     if (localMessage) {
       setLocalMessage(null);
-      return;
+    } else {
+      setDismissedKey(urlKey);
+
+      const next = new URLSearchParams(searchParams.toString());
+      next.delete('error');
+      next.delete('success');
+      next.delete('focus');
+      const query = next.toString();
+      const cleanUrl = query ? `${pathname}?${query}` : pathname;
+
+      window.history.replaceState(window.history.state, '', cleanUrl);
+      router.replace(cleanUrl, { scroll: false });
     }
 
-    setDismissedKey(urlKey);
+    window.setTimeout(() => {
+      if (focusTarget) {
+        sessionStorage.setItem('kavio_focus_target', focusTarget);
+        const target = resolveFocusTarget(focusTarget);
+        if (target) {
+          target.focus();
+          if (target instanceof HTMLInputElement && !['number', 'date'].includes(target.type)) target.select?.();
+          sessionStorage.removeItem('kavio_focus_target');
+          return;
+        }
 
-    const next = new URLSearchParams(searchParams.toString());
-    next.delete('error');
-    next.delete('success');
-    next.delete('focus');
-    const query = next.toString();
-    const cleanUrl = query ? `${pathname}?${query}` : pathname;
+        window.dispatchEvent(new CustomEvent('kavio-focus-request', { detail: { target: focusTarget } }));
+        return;
+      }
 
-    // Remove stale feedback params immediately so the same error can be shown
-    // again on the very next submit without falling back to the old inline alert.
-    window.history.replaceState(window.history.state, '', cleanUrl);
-    router.replace(cleanUrl, { scroll: false });
+      invalidElement?.focus();
+    }, 80);
   };
 
   return (

@@ -49,6 +49,17 @@ export default function UserManagementClient() {
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
+  const showFormMessage = (tone: 'error' | 'success', message: string, focusTarget?: string) => {
+    window.dispatchEvent(new CustomEvent('kavio-message', {
+      detail: {
+        tone,
+        message,
+        focusTarget,
+        title: tone === 'error' ? 'DATA BELUM DAPAT DISIMPAN' : 'PROSES BERHASIL',
+      },
+    }));
+  };
+
   const loadUsers = async () => {
     setLoading(true);
     setError('');
@@ -136,12 +147,15 @@ export default function UserManagementClient() {
     });
 
     if (invokeError || data?.error) {
-      setError(invokeError?.message || data?.error || 'Gagal membuat pengguna.');
+      const formError = invokeError?.message || data?.error || 'Gagal membuat pengguna.';
+      setError('');
+      showFormMessage('error', formError, formError.toLowerCase().includes('email') ? 'user_email' : 'user_nama');
       setSaving(false);
       return;
     }
 
-    setMessage('Pengguna berhasil dibuat.');
+    setMessage('');
+    showFormMessage('success', 'Pengguna berhasil dibuat.');
     resetForm();
     await loadUsers();
     setSaving(false);
@@ -164,12 +178,15 @@ export default function UserManagementClient() {
     });
 
     if (invokeError || data?.error) {
-      setError(invokeError?.message || data?.error || 'Gagal mengganti password.');
+      const formError = invokeError?.message || data?.error || 'Gagal mengganti password.';
+      setError('');
+      showFormMessage('error', formError, 'user_new_password');
       setSaving(false);
       return;
     }
 
-    setMessage(`Password untuk ${passwordUser.email || 'pengguna'} berhasil diganti.`);
+    setMessage('');
+    showFormMessage('success', `Password untuk ${passwordUser.email || 'pengguna'} berhasil diganti.`);
     setNewPassword('');
     setPasswordUser(null);
     setSaving(false);
@@ -194,12 +211,15 @@ export default function UserManagementClient() {
     });
 
     if (invokeError || data?.error) {
-      setError(invokeError?.message || data?.error || 'Gagal menyimpan pengguna.');
+      const formError = invokeError?.message || data?.error || 'Gagal menyimpan pengguna.';
+      setError('');
+      showFormMessage('error', formError, 'user_nama');
       setSaving(false);
       return;
     }
 
-    setMessage('Profil pengguna berhasil diperbarui.');
+    setMessage('');
+    showFormMessage('success', 'Profil pengguna berhasil diperbarui.');
     resetForm();
     await loadUsers();
     setSaving(false);
@@ -293,6 +313,7 @@ export default function UserManagementClient() {
               <span>PASSWORD BARU</span>
               <div className="manajemen-user-password-field">
                 <input
+                  data-kavio-focus="user_new_password"
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(event) => setNewPassword(event.target.value)}
@@ -358,12 +379,13 @@ export default function UserManagementClient() {
           <form className="kavio-form manajemen-user-form" onSubmit={editing ? handleUpdate : handleCreate}>
             <label className="kavio-field">
               <span>NAMA PENGGUNA</span>
-              <input value={nama} onChange={(event) => setNama(event.target.value)} placeholder="Nama pengguna" required />
+              <input data-kavio-focus="user_nama" value={nama} onChange={(event) => setNama(event.target.value)} placeholder="Nama pengguna" required />
             </label>
 
             <label className="kavio-field">
               <span>EMAIL</span>
               <input
+                data-kavio-focus="user_email"
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
@@ -395,6 +417,7 @@ export default function UserManagementClient() {
                 <span>PASSWORD AWAL</span>
                 <div className="manajemen-user-password-field">
                   <input
+                    data-kavio-focus="user_password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}

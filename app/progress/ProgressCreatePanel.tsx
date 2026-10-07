@@ -59,8 +59,12 @@ export default function ProgressCreatePanel({
   });
 
   useEffect(() => {
+    if (searchParams.get('success')) {
+      setOpen(false);
+      return;
+    }
     if (autoOpen) setOpen(true);
-  }, [autoOpen]);
+  }, [autoOpen, searchParams]);
 
   useEffect(() => {
     const focusFirst = () => {
@@ -86,15 +90,16 @@ export default function ProgressCreatePanel({
     setOpen(false);
     const next = new URLSearchParams(searchParams.toString());
     next.delete('panel');
+    next.delete('form');
     next.delete('focus');
     next.delete('error');
     const query = next.toString();
     router.replace(query ? `/progress?${query}` : '/progress', { scroll: false });
   };
 
-  const showError = (title: string, message: string) => {
+  const showError = (title: string, message: string, focusTarget = 'progress_batch_first') => {
     window.dispatchEvent(new CustomEvent('kavio-message', {
-      detail: { tone: 'error', title, message, focusTarget: 'progress_batch_first' },
+      detail: { tone: 'error', title, message, focusTarget },
     }));
   };
 
@@ -115,6 +120,7 @@ export default function ProgressCreatePanel({
         showError(
           'PROGRESS MELEBIHI 100%',
           `${category?.nama_kategori ?? entry.id_kategori}: progress saat ini ${currentPct.toFixed(2)}%. Maksimal tambahan ${maxAllowed.toFixed(2)}%.`,
+          `progress_${entry.id_kategori}`,
         );
         return;
       }
@@ -198,6 +204,7 @@ export default function ProgressCreatePanel({
                           <td>
                             <input
                               ref={assignRef ? firstInputRef : undefined}
+                              data-kavio-focus={`progress_${config.id_kategori}`}
                               className="kavio-batch-input kavio-number"
                               type="number"
                               min="0"

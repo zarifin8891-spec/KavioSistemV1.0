@@ -4,9 +4,18 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { requireKavioAction } from '../../../lib/kavio-permissions-server';
+import { redirectKavioFormError } from '../../../lib/kavio-form-feedback';
 
 function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
+}
+
+function createFail(message: string, focus = 'id_mandor'): never {
+  redirectKavioFormError('/master/mandor', message, { form: 'master-mandor-create', focus });
+}
+
+function editFail(idMandor: string, message: string, focus = 'nama_mandor'): never {
+  redirectKavioFormError('/master/mandor', message, { focus, params: { edit: idMandor } });
 }
 
 export async function createMandor(formData: FormData) {
@@ -22,7 +31,7 @@ export async function createMandor(formData: FormData) {
   const keterangan = text(formData.get('keterangan'));
 
   if (!idMandor || !namaMandor || !idKantor) {
-    redirect('/master/mandor?error=ID%20mandor%2C%20nama%20mandor%2C%20dan%20kantor%20wajib%20diisi');
+    createFail('ID mandor, nama mandor, dan kantor wajib diisi', !idMandor ? 'id_mandor' : !namaMandor ? 'nama_mandor' : 'id_kantor');
   }
 
   const { error } = await supabase.from('master_mandor').insert({
@@ -34,7 +43,7 @@ export async function createMandor(formData: FormData) {
     status_aktif: true,
   });
 
-  if (error) redirect(`/master/mandor?error=${encodeURIComponent(error.message)}`);
+  if (error) createFail(error.message);
 
   revalidatePath('/master/mandor');
   redirect('/master/mandor?success=Mandor%20berhasil%20ditambahkan');
@@ -52,7 +61,8 @@ export async function updateMandor(formData: FormData) {
   const idKantor = text(formData.get('id_kantor'));
   const noHp = text(formData.get('no_hp'));
   const keterangan = text(formData.get('keterangan'));
-  if (!idMandor || !namaMandor || !idKantor) redirect('/master/mandor?error=ID%20mandor%2C%20nama%20mandor%2C%20dan%20kantor%20wajib%20diisi');
+  if (!idMandor) redirectKavioFormError('/master/mandor', 'ID mandor tidak valid');
+  if (!namaMandor || !idKantor) editFail(idMandor, 'Nama mandor dan kantor wajib diisi', !namaMandor ? 'nama_mandor' : 'id_kantor');
 
   const { error } = await supabase.from('master_mandor').update({
     nama_mandor: namaMandor,
@@ -60,7 +70,7 @@ export async function updateMandor(formData: FormData) {
     no_hp: noHp || null,
     keterangan: keterangan || null,
   }).eq('id_mandor', idMandor);
-  if (error) redirect(`/master/mandor?error=${encodeURIComponent(error.message)}`);
+  if (error) editFail(idMandor, error.message);
 
   revalidatePath('/master/mandor');
   revalidatePath('/master/spk');
@@ -76,14 +86,14 @@ export async function toggleMandor(formData: FormData) {
   const idMandor = text(formData.get('id_mandor'));
   const statusAktif = text(formData.get('status_aktif')) === 'true';
 
-  if (!idMandor) redirect('/master/mandor?error=ID%20mandor%20tidak%20valid');
+  if (!idMandor) redirectKavioFormError('/master/mandor', 'ID mandor tidak valid');
 
   const { error } = await supabase
     .from('master_mandor')
     .update({ status_aktif: !statusAktif })
     .eq('id_mandor', idMandor);
 
-  if (error) redirect(`/master/mandor?error=${encodeURIComponent(error.message)}`);
+  if (error) redirectKavioFormError('/master/mandor', error.message);
 
   revalidatePath('/master/mandor');
   redirect('/master/mandor');
