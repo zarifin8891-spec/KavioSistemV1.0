@@ -558,8 +558,6 @@ select option:hover {
 
 /* KAVIO shared edit/cost controls */
 .kavio-inline-actions{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
-.kavling-edit-panel{margin-top:10px}
-.kavling-edit-panel .kavio-panel-head{align-items:center}
 .sales-cost-panel{margin-top:10px}
 .sales-costs-block{grid-column:1 / -1;padding:12px 14px;border:1px solid rgba(255,255,255,.08);background:rgba(13,29,48,.42);border-radius:8px}
 .sales-costs-title{font-size:12px;font-weight:700;letter-spacing:.8px;margin-bottom:8px}
@@ -586,8 +584,9 @@ select option:hover {
 .kavling-page .kavio-inline-actions { display:flex; align-items:center; justify-content:center; gap:5px; flex-wrap:nowrap; white-space:nowrap; }
 .kavling-page .kavio-inline-actions form { display:flex; align-items:center; margin:0; }
 .kavling-page .kavio-inline-actions .kavio-button { flex:0 0 auto; }
-.kavling-page .kavling-edit-panel .kavio-field input,
-.kavling-page .kavling-edit-panel .kavio-field select { background:linear-gradient(180deg,#213B59,#182F4A) !important; border-color:rgba(240,212,138,.34) !important; }
+.kavio-kavling-edit-modal .kavio-panel-head { align-items:center; }
+.kavio-kavling-edit-modal .kavio-field input,
+.kavio-kavling-edit-modal .kavio-field select { background:linear-gradient(180deg,#213B59,#182F4A) !important; border-color:rgba(240,212,138,.34) !important; }
 .kavling-page .kavling-kpi-grid {
   margin-bottom:14px !important;
 }
@@ -1427,7 +1426,6 @@ button.kavio-button,
   white-space:nowrap;
 }
 .kavio-master-row-actions form { margin:0; }
-.kavio-master-edit-panel { margin-top:10px; }
 
 
 /* ============================================================
@@ -1697,32 +1695,6 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
     border-radius:10px;
   }
 }
-
-/* Legacy edit panels are rendered by server pages. Present them with the same
-   modal geometry until each page is migrated to KavioFormModal directly. */
-.kavio-master-edit-panel,
-.kavling-edit-panel {
-  position:fixed !important;
-  top:50% !important;
-  left:50% !important;
-  z-index:9501 !important;
-  width:min(980px,calc(100vw - 48px)) !important;
-  max-height:calc(100vh - 48px) !important;
-  overflow:auto !important;
-  transform:translate(-50%,-50%) !important;
-  margin:0 !important;
-  box-shadow:0 28px 80px rgba(0,0,0,.46) !important;
-}
-.kavio-master-edit-panel::before,
-.kavling-edit-panel::before {
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:-1;
-  background:rgba(2,12,25,.66);
-  backdrop-filter:blur(3px);
-}
-
 
 /* Read-only detail grid shown behind modal edit actions. */
 .kavio-read-grid {

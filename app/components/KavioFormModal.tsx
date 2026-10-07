@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
 
 export default function KavioFormModal({
   open,
   onClose,
+  closeHref,
   children,
   size = 'standard',
   ariaLabel = 'Form KAVIO',
@@ -13,7 +15,8 @@ export default function KavioFormModal({
   closeOnBackdrop = true,
 }: {
   open: boolean;
-  onClose: () => void;
+  onClose?: () => void;
+  closeHref?: string;
   children: React.ReactNode;
   size?: 'compact' | 'standard' | 'wide' | 'full';
   ariaLabel?: string;
@@ -21,8 +24,20 @@ export default function KavioFormModal({
   closeOnBackdrop?: boolean;
 }) {
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => setMounted(true), []);
+
+  const close = useCallback(() => {
+    if (onClose) {
+      onClose();
+      return;
+    }
+
+    if (closeHref) {
+      router.replace(closeHref, { scroll: false });
+    }
+  }, [closeHref, onClose, router]);
 
   useEffect(() => {
     if (!open) return;
@@ -30,7 +45,7 @@ export default function KavioFormModal({
     document.body.style.overflow = 'hidden';
 
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') close();
     };
 
     window.addEventListener('keydown', handleKey);
@@ -38,7 +53,7 @@ export default function KavioFormModal({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKey);
     };
-  }, [open, onClose]);
+  }, [close, open]);
 
   if (!mounted || !open) return null;
 
@@ -47,7 +62,7 @@ export default function KavioFormModal({
       className="kavio-form-modal-backdrop"
       role="presentation"
       onMouseDown={(event) => {
-        if (closeOnBackdrop && event.currentTarget === event.target) onClose();
+        if (closeOnBackdrop && event.currentTarget === event.target) close();
       }}
     >
       <div

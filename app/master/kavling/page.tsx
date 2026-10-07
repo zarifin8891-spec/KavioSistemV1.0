@@ -2,6 +2,7 @@ import { getKavioRequestContext } from '../../../lib/kavio-request-context';
 import { createClient } from '../../../lib/supabase/server';
 import { createKavling, toggleKavling, updateKavling } from './actions';
 import KavioCreatePanel from '../../components/KavioCreatePanel';
+import KavioFormModal from '../../components/KavioFormModal';
 import { formatKavioMoney } from '../../lib/number-format';
 
 type SearchParams = Promise<{ error?: string; success?: string; edit?: string }>;
@@ -56,7 +57,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
         {rows.map((row,i)=><tr key={row.id_kavling}><td>{i+1}</td><td className="master-highlight">{row.id_kavling}</td><td>{row.blok}</td><td>{row.no_kavling}</td><td>{tipeMap.get(row.id_tipe)??row.id_tipe}</td><td>{Number(row.luas_tanah_real).toFixed(2)} m²</td><td>{Number(row.kelebihan_tanah).toFixed(2)} m²</td><td className="kavio-money">{formatKavioMoney(row.harga_standar)}</td><td className="kavio-money">{formatKavioMoney(row.harga_tanah_meter)}</td><td className="kavio-money">{formatKavioMoney(row.harga_jual)}</td><td><span className="master-status">{row.status_kavling}</span></td><td><span className={`master-status ${row.status_aktif?'active':'inactive'}`}>{row.status_aktif?'AKTIF':'NONAKTIF'}</span></td><td>{canWrite ? <div className="kavio-inline-actions"><a href={'/master/kavling?edit=' + encodeURIComponent(row.id_kavling)} className="kavio-button secondary">EDIT</a><form action={toggleKavling}><input type="hidden" name="id_kavling" value={row.id_kavling}/><input type="hidden" name="status_aktif" value={String(row.status_aktif)}/><button type="submit" className="kavio-button secondary">{row.status_aktif?'NONAKTIFKAN':'AKTIFKAN'}</button></form></div> : <span>—</span>}</td></tr>)}
         {!rows.length&&<tr><td colSpan={13} className="kavio-empty">BELUM ADA DATA KAVLING.</td></tr>}
       </tbody></table></div>
-      {canWrite && editRow && <section className="kavio-panel kavling-edit-panel">
+      {canWrite && editRow && <KavioFormModal open closeHref="/master/kavling" size="standard" ariaLabel="Edit Data Kavling" className="kavio-kavling-edit-modal" closeOnBackdrop={false}><section className="kavio-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">EDIT DATA KAVLING — {editRow.id_kavling}</h2><div className="kavio-panel-note">ID kavling dan status lifecycle tetap dikendalikan sistem. Data lokasi, tipe, luas tanah, dan harga dapat diperbarui.</div></div><a href="/master/kavling" className="kavio-button secondary">BATAL</a></div>
       <form action={updateKavling} className="kavio-form kavio-panel-body">
         <input type="hidden" name="id_kavling" value={editRow.id_kavling}/>
@@ -71,7 +72,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
         <div className="kavio-form-note"><strong>CATATAN:</strong> HARGA JUAL dihitung otomatis: Harga Standar + (Kelebihan Tanah × Harga Tanah/M²). Perubahan tipe tidak diizinkan setelah ada histori Sales/SPK.</div>
         <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN PERUBAHAN KAVLING</button></div>
       </form>
-    </section>}
+    </section></KavioFormModal>}
     </section>
   </main>;
 }
