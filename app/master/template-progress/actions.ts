@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { requireKavioAction } from '../../../lib/kavio-permissions-server';
+import { redirectKavioFormError } from '../../../lib/kavio-form-feedback';
 
 function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
@@ -25,11 +26,11 @@ export async function upsertTemplateProgress(formData: FormData) {
   const bobotPersen = number(formData.get('bobot_standar'));
 
   if (!idTipe || !idKategori) {
-    redirect('/master/template-progress?error=Tipe%20rumah%20dan%20kategori%20wajib%20dipilih');
+    redirectKavioFormError('/master/template-progress', 'Tipe rumah dan kategori wajib dipilih', { form: 'master-template-progress', focus: 'id_tipe' });
   }
 
   if (!Number.isFinite(bobotPersen) || bobotPersen < 0 || bobotPersen > 100) {
-    redirect('/master/template-progress?error=Bobot%20harus%20bernilai%200-100%25');
+    redirectKavioFormError('/master/template-progress', 'Bobot harus bernilai 0-100%', { form: 'master-template-progress', focus: 'bobot_standar' });
   }
 
   const { data: tipe, error: tipeError } = await supabase
@@ -39,8 +40,8 @@ export async function upsertTemplateProgress(formData: FormData) {
     .eq('status_aktif', true)
     .maybeSingle();
 
-  if (tipeError) redirect(`/master/template-progress?error=${encodeURIComponent(tipeError.message)}`);
-  if (!tipe) redirect('/master/template-progress?error=Tipe%20rumah%20tidak%20ditemukan%20atau%20nonaktif');
+  if (tipeError) redirectKavioFormError('/master/template-progress', tipeError.message, { form: 'master-template-progress', focus: 'id_tipe' });
+  if (!tipe) redirectKavioFormError('/master/template-progress', 'Tipe rumah tidak ditemukan atau nonaktif', { form: 'master-template-progress', focus: 'id_tipe' });
 
   const { data: kategori, error: kategoriError } = await supabase
     .from('master_kategori_pekerjaan')
@@ -49,8 +50,8 @@ export async function upsertTemplateProgress(formData: FormData) {
     .eq('status_aktif', true)
     .maybeSingle();
 
-  if (kategoriError) redirect(`/master/template-progress?error=${encodeURIComponent(kategoriError.message)}`);
-  if (!kategori) redirect('/master/template-progress?error=Kategori%20pekerjaan%20tidak%20ditemukan%20atau%20nonaktif');
+  if (kategoriError) redirectKavioFormError('/master/template-progress', kategoriError.message, { form: 'master-template-progress', focus: 'id_kategori' });
+  if (!kategori) redirectKavioFormError('/master/template-progress', 'Kategori pekerjaan tidak ditemukan atau nonaktif', { form: 'master-template-progress', focus: 'id_kategori' });
 
   const { error } = await supabase.from('template_progress_tipe').upsert(
     {
@@ -61,7 +62,7 @@ export async function upsertTemplateProgress(formData: FormData) {
     { onConflict: 'id_tipe,id_kategori' },
   );
 
-  if (error) redirect(`/master/template-progress?error=${encodeURIComponent(error.message)}`);
+  if (error) redirectKavioFormError('/master/template-progress', error.message, { form: 'master-template-progress', focus: 'bobot_standar' });
 
   revalidatePath('/master/template-progress');
   revalidatePath('/master/spk');
