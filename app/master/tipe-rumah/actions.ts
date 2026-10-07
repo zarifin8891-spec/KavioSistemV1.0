@@ -51,7 +51,7 @@ export async function createTipeRumah(formData: FormData) {
   });
 
   if (error) {
-    createFail(error.message);
+    redirectKavioFormError('/master/tipe-rumah', error.message);
   }
 
   revalidatePath('/master/tipe-rumah');
@@ -71,9 +71,10 @@ export async function updateTipeRumah(formData: FormData) {
   const namaTipe = text(formData.get('nama_tipe'));
   const luasTanah = number(formData.get('luas_tanah'));
   const luasBangunan = number(formData.get('luas_bangunan'));
-  if (!idTipe || !namaTipe) redirect('/master/tipe-rumah?error=ID%20dan%20nama%20tipe%20wajib%20diisi');
+  if (!idTipe) redirectKavioFormError('/master/tipe-rumah', 'ID tipe tidak valid');
+  if (!namaTipe) editFail(idTipe, 'Nama tipe wajib diisi', 'nama_tipe');
   if (!Number.isFinite(luasTanah) || luasTanah <= 0 || !Number.isFinite(luasBangunan) || luasBangunan <= 0) {
-    redirect('/master/tipe-rumah?error=Luas%20tanah%20dan%20luas%20bangunan%20harus%20bernilai%20positif');
+    editFail(idTipe, 'Luas tanah dan luas bangunan harus bernilai positif', !Number.isFinite(luasTanah) || luasTanah <= 0 ? 'luas_tanah' : 'luas_bangunan');
   }
 
   const { error } = await supabase.from('master_tipe_rumah').update({
