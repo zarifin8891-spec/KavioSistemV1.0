@@ -51,7 +51,12 @@ export default function KavioCreatePanel({
   }, []);
 
   useEffect(() => {
-    if (formKey && searchParams.get('form') === formKey) setOpen(true);
+    if (!formKey) return;
+    if (searchParams.get('form') === formKey) {
+      setOpen(true);
+      return;
+    }
+    if (searchParams.get('success')) setOpen(false);
   }, [formKey, searchParams]);
 
   const close = useCallback(() => {
