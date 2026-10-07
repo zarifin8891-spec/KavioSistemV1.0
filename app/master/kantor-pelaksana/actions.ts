@@ -61,7 +61,8 @@ export async function updateKantorPelaksana(formData: FormData) {
   const penanggungJawab = text(formData.get('penanggung_jawab'));
   const noHp = text(formData.get('no_hp'));
   const keterangan = text(formData.get('keterangan'));
-  if (!idKantor || !namaKantorPelaksana) redirect('/master/kantor-pelaksana?error=ID%20dan%20nama%20kantor%20wajib%20diisi');
+  if (!idKantor) redirectKavioFormError('/master/kantor-pelaksana', 'ID kantor tidak valid');
+  if (!namaKantorPelaksana) editFail(idKantor, 'Nama kantor wajib diisi', 'nama_kantor_pelaksana');
 
   const { error } = await supabase.from('master_kantor_pelaksana').update({
     nama_kantor_pelaksana: namaKantorPelaksana,
