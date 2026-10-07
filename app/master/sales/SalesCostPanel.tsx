@@ -41,6 +41,7 @@ export default function SalesCostPanel({
         </div>
         <KavioActionGate action="SALES_WRITE">
           <KavioModalAction
+            formKey="sales-cost"
             buttonLabel="UBAH BIAYA"
             title="INPUT BIAYA SALES"
             note="Ubah biaya tambahan transaksi lalu simpan."
