@@ -37,7 +37,11 @@ export default function SpkCreatePanel({
   );
 
   useEffect(() => {
-    if (searchParams.get('form') === 'spk-create') setOpen(true);
+    if (searchParams.get('form') === 'spk-create') {
+      setOpen(true);
+      return;
+    }
+    if (searchParams.get('success')) setOpen(false);
   }, [searchParams]);
 
   const closePanel = useCallback(() => {
