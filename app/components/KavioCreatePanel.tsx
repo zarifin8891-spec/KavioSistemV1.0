@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import KavioFormModal from './KavioFormModal';
 
 function prettyLabel(value: string) {
@@ -26,6 +27,7 @@ export default function KavioCreatePanel({
   triggerTargetId,
   headerActions,
   modalSize = 'standard',
+  formKey,
 }: {
   buttonLabel: string;
   closeLabel?: string;
@@ -36,15 +38,33 @@ export default function KavioCreatePanel({
   triggerTargetId?: string;
   headerActions?: React.ReactNode;
   modalSize?: 'compact' | 'standard' | 'wide' | 'full';
+  formKey?: string;
 }) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const close = () => setOpen(false);
+  useEffect(() => {
+    if (formKey && searchParams.get('form') === formKey) setOpen(true);
+  }, [formKey, searchParams]);
+
+  const close = useCallback(() => {
+    setOpen(false);
+    if (!formKey || searchParams.get('form') !== formKey) return;
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete('form');
+    next.delete('error');
+    next.delete('focus');
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [formKey, pathname, router, searchParams]);
 
   const trigger = (
     <button type="button" className="kavio-command-button" onClick={() => setOpen(true)}>
