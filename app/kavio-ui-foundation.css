@@ -1629,6 +1629,39 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 }
 
 
+/* Progress Batch: compact desktop layout without changing the global batch foundation. */
+.progress-create-panel .kavio-batch-table {
+  width:100%;
+  min-width:1000px;
+  table-layout:fixed;
+}
+.progress-create-panel .kavio-batch-table th:nth-child(1),
+.progress-create-panel .kavio-batch-table td:nth-child(1) { width:42px; }
+.progress-create-panel .kavio-batch-table th:nth-child(2),
+.progress-create-panel .kavio-batch-table td:nth-child(2) { width:30%; }
+.progress-create-panel .kavio-batch-table th:nth-child(3),
+.progress-create-panel .kavio-batch-table td:nth-child(3),
+.progress-create-panel .kavio-batch-table th:nth-child(4),
+.progress-create-panel .kavio-batch-table td:nth-child(4),
+.progress-create-panel .kavio-batch-table th:nth-child(5),
+.progress-create-panel .kavio-batch-table td:nth-child(5) { width:8%; }
+.progress-create-panel .kavio-batch-table th:nth-child(6),
+.progress-create-panel .kavio-batch-table td:nth-child(6) { width:12%; }
+.progress-create-panel .kavio-batch-table th:nth-child(7),
+.progress-create-panel .kavio-batch-table td:nth-child(7) { width:10%; }
+.progress-create-panel .kavio-batch-table th:nth-child(8),
+.progress-create-panel .kavio-batch-table td:nth-child(8) { width:18%; }
+.progress-create-panel .kavio-batch-table td:nth-child(6) .kavio-batch-input {
+  display:block;
+  width:110px;
+  min-width:0;
+  max-width:100%;
+  margin-left:auto;
+}
+.progress-create-panel .kavio-batch-table .kavio-batch-after {
+  white-space:nowrap;
+}
+
 /* ============================================================
    KAVIO GLOBAL FORM MODAL FOUNDATION
    All create/edit input surfaces should use this modal layer.
