@@ -61,7 +61,8 @@ export async function updateMandor(formData: FormData) {
   const idKantor = text(formData.get('id_kantor'));
   const noHp = text(formData.get('no_hp'));
   const keterangan = text(formData.get('keterangan'));
-  if (!idMandor || !namaMandor || !idKantor) redirect('/master/mandor?error=ID%20mandor%2C%20nama%20mandor%2C%20dan%20kantor%20wajib%20diisi');
+  if (!idMandor) redirectKavioFormError('/master/mandor', 'ID mandor tidak valid');
+  if (!namaMandor || !idKantor) editFail(idMandor, 'Nama mandor dan kantor wajib diisi', !namaMandor ? 'nama_mandor' : 'id_kantor');
 
   const { error } = await supabase.from('master_mandor').update({
     nama_mandor: namaMandor,
