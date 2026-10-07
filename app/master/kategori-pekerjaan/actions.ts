@@ -49,7 +49,7 @@ export async function createKategoriPekerjaan(formData: FormData) {
   });
 
   if (error) {
-    redirectKavioFormError('/master/kategori-pekerjaan', error.message);
+    createFail(error.message);
   }
 
   revalidatePath('/master/kategori-pekerjaan');
@@ -95,7 +95,7 @@ export async function toggleKategoriPekerjaan(formData: FormData) {
     .eq('id_kategori', idKategori);
 
   if (error) {
-    createFail(error.message);
+    redirectKavioFormError('/master/kategori-pekerjaan', error.message);
   }
 
   revalidatePath('/master/kategori-pekerjaan');
