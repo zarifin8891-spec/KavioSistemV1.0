@@ -38,7 +38,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
       <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">✓</div><div className="kavio-kpi-label">READY STOCK</div><div className="kavio-kpi-value">{statusCounts.READY_STOCK ?? 0}</div><div className="kavio-kpi-note">Pembangunan selesai</div></div>
       <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">●</div><div className="kavio-kpi-label">SOLD</div><div className="kavio-kpi-value">{statusCounts.SOLD ?? 0}</div><div className="kavio-kpi-note">Sudah akad / terjual</div></div>
     </section>
-    {canWrite && <KavioCreatePanel triggerTargetId="kavling-add-action" buttonLabel="+ TAMBAH KAVLING" closeLabel="× TUTUP FORM" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE.">
+    {canWrite && <KavioCreatePanel formKey="master-kavling-create" triggerTargetId="kavling-add-action" buttonLabel="+ TAMBAH KAVLING" closeLabel="× TUTUP FORM" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE.">
       <form action={createKavling} className="kavio-form kavio-panel-body">
         <label className="kavio-field"><span>ID KAVLING</span><input name="id_kavling" placeholder="A-11" required/></label>
         <label className="kavio-field"><span>BLOK</span><input name="blok" placeholder="A" required/></label>
