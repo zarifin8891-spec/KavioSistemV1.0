@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import KavioFormModal from './KavioFormModal';
 
 export default function KavioModalAction({
@@ -12,6 +13,7 @@ export default function KavioModalAction({
   size = 'standard',
   buttonClassName = 'kavio-button',
   closeOnBackdrop = false,
+  formKey,
 }: {
   buttonLabel: string;
   title: string;
@@ -21,8 +23,28 @@ export default function KavioModalAction({
   size?: 'compact' | 'standard' | 'wide' | 'full';
   buttonClassName?: string;
   closeOnBackdrop?: boolean;
+  formKey?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (formKey && searchParams.get('form') === formKey) setOpen(true);
+  }, [formKey, searchParams]);
+
+  const close = useCallback(() => {
+    setOpen(false);
+    if (!formKey || searchParams.get('form') !== formKey) return;
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete('form');
+    next.delete('error');
+    next.delete('focus');
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [formKey, pathname, router, searchParams]);
 
   return (
     <>
@@ -31,7 +53,7 @@ export default function KavioModalAction({
       </button>
       <KavioFormModal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={close}
         size={size}
         ariaLabel={title}
         closeOnBackdrop={closeOnBackdrop}
@@ -44,7 +66,7 @@ export default function KavioModalAction({
             </div>
             <div className="kavio-create-head-actions">
               {badge && <span className="kavio-badge">{badge}</span>}
-              <button type="button" className="kavio-command-button secondary" onClick={() => setOpen(false)}>
+              <button type="button" className="kavio-command-button secondary" onClick={close}>
                 <span className="kavio-command-icon" aria-hidden="true">×</span>
                 <span>Tutup Form</span>
               </button>
