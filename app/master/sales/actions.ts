@@ -3,13 +3,24 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { requireKavioAction } from '../../../lib/kavio-permissions-server';
+import { redirectKavioFormError } from '../../../lib/kavio-form-feedback';
 
 const VALID_STATUS = ['BOOKING', 'DP', 'PROSES_KPR', 'AKAD', 'BATAL'] as const;
 const VALID_PAYMENT = ['KPR', 'CASH', 'CASH_BERTAHAP'] as const;
 const SALEABLE_KAVLING_STATUS = ['AVAILABLE', 'BUILDING', 'READY_STOCK'] as const;
 function text(value: FormDataEntryValue | null) { return String(value ?? '').trim(); }
-function redirectError(message: string) { redirect(`/master/sales?error=${encodeURIComponent(message)}&add=1`); }
-function detailError(idSales: string, message: string) { redirect(`/master/sales/detail?id=${encodeURIComponent(idSales)}&error=${encodeURIComponent(message)}`); }
+
+function createError(message: string, focus = 'id_kavling'): never {
+  redirectKavioFormError('/master/sales', message, { form: 'sales-create', focus });
+}
+
+function detailError(idSales: string, message: string, form: 'sales-edit' | 'sales-cost', focus: string): never {
+  redirectKavioFormError('/master/sales/detail', message, { form, focus, params: { id: idSales } });
+}
+
+function pageError(message: string): never {
+  redirectKavioFormError('/master/sales', message);
+}
 
 export async function createSales(formData: FormData) {
   const supabase = await createClient();
@@ -51,7 +62,10 @@ export async function createSales(formData: FormData) {
     p_biaya_lainnya: biayaLainnya,
   });
 
-  if (error) return redirectError(error.message);
+  if (error) {
+    const lower = error.message.toLowerCase();
+    createError(error.message, lower.includes('konsumen') ? 'nama_konsumen' : lower.includes('bank') ? 'id_bank' : 'id_kavling');
+  }
 
   revalidatePath('/master/sales');
   revalidatePath('/master/sales/detail');
@@ -79,10 +93,10 @@ export async function updateSalesInfo(formData: FormData) {
   const tglAkad = text(formData.get('tgl_akad')) || null;
   const targetAkad = text(formData.get('target_akad')) || null;
 
-  if (!idSales) return redirect('/master/sales?error=ID%20SALES%20TIDAK%20VALID');
-  if (!namaKonsumen) return detailError(idSales, 'NAMA KONSUMEN WAJIB DIISI');
-  if (!(VALID_STATUS as readonly string[]).includes(statusSales)) return detailError(idSales, 'STATUS SALES TIDAK VALID');
-  if (!(VALID_PAYMENT as readonly string[]).includes(jenisPembayaran)) return detailError(idSales, 'JENIS PEMBAYARAN TIDAK VALID');
+  if (!idSales) pageError('ID SALES TIDAK VALID');
+  if (!namaKonsumen) detailError(idSales, 'NAMA KONSUMEN WAJIB DIISI', 'sales-edit', 'nama_konsumen');
+  if (!(VALID_STATUS as readonly string[]).includes(statusSales)) detailError(idSales, 'STATUS SALES TIDAK VALID', 'sales-edit', 'status_sales');
+  if (!(VALID_PAYMENT as readonly string[]).includes(jenisPembayaran)) detailError(idSales, 'JENIS PEMBAYARAN TIDAK VALID', 'sales-edit', 'jenis_pembayaran');
 
   const { error } = await supabase.rpc('update_sales_atomic', {
     p_id_sales: idSales,
@@ -97,7 +111,18 @@ export async function updateSalesInfo(formData: FormData) {
     p_target_akad: targetAkad || null,
   });
 
-  if (error) return detailError(idSales, error.message);
+  if (error) {
+    const lower = error.message.toLowerCase();
+    detailError(
+      idSales,
+      error.message,
+      'sales-edit',
+      lower.includes('bank') ? 'id_bank'
+        : lower.includes('notaris') ? 'id_notaris'
+          : lower.includes('akad') ? 'tgl_akad'
+            : 'nama_konsumen',
+    );
+  }
 
   revalidatePath('/master/sales');
   revalidatePath('/master/sales/detail');
@@ -114,7 +139,7 @@ export async function saveSalesBiaya(formData: FormData) {
   await requireKavioAction('SALES_WRITE', '/master/sales?error=');
 
   const idSales = text(formData.get('id_sales'));
-  if (!idSales) return detailError('', 'ID SALES TIDAK VALID');
+  if (!idSales) pageError('ID SALES TIDAK VALID');
 
   const biayaPenambahanBangunan = Number(formData.get('biaya_penambahan_bangunan') ?? 0);
   const biayaNotaris = Number(formData.get('biaya_notaris') ?? 0);
@@ -129,7 +154,7 @@ export async function saveSalesBiaya(formData: FormData) {
     p_biaya_lainnya: biayaLainnya,
   });
 
-  if (error) return detailError(idSales, error.message);
+  if (error) detailError(idSales, error.message, 'sales-cost', 'biaya_penambahan_bangunan');
 
   revalidatePath('/master/sales');
   revalidatePath('/master/sales/detail');
@@ -145,10 +170,10 @@ export async function deactivateSales(formData: FormData) {
   await requireKavioAction('SALES_WRITE', '/master/sales?error=');
 
   const idSales = text(formData.get('id_sales'));
-  if (!idSales) return redirectError('ID SALES TIDAK VALID');
+  if (!idSales) pageError('ID SALES TIDAK VALID');
 
   const { error } = await supabase.rpc('close_sales_atomic', { p_id_sales: idSales });
-  if (error) return redirectError(error.message);
+  if (error) pageError(error.message);
 
   revalidatePath('/master/sales');
   revalidatePath('/master/sales/detail');
@@ -158,4 +183,3 @@ export async function deactivateSales(formData: FormData) {
   revalidatePath('/dashboard');
   redirect('/master/sales?success=SALES%20BERHASIL%20DITUTUP');
 }
-
