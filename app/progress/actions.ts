@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { requireKavioAction } from '../../lib/kavio-permissions-server';
+import { redirectKavioFormError } from '../../lib/kavio-form-feedback';
 
 function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
@@ -14,8 +15,12 @@ function percent(value: FormDataEntryValue | null) {
   return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : NaN;
 }
 
-function progressError(idSpk: string, message: string): never {
-  redirect(`/progress?spk=${encodeURIComponent(idSpk)}&panel=progress&focus=progress_periode&error=${encodeURIComponent(message)}`);
+function progressError(idSpk: string, message: string, focus = 'progress_batch_first'): never {
+  redirectKavioFormError('/progress', message, {
+    form: 'progress-create',
+    focus,
+    params: { spk: idSpk, panel: 'progress' },
+  });
 }
 
 export async function createProgressUpdate(formData: FormData) {
@@ -63,7 +68,7 @@ export async function createProgressBatchUpdate(formData: FormData) {
   const rawEntries = text(formData.get('entries_json'));
 
   if (!idSpk || !tanggalUpdate || !rawEntries) {
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&panel=progress&focus=progress_batch_first&error=${encodeURIComponent('SPK, tanggal, dan minimal satu progress wajib diisi')}`);
+    progressError(idSpk, 'SPK, tanggal, dan minimal satu progress wajib diisi', !tanggalUpdate ? 'tanggal_update' : 'progress_batch_first');
   }
 
   let entries: Array<{ id_kategori: string; progress_percent: number; keterangan?: string | null }> = [];
@@ -78,11 +83,11 @@ export async function createProgressBatchUpdate(formData: FormData) {
       }))
       .filter((row) => row.id_kategori && Number.isFinite(row.progress_percent) && row.progress_percent > 0);
   } catch {
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&panel=progress&focus=progress_batch_first&error=${encodeURIComponent('Data progress batch tidak valid')}`);
+    progressError(idSpk, 'Data progress batch tidak valid', 'progress_batch_first');
   }
 
   if (!entries.length) {
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&panel=progress&focus=progress_batch_first&error=${encodeURIComponent('Isi minimal satu kategori progress sebelum menyimpan')}`);
+    progressError(idSpk, 'Isi minimal satu kategori progress sebelum menyimpan', 'progress_batch_first');
   }
 
   const { data: inserted, error } = await supabase.rpc('insert_progress_batch_atomic', {
@@ -92,7 +97,7 @@ export async function createProgressBatchUpdate(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/progress?spk=${encodeURIComponent(idSpk)}&panel=progress&focus=progress_batch_first&error=${encodeURIComponent(error.message)}`);
+    progressError(idSpk, error.message, 'progress_batch_first');
   }
 
   revalidatePath('/progress');
