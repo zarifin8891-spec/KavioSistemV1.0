@@ -102,11 +102,36 @@ export default function KavioMessageBox() {
   const close = () => {
     const focusTarget = localMessage?.focusTarget || urlFocusTarget || '';
 
+    const focusRequestedTarget = () => {
+      if (!focusTarget) return;
+      sessionStorage.setItem('kavio_focus_target', focusTarget);
+      const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(focusTarget) : focusTarget.replace(/["\\]/g, '\\  const close = () => {
+    const focusTarget = localMessage?.focusTarget || urlFocusTarget || '';
+
     if (focusTarget) {
       sessionStorage.setItem('kavio_focus_target', focusTarget);
       window.setTimeout(() => {
         window.dispatchEvent(new CustomEvent('kavio-focus-request', { detail: { target: focusTarget } }));
       }, 40);
+    } else if (invalidElementRef.current) {
+      const element = invalidElementRef.current;
+      window.setTimeout(() => element.focus(), 40);
+    }
+');
+      const target = document.querySelector<HTMLElement>(
+        `[data-kavio-focus="${escaped}"], #${escaped}, [name="${escaped}"]`,
+      );
+      if (target) {
+        target.focus();
+        if (target instanceof HTMLInputElement && target.type !== 'number') target.select?.();
+        sessionStorage.removeItem('kavio_focus_target');
+        return;
+      }
+      window.dispatchEvent(new CustomEvent('kavio-focus-request', { detail: { target: focusTarget } }));
+    };
+
+    if (focusTarget) {
+      window.setTimeout(focusRequestedTarget, 80);
     } else if (invalidElementRef.current) {
       const element = invalidElementRef.current;
       window.setTimeout(() => element.focus(), 40);
