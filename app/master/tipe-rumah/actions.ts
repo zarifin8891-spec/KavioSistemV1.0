@@ -51,7 +51,7 @@ export async function createTipeRumah(formData: FormData) {
   });
 
   if (error) {
-    redirectKavioFormError('/master/tipe-rumah', error.message);
+    createFail(error.message);
   }
 
   revalidatePath('/master/tipe-rumah');
@@ -108,7 +108,7 @@ export async function toggleTipeRumah(formData: FormData) {
     .eq('id_tipe', idTipe);
 
   if (error) {
-    createFail(error.message);
+    redirectKavioFormError('/master/tipe-rumah', error.message);
   }
 
   revalidatePath('/master/tipe-rumah');
