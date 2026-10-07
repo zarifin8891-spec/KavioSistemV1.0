@@ -59,8 +59,12 @@ export default function ProgressCreatePanel({
   });
 
   useEffect(() => {
+    if (searchParams.get('success')) {
+      setOpen(false);
+      return;
+    }
     if (autoOpen) setOpen(true);
-  }, [autoOpen]);
+  }, [autoOpen, searchParams]);
 
   useEffect(() => {
     const focusFirst = () => {
