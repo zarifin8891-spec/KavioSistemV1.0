@@ -139,7 +139,7 @@ export default function ProgressCreatePanel({
           </button>
         )}
 
-        <KavioFormModal open={open} onClose={closePanel} size="full" ariaLabel="Input Progress Batch" closeOnBackdrop={false}>
+        <KavioFormModal open={open} onClose={closePanel} size="wide" ariaLabel="Input Progress Batch" closeOnBackdrop={false}>
           <section className="kavio-panel progress-create-panel kavio-batch-entry">
             <div className="kavio-panel-head progress-create-head">
               <div>
