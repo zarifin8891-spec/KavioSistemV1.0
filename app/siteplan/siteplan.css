@@ -223,3 +223,15 @@
     grid-template-columns:repeat(2,minmax(0,1fr)) !important;
   }
 }
+
+
+/* SIAP AKAD: distinct teal lifecycle state, kept within the canonical 2x3 desktop legend. */
+.siteplan-kpi-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+.siteplan-hotspot.status-siap_akad{background:rgba(20,184,166,.18)}
+.siteplan-status.status-siap_akad{color:#99F6E4;border-color:#0F766E}
+.siteplan-legend-item.status-siap_akad{background:#14B8A6!important;color:#fff!important}
+.siteplan-legend-item.status-siap_akad i{background:#14B8A6!important;border-color:rgba(255,255,255,.75)!important}
+.siteplan-polygon.status-siap_akad polygon{fill:#14B8A6!important;stroke:transparent!important;stroke-width:0!important}
+.siteplan-lot-label.status-siap_akad{fill:#fff!important}
+@media(max-width:1000px){.siteplan-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:560px){.siteplan-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
