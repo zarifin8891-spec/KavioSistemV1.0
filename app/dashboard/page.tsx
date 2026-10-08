@@ -142,7 +142,7 @@ const [
                 <div className="kavio-dashboard-list-item" key={row.id_spk}>
                   <HealthBadge level={row.health_level} score={row.health_score} />
                   <div className="kavio-dashboard-list-main">
-                    <Link href={'/master/spk/detail/' + row.id_spk}>{row.id_kavling}</Link>
+                    <Link href={'/master/spk/detail/' + row.id_spk} prefetch={false}>{row.id_kavling}</Link>
                     <small>{row.health_description}</small>
                   </div>
                   <div className="kavio-dashboard-list-value">{(Number(row.progress_aktual) * 100).toFixed(1)}% · gap {(Number(row.gap_progress) * 100).toFixed(1)}%</div>
@@ -161,7 +161,7 @@ const [
                 <div className="kavio-dashboard-list-item" key={row.id_spk}>
                   <PriorityBadge priority={row.prioritas_tindakan} />
                   <div className="kavio-dashboard-list-main">
-                    <Link href={'/master/spk/detail/' + row.id_spk}>{row.id_kavling}</Link>
+                    <Link href={'/master/spk/detail/' + row.id_spk} prefetch={false}>{row.id_kavling}</Link>
                     <small>{row.action_rekomendasi}</small>
                   </div>
                   <div className="kavio-dashboard-list-value">{row.sisa_hari < 0 ? 'LEWAT ' + Math.abs(row.sisa_hari) + ' HARI' : row.sisa_hari + ' HARI'}</div>
@@ -200,7 +200,7 @@ const [
                 {rows.map((row) => (
                   <tr key={row.id_spk}>
                     <td><HealthBadge level={row.health_level} score={row.health_score} /></td>
-                    <td><Link href={'/master/spk/detail/' + row.id_spk}>{row.id_kavling}</Link></td>
+                    <td><Link href={'/master/spk/detail/' + row.id_spk} prefetch={false}>{row.id_kavling}</Link></td>
                     <td>
                       <strong>{(Number(row.progress_aktual) * 100).toFixed(1)}%</strong>
                       <div className="kavio-dashboard-chart-track" aria-hidden="true">
