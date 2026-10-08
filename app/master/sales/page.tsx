@@ -124,7 +124,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
             <tbody>{salesRows.map((row,index)=><tr key={row.id_sales}>
               <td className="sales-center">{offset+index+1}</td>
               <td>{row.tgl_booking ? formatKavioDate(row.tgl_booking) : '—'}</td>
-              <td className="sales-highlight"><Link href={`/master/sales/detail?id=${row.id_sales}`}>{row.id_kavling}</Link></td>
+              <td className="sales-highlight"><Link href={`/master/sales/detail?id=${row.id_sales}`} prefetch={false}>{row.id_kavling}</Link></td>
               <td className="sales-highlight">{row.nama_konsumen}</td>
               <td>{row.hp_konsumen??'—'}</td>
               <td>{row.nama_tipe??'—'}</td>
@@ -134,7 +134,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
               <td>{row.jenis_pembayaran??'—'}</td>
               <td>{row.jenis_pembayaran==='KPR'?(row.nama_bank??'—'):'—'}</td>
               <td><span className={`sales-status-badge ${row.status_sales.toLowerCase()}`}>{statusLabel(row.status_sales)}</span></td>
-              <td><div className="sales-actions">{row.status_aktif?<><Link href={`/master/sales/detail?id=${row.id_sales}`} className="kavio-button secondary">DETAIL</Link><KavioConfirmAction action={deactivateSales} hidden={{ id_sales: row.id_sales }} label="TUTUP" confirmMessage={'Konfirmasi: Sales ' + row.nama_konsumen + ' untuk kavling ' + row.id_kavling + ' akan ditutup. Status Sales akan menjadi ' + (row.status_sales === 'AKAD' ? 'AKAD (tidak aktif)' : 'BATAL') + '. Lanjutkan?'} /></>:<span>—</span>}</div></td>
+              <td><div className="sales-actions">{row.status_aktif?<><Link href={`/master/sales/detail?id=${row.id_sales}`} prefetch={false} className="kavio-button secondary">DETAIL</Link><KavioConfirmAction action={deactivateSales} hidden={{ id_sales: row.id_sales }} label="TUTUP" confirmMessage={'Konfirmasi: Sales ' + row.nama_konsumen + ' untuk kavling ' + row.id_kavling + ' akan ditutup. Status Sales akan menjadi ' + (row.status_sales === 'AKAD' ? 'AKAD (tidak aktif)' : 'BATAL') + '. Lanjutkan?'} /></>:<span>—</span>}</div></td>
             </tr>)}{!salesRows.length&&<tr><td colSpan={13} className="kavio-empty">BELUM ADA DATA SALES.</td></tr>}</tbody>
           </table>
         </div>
