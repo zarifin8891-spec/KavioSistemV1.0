@@ -221,7 +221,7 @@ body { margin: 0; }
 .kavio-create-panel .kavio-field > span { display:block; margin:0; color:var(--kavio-muted); font-size:9px; line-height:1.2; letter-spacing:.35px; font-weight:400; text-transform:uppercase; }
 .kavio-create-panel .kavio-field input,.kavio-create-panel .kavio-field select,.kavio-create-panel .kavio-field textarea { width:100% !important; min-width:0 !important; min-height:36px !important; padding:8px 10px !important; }
 .kavio-create-panel .kavio-actions { grid-column:1 / -1; }
-.kavio-form-note { grid-column:1 / -1; padding:9px 11px; border-left:2px solid var(--kavio-gold); background:rgba(216,180,90,.06); color:var(--kavio-muted); font-size:9px; line-height:1.45; }
+.kavio-form-note { grid-column:1 / -1; padding:9px 11px; border-left:2px solid var(--kavio-gold); background:rgba(216,180,90,.06); color:var(--kavio-muted); font-size:var(--kavio-font-panel-note); line-height:1.45; }
 .kavio-form-note strong { color:var(--kavio-champagne); font-weight:400; }
 
 .kavio-table-wrap { width:100%; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; }
@@ -280,8 +280,8 @@ body { margin: 0; }
 .kavio-create-panel .sales-create-grid,
 .kavio-create-panel .kvio-spk-form { display:grid !important; grid-template-columns:repeat(4,minmax(0,1fr)) !important; gap:12px 14px !important; align-items:start !important; padding:15px 16px !important; }
 .sales-create-grid .kavio-field,
-.kvio-spk-form .kavio-field { display:flex !important; flex-direction:column !important; align-items:stretch !important; gap:6px !important; min-width:0 !important; margin:0 !important; color:var(--kavio-muted) !important; font-size:9px !important; font-weight:400 !important; line-height:1.2 !important; text-transform:uppercase !important; }
-.sales-create-grid .kavio-field input,.sales-create-grid .kavio-field select,.kvio-spk-form .kavio-field input,.kvio-spk-form .kavio-field select { width:100% !important; min-height:36px !important; padding:8px 10px !important; border-radius:8px !important; background:linear-gradient(180deg,#344C69,#293F5B) !important; color:var(--kavio-ivory) !important; font-size:11px !important; font-weight:400 !important; }
+.kvio-spk-form .kavio-field { display:flex !important; flex-direction:column !important; align-items:stretch !important; gap:6px !important; min-width:0 !important; margin:0 !important; color:var(--kavio-muted) !important; font-size:var(--kavio-font-form-label) !important; font-weight:400 !important; line-height:1.2 !important; text-transform:uppercase !important; }
+.sales-create-grid .kavio-field input,.sales-create-grid .kavio-field select,.kvio-spk-form .kavio-field input,.kvio-spk-form .kavio-field select { width:100% !important; min-height:36px !important; padding:8px 10px !important; border-radius:8px !important; background:linear-gradient(180deg,#344C69,#293F5B) !important; color:var(--kavio-ivory) !important; font-size:var(--kavio-font-input) !important; font-weight:400 !important; }
 .sales-span-2 { grid-column:span 2 !important; }
 .sales-contact-note { min-height:36px; display:flex; align-items:center; color:var(--kavio-muted); font-size:9px; }
 .sales-contact-note span { border-left:2px solid var(--kavio-gold-dark); padding-left:9px; }
