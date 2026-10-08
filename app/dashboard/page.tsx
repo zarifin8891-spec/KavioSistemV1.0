@@ -72,6 +72,7 @@ const [
   const terjual = terjualKavlings.size;
   const building = countKavling('BUILDING');
   const readyStock = countKavling('READY_STOCK');
+  const siapAkad = countKavling('SIAP_AKAD');
   const tersedia = countKavling('AVAILABLE');
 
   const avgProgress = rows.length ? rows.reduce((sum, row) => sum + Number(row.progress_aktual ?? 0), 0) / rows.length : 0;
@@ -95,6 +96,7 @@ const [
     ['BOOKING', countKavling('BOOKING')],
     ['BUILDING', building],
     ['READY STOCK', readyStock],
+    ['SIAP AKAD', siapAkad],
     ['SOLD', countKavling('SOLD')],
   ] as const;
 
@@ -117,6 +119,7 @@ const [
         <DashboardKpi icon="▣" label="TERJUAL" value={terjual} note="Sales aktif + sudah AKAD" />
         <DashboardKpi icon="⌂" label="SEDANG DIBANGUN" value={building} note="Kavling berstatus BUILDING" />
         <DashboardKpi icon="▰" label="READY STOCK" value={readyStock} note="Pekerjaan selesai, belum terjual" />
+        <DashboardKpi icon="◆" label="SIAP AKAD" value={siapAkad} note="Syarat kesiapan akad terpenuhi" />
         <DashboardKpi icon="◇" label="TERSEDIA" value={tersedia} note="Kavling AVAILABLE" />
       </section>
 

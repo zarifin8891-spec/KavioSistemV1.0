@@ -73,10 +73,14 @@ type Props = {
   siteplanSrc: string;
 };
 
-const STATUS_LIST = ['AVAILABLE', 'BOOKING', 'BUILDING', 'READY_STOCK', 'SOLD', 'COMPLETED'] as const;
+const STATUS_LIST = ['AVAILABLE', 'BOOKING', 'BUILDING', 'READY_STOCK', 'SIAP_AKAD', 'SOLD'] as const;
 
 function statusClass(status?: string | null) {
   return (status || 'AVAILABLE').toLowerCase();
+}
+
+function statusLabel(status?: string | null) {
+  return (status || 'AVAILABLE').replaceAll('_', ' ');
 }
 
 function formatDate(value?: string | null) { return formatKavioDate(value); }
@@ -712,6 +716,12 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
           <div className="kavio-kpi-note kavio-dashboard-kpi-note">Kavling sedang dibangun</div>
         </div>
         <div className="kavio-kpi kavio-dashboard-kpi">
+          <div className="kavio-kpi-icon kavio-dashboard-kpi-icon" aria-hidden="true">◆</div>
+          <div className="kavio-kpi-label kavio-dashboard-kpi-label">SIAP AKAD</div>
+          <div className="kavio-kpi-value kavio-dashboard-kpi-value">{counts.SIAP_AKAD || 0}</div>
+          <div className="kavio-kpi-note kavio-dashboard-kpi-note">Syarat kesiapan akad terpenuhi</div>
+        </div>
+        <div className="kavio-kpi kavio-dashboard-kpi">
           <div className="kavio-kpi-icon kavio-dashboard-kpi-icon" aria-hidden="true">●</div>
           <div className="kavio-kpi-label kavio-dashboard-kpi-label">SOLD</div>
           <div className="kavio-kpi-value kavio-dashboard-kpi-value">{counts.SOLD || 0}</div>
@@ -862,7 +872,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
         <div className="siteplan-legend">
           {STATUS_LIST.map((status) => (
             <button key={status} type="button" className={`siteplan-legend-item status-${status.toLowerCase()} ${filter === status ? 'is-active' : ''}`} onClick={() => setFilter(filter === status ? 'ALL' : status)}>
-              <i />{status.replace('_', ' ')} <strong>{counts[status] || 0}</strong>
+              <i />{statusLabel(status)} <strong>{counts[status] || 0}</strong>
             </button>
           ))}
         </div>
@@ -883,7 +893,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
               <h2 className="kavio-panel-title">{selected ? `KAVLING ${selected.no_kavling || selected.id_kavling}` : 'PILIH KAVLING'}</h2>
               <div className="kavio-panel-note">{selected ? 'Data operasional yang terkait dengan kavling ini.' : 'Klik polygon kavling pada siteplan atau pilih dari daftar.'}</div>
             </div>
-            {selected && <span className={`siteplan-status status-${statusClass(selected.status_kavling)}`}>{selected.status_kavling || 'AVAILABLE'}</span>}
+            {selected && <span className={`siteplan-status status-${statusClass(selected.status_kavling)}`}>{statusLabel(selected.status_kavling)}</span>}
           </div>
 
           {mappingMode ? (
@@ -915,7 +925,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
                 <div className="siteplan-kpi"><span>KAVLING</span><strong>{selected.id_kavling}</strong></div>
                 <div className="siteplan-kpi"><span>BLOK / NO</span><strong>{selected.blok || '—'} / {selected.no_kavling || '—'}</strong></div>
                 <div className="siteplan-kpi"><span>TIPE</span><strong>{selected.id_tipe || '—'}</strong></div>
-                <div className="siteplan-kpi"><span>STATUS</span><strong>{selected.status_kavling || '—'}</strong></div>
+                <div className="siteplan-kpi"><span>STATUS</span><strong>{statusLabel(selected.status_kavling)}</strong></div>
               </div>
 
               <div className="siteplan-related siteplan-related-sales">
@@ -988,7 +998,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
                       <td>{row.nama_tipe || row.id_tipe || '—'}</td>
                       <td>{row.luas_tanah_real != null ? `${Number(row.luas_tanah_real).toFixed(2)} m²` : '—'}</td>
                       <td>{row.kelebihan_tanah != null ? `${Number(row.kelebihan_tanah).toFixed(2)} m²` : '—'}</td>
-                      <td><span className={`siteplan-status status-${statusClass(row.status_kavling)}`}>{row.status_kavling || 'AVAILABLE'}</span></td>
+                      <td><span className={`siteplan-status status-${statusClass(row.status_kavling)}`}>{statusLabel(row.status_kavling)}</span></td>
                       <td>{salesByKavling[row.id_kavling]?.nama_konsumen || '—'}</td>
                       <td>{spksByKavling[row.id_kavling]?.status_spk || '—'}</td>
                       <td><span className={`siteplan-status ${row.status_aktif === false ? 'status-inactive-data' : ''}`}>{row.status_aktif === false ? 'NONAKTIF' : 'AKTIF'}</span></td>
