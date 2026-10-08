@@ -62,22 +62,26 @@ export default function WeightConfigurator({ kavlingRows, kategoriRows, template
           </div>
         </div>
 
-        <div className="kavio-table-wrap">
-          <table className="kavio-table">
-            <thead><tr><th>URUT</th><th>KATEGORI</th><th>BOBOT STANDAR</th><th>BOBOT CUSTOM (%)</th></tr></thead>
-            <tbody>
-              {kategoriRows.map((item) => {
-                const standard = templateMap.get(item.id_kategori) ?? 0;
-                return <tr key={item.id_kategori}>
-                  <td>{item.urutan}</td>
-                  <td>{item.nama_kategori}</td>
-                  <td>{standard.toFixed(2)}%</td>
-                  <td><input className="kavio-weight-input" name={`bobot_${item.id_kategori}`} type="number" min="0" max="100" step="0.01" defaultValue="0" disabled={jenisBobot !== 'CUSTOM'} /></td>
-                </tr>;
-              })}
-              {!kategoriRows.length && <tr><td colSpan={4} className="kavio-empty">BELUM ADA KATEGORI PEKERJAAN AKTIF.</td></tr>}
-            </tbody>
-          </table>
+        <div className="kvio-weight-grid" role="group" aria-label="Konfigurasi bobot progress">
+          {kategoriRows.map((item) => {
+            const standard = templateMap.get(item.id_kategori) ?? 0;
+            return (
+              <div className="kvio-weight-card" key={item.id_kategori}>
+                <div className="kvio-weight-card-title">
+                  <span>{item.urutan}</span>
+                  <strong>{item.nama_kategori}</strong>
+                </div>
+                <div className="kvio-weight-card-values">
+                  <div className="kvio-weight-standard"><small>STANDAR</small><b>{standard.toFixed(2)}%</b></div>
+                  <label className="kvio-weight-custom">
+                    <small>CUSTOM</small>
+                    <input className="kavio-weight-input" name={`bobot_${item.id_kategori}`} type="number" min="0" max="100" step="0.01" defaultValue="0" disabled={jenisBobot !== 'CUSTOM'} />
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+          {!kategoriRows.length && <div className="kavio-empty">BELUM ADA KATEGORI PEKERJAAN AKTIF.</div>}
         </div>
       </div>
     </>
