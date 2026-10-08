@@ -139,7 +139,7 @@ export default function ProgressCreatePanel({
           </button>
         )}
 
-        <KavioFormModal open={open} onClose={closePanel} size="wide" ariaLabel="Input Progress Batch" closeOnBackdrop={false}>
+        <KavioFormModal open={open} onClose={closePanel} size="wide" ariaLabel="Input Progress Batch" closeOnBackdrop={false} persistenceKey={`progress-create:${idSpk}`}>
           <section className="kavio-panel progress-create-panel kavio-batch-entry">
             <div className="kavio-panel-head progress-create-head">
               <div>
@@ -205,6 +205,7 @@ export default function ProgressCreatePanel({
                             <input
                               ref={assignRef ? firstInputRef : undefined}
                               data-kavio-focus={`progress_${config.id_kategori}`}
+                              name={`progress_${config.id_kategori}`}
                               className="kavio-batch-input kavio-number"
                               type="number"
                               min="0"
@@ -221,6 +222,7 @@ export default function ProgressCreatePanel({
                           <td>
                             <input
                               className="kavio-batch-input kavio-batch-note"
+                              name={`note_${config.id_kategori}`}
                               type="text"
                               placeholder={completed ? 'SELESAI' : 'Opsional'}
                               value={notes[config.id_kategori] ?? ''}
