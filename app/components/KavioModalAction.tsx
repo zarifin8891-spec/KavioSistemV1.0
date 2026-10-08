@@ -29,6 +29,8 @@ export default function KavioModalAction({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const persistenceScope = searchParams.get('id') ?? searchParams.get('edit') ?? searchParams.get('spk') ?? '';
+  const persistenceKey = formKey ? `${formKey}${persistenceScope ? `:${persistenceScope}` : ''}` : undefined;
 
   useEffect(() => {
     if (!formKey) return;
@@ -62,6 +64,7 @@ export default function KavioModalAction({
         size={size}
         ariaLabel={title}
         closeOnBackdrop={closeOnBackdrop}
+        persistenceKey={persistenceKey}
       >
         <section className="kavio-panel kavio-modal-action-panel">
           <div className="kavio-panel-head">
