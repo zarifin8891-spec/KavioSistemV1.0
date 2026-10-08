@@ -925,7 +925,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
                 <div className="siteplan-kpi"><span>KAVLING</span><strong>{selected.id_kavling}</strong></div>
                 <div className="siteplan-kpi"><span>BLOK / NO</span><strong>{selected.blok || '—'} / {selected.no_kavling || '—'}</strong></div>
                 <div className="siteplan-kpi"><span>TIPE</span><strong>{selected.id_tipe || '—'}</strong></div>
-                <div className="siteplan-kpi"><span>STATUS</span><strong>{selected.status_kavling || '—'}</strong></div>
+                <div className="siteplan-kpi"><span>STATUS</span><strong>{statusLabel(selected.status_kavling)}</strong></div>
               </div>
 
               <div className="siteplan-related siteplan-related-sales">
