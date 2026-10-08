@@ -83,7 +83,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
             <thead><tr><th>KAVLING</th><th>TANGGAL</th><th>TIPE</th><th>PELAKSANA</th><th>MANDOR</th><th>BOBOT</th><th>TARGET</th><th>STATUS</th><th>AKSI</th></tr></thead>
             <tbody>
               {spkRows.map((row) => <tr key={row.id_spk}>
-                <td><Link href={`/master/spk/detail/${row.id_spk}`} className="spk-kavling">{row.id_kavling}</Link></td>
+                <td><Link href={`/master/spk/detail/${row.id_spk}`} prefetch={false} className="spk-kavling">{row.id_kavling}</Link></td>
                 <td>{formatKavioDate(row.tgl_spk)}</td>
                 <td>{tipeMap.get(row.id_tipe) ?? row.id_tipe}</td>
                 <td>{kantorMap.get(row.id_kantor) ?? row.id_kantor}</td>
@@ -92,7 +92,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
                 <td>{formatKavioDate(row.tgl_target_selesai)}</td>
                 <td><span className={`spk-badge ${row.status_spk.toLowerCase()}`}>{row.status_spk}</span></td>
                 <td><div className="spk-actions">
-                  <Link href={`/master/spk/detail/${row.id_spk}`} className="kavio-button secondary">DETAIL</Link>
+                  <Link href={`/master/spk/detail/${row.id_spk}`} prefetch={false} className="kavio-button secondary">DETAIL</Link>
                   <KavioActionGate action="SPK_WRITE">
                     {row.status_spk === 'DRAFT' && !row.is_active ? <form action={activateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="kavio-button">AKTIFKAN</button></form> : null}
                     {row.is_active ? <KavioConfirmAction action={deactivateSpk} hidden={{ id_spk: row.id_spk }} label="SELESAIKAN" confirmMessage={'Konfirmasi: SPK ' + row.id_spk.slice(0, 8) + ' untuk kavling ' + row.id_kavling + ' akan ditandai SELESAI. Pastikan progress aktual sudah 100%. Lanjutkan?'} /> : null}
