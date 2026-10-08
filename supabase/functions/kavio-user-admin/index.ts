@@ -70,7 +70,8 @@ Deno.serve(async (req) => {
           email: u.email ?? null,
           nama: p?.nama ?? null,
           role: p?.role ?? "USER",
-          status_aktif: p?.status_aktif ?? true,
+          status_aktif: p?.status_aktif ?? false,
+          profile_missing: !p,
           created_at: u.created_at,
           last_sign_in_at: u.last_sign_in_at ?? null,
         };
