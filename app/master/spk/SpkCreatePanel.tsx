@@ -63,7 +63,7 @@ export default function SpkCreatePanel({
           <span className="kavio-command-icon" aria-hidden="true">{open ? '×' : '+'}</span><span>{open ? 'Tutup Form' : 'Tambah SPK'}</span>
         </button>
 
-        <KavioFormModal open={open} onClose={closePanel} size="wide" ariaLabel="Input SPK Baru" closeOnBackdrop={false}>
+        <KavioFormModal open={open} onClose={closePanel} size="wide" ariaLabel="Input SPK Baru" closeOnBackdrop={false} persistenceKey="spk-create">
         <section className="kavio-panel kvio-create-panel">
           <div className="kavio-panel-head">
             <div>
