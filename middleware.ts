@@ -3,6 +3,24 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { canViewPath, normalizeRole } from './lib/kavio-permissions';
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const isLoginRoute = pathname === '/login';
+  const isAuthRoute = pathname.startsWith('/auth');
+  const isPublicRoute = isLoginRoute || isAuthRoute;
+  const browserSessionToken = request.cookies.get('kavio_browser_session')?.value ?? '';
+  const hasBrowserSession = browserSessionToken.length > 0;
+
+  // Browser-close policy can be resolved locally. Avoid any Supabase round-trip
+  // when a private request no longer has the page-session binding.
+  if (!isPublicRoute && !hasBrowserSession) {
+    return NextResponse.redirect(new URL('/login?session=berakhir', request.url));
+  }
+
+  // A fresh login page does not need an auth/access lookup until login succeeds.
+  if (isPublicRoute && !hasBrowserSession) {
+    return NextResponse.next({ request });
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
@@ -24,39 +42,55 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const authStartedAt = Date.now();
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  let claims = claimsData?.claims;
+  let authenticated = Boolean(claims?.sub);
+  let userEmail = typeof claims?.email === 'string' ? claims.email : '';
+  let authDuration = Date.now() - authStartedAt;
 
-  const { data: accessRows, error: accessError } = user
+  // Compatibility fallback for projects/tokens where local claim verification
+  // is unavailable. The normal navigation path stays on getClaims().
+  if (!authenticated && claimsError) {
+    const fallbackStartedAt = Date.now();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    authDuration += Date.now() - fallbackStartedAt;
+    authenticated = Boolean(user);
+    userEmail = user?.email ?? '';
+  }
+
+  const accessStartedAt = Date.now();
+  const { data: accessRows, error: accessError } = authenticated
     ? await supabase.rpc('kavio_get_current_access_context')
     : { data: null, error: null };
+  const accessDuration = Date.now() - accessStartedAt;
 
   const access = accessRows?.[0] ?? { role: 'USER', status_aktif: false, actions: [] };
-  const accessReady = Boolean(user && !accessError && accessRows?.[0]);
+  const accessReady = Boolean(authenticated && !accessError && accessRows?.[0]);
   const role = normalizeRole(access.role);
   const actions = Array.isArray(access.actions) ? access.actions : [];
-  const pathname = request.nextUrl.pathname;
-  const isPublicRoute = pathname === '/login' || pathname.startsWith('/auth');
-  const browserSessionToken = request.cookies.get('kavio_browser_session')?.value ?? '';
-  const hasBrowserSession = browserSessionToken.length > 0;
 
   const applyCookies = (response: NextResponse) => {
     refreshedCookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+    response.headers.set(
+      'Server-Timing',
+      `kavio-auth;dur=${authDuration}, kavio-access;dur=${accessDuration}`,
+    );
     return response;
   };
 
   const redirectTo = (path: string) => applyCookies(NextResponse.redirect(new URL(path, request.url)));
 
-  if (!user && !isPublicRoute) return redirectTo('/login');
-  if (user && !isPublicRoute && !hasBrowserSession) return redirectTo('/login?session=berakhir');
-  if (user && !isPublicRoute && !accessReady) return redirectTo('/login?akses=gagal');
-  if (user && !isPublicRoute && access.status_aktif !== true) return redirectTo('/login?akses=nonaktif');
-  if (user && pathname === '/login' && hasBrowserSession && accessReady && access.status_aktif === true) return redirectTo('/dashboard');
-  if (user && !isPublicRoute && !canViewPath(role, pathname)) return redirectTo('/dashboard?akses=ditolak');
+  if (!authenticated && !isPublicRoute) return redirectTo('/login');
+  if (authenticated && !isPublicRoute && !accessReady) return redirectTo('/login?akses=gagal');
+  if (authenticated && !isPublicRoute && access.status_aktif !== true) return redirectTo('/login?akses=nonaktif');
+  if (authenticated && isLoginRoute && accessReady && access.status_aktif === true) return redirectTo('/dashboard');
+  if (authenticated && !isPublicRoute && !canViewPath(role, pathname)) return redirectTo('/dashboard?akses=ditolak');
 
-  if (user && !isPublicRoute) {
-    forwardedHeaders.set('x-kavio-user-email', user.email ?? '');
+  if (authenticated && !isPublicRoute) {
+    forwardedHeaders.set('x-kavio-user-email', userEmail);
     forwardedHeaders.set('x-kavio-role', role);
     forwardedHeaders.set('x-kavio-actions', actions.join(','));
     forwardedHeaders.set('x-kavio-access-ready', accessReady ? '1' : '0');
@@ -66,5 +100,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // siteplan-image performs its own authenticated check; excluding it prevents
+  // a duplicate middleware auth/access round-trip for the same image request.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/siteplan-image).*)'],
 };
