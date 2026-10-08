@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
 import { KAVIO_LOGO_DATA_URI } from './kavio-sidebar-logo';
@@ -62,6 +62,9 @@ export default function KavioShellClient({
   const [actions] = useState<string[]>(initialActions);
   const [today, setToday] = useState('');
   const [browserSessionReady, setBrowserSessionReady] = useState(false);
+  const [navigatingTo, setNavigatingTo] = useState('');
+  const prefetchedRoutes = useRef(new Set<string>());
+  const prefetchTimers = useRef(new Map<string, number>());
   const [title, subtitle] = pageHeader(pathname);
 
   const effectiveActive =
@@ -100,6 +103,46 @@ export default function KavioShellClient({
     setBrowserSessionReady(true);
   }, []);
 
+  useEffect(() => {
+    setNavigatingTo('');
+  }, [pathname]);
+
+  useEffect(() => {
+    const timers = prefetchTimers.current;
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      timers.clear();
+    };
+  }, []);
+
+  const prefetchRoute = useCallback((href: string) => {
+    if (prefetchedRoutes.current.has(href)) return;
+    prefetchedRoutes.current.add(href);
+    router.prefetch(href);
+  }, [router]);
+
+  const schedulePrefetch = useCallback((href: string) => {
+    if (prefetchedRoutes.current.has(href) || prefetchTimers.current.has(href)) return;
+    const timer = window.setTimeout(() => {
+      prefetchTimers.current.delete(href);
+      prefetchRoute(href);
+    }, 120);
+    prefetchTimers.current.set(href, timer);
+  }, [prefetchRoute]);
+
+  const cancelPrefetch = useCallback((href: string) => {
+    const timer = prefetchTimers.current.get(href);
+    if (timer == null) return;
+    window.clearTimeout(timer);
+    prefetchTimers.current.delete(href);
+  }, []);
+
+  const startNavigation = useCallback((href: string) => {
+    cancelPrefetch(href);
+    prefetchRoute(href);
+    if (href !== pathname) setNavigatingTo(href);
+  }, [cancelPrefetch, pathname, prefetchRoute]);
+
   const handleLogout = async () => {
     const supabase = createClient();
     sessionStorage.removeItem('kavio_browser_session');
@@ -115,7 +158,17 @@ export default function KavioShellClient({
       <div className="kavio-shell">
       <Suspense fallback={null}><KavioMessageBox /></Suspense>
       <aside className="kavio-sidebar">
-        <Link href="/dashboard" className="kavio-brand" aria-label="KAVIO">
+        <Link
+          href="/dashboard"
+          prefetch={false}
+          className="kavio-brand"
+          aria-label="KAVIO"
+          onPointerEnter={() => schedulePrefetch('/dashboard')}
+          onPointerLeave={() => cancelPrefetch('/dashboard')}
+          onFocus={() => prefetchRoute('/dashboard')}
+          onPointerDown={() => prefetchRoute('/dashboard')}
+          onClick={() => startNavigation('/dashboard')}
+        >
           <img src={KAVIO_LOGO_DATA_URI} alt="KAVIO — Satu Data, Satu Kendali, Satu Hasil" className="kavio-brand-logo" />
         </Link>
 
@@ -125,7 +178,18 @@ export default function KavioShellClient({
               {section.items.map(([label, href]) => {
                 if (!canViewPath(role, href)) return null;
                 return (
-                  <Link key={href} href={href} className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''}`}>
+                  <Link
+                    key={href}
+                    href={href}
+                    prefetch={false}
+                    className={`kavio-nav-item ${effectiveActive === href ? 'is-active' : ''} ${navigatingTo === href ? 'is-loading' : ''}`}
+                    onPointerEnter={() => schedulePrefetch(href)}
+                    onPointerLeave={() => cancelPrefetch(href)}
+                    onFocus={() => prefetchRoute(href)}
+                    onPointerDown={() => prefetchRoute(href)}
+                    onClick={() => startNavigation(href)}
+                    aria-busy={navigatingTo === href || undefined}
+                  >
                     <span className="kavio-nav-icon" aria-hidden="true">{icon(label)}</span>
                     <span>{label}</span>
                   </Link>
@@ -173,7 +237,15 @@ export default function KavioShellClient({
             )}
           </div>
         </header>
-        <div className="kavio-content">{children}</div>
+        <div className={`kavio-content ${navigatingTo ? 'is-navigating' : ''}`} aria-busy={Boolean(navigatingTo)}>
+          {navigatingTo ? (
+            <div className="kavio-navigation-progress" role="status" aria-live="polite">
+              <span className="kavio-navigation-progress-bar" aria-hidden="true" />
+              <span>MEMUAT HALAMAN...</span>
+            </div>
+          ) : null}
+          {children}
+        </div>
       </div>
     </div>
     </KavioPermissionProvider>
