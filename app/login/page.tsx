@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '../../lib/supabase/client';
 import { KAVIO_LOGO_DATA_URI } from '../components/kavio-sidebar-logo';
@@ -23,6 +23,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const access = params.get('akses');
+    const session = params.get('session');
+
+    if (access === 'nonaktif') {
+      setError('Akun belum aktif atau belum memiliki profil akses KAVIO. Hubungi Administrator.');
+    } else if (access === 'gagal') {
+      setError('Konteks hak akses KAVIO tidak dapat diverifikasi. Silakan coba login kembali.');
+    } else if (session === 'berakhir') {
+      setError('Sesi browser telah berakhir. Silakan login kembali.');
+    }
+  }, []);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

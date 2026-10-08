@@ -11,6 +11,7 @@ type UserRow = {
   nama: string | null;
   role: string;
   status_aktif: boolean;
+  profile_missing?: boolean;
   created_at: string;
   last_sign_in_at: string | null;
 };
@@ -273,8 +274,8 @@ export default function UserManagementClient() {
                     <td>{index + 1}</td>
                     <td>{row.nama || '—'}</td>
                     <td>{row.email || '—'}</td>
-                    <td><span className="kavio-badge">{roleLabel(row.role)}</span></td>
-                    <td><span className={`kavio-badge user-status-badge ${row.status_aktif ? 'is-active' : 'is-inactive'}`}>{row.status_aktif ? 'AKTIF' : 'NONAKTIF'}</span></td>
+                    <td><span className="kavio-badge">{row.profile_missing ? 'BELUM DIATUR' : roleLabel(row.role)}</span></td>
+                    <td><span className={`kavio-badge user-status-badge ${row.status_aktif && !row.profile_missing ? 'is-active' : 'is-inactive'}`}>{row.profile_missing ? 'PERLU DIATUR' : row.status_aktif ? 'AKTIF' : 'NONAKTIF'}</span></td>
                     <td>{formatKavioDate(row.last_sign_in_at)}</td>
                     <td>
                       <div className="user-row-actions">

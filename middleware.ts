@@ -32,7 +32,8 @@ export async function middleware(request: NextRequest) {
     ? await supabase.rpc('kavio_get_current_access_context')
     : { data: null, error: null };
 
-  const access = accessRows?.[0] ?? { role: 'USER', status_aktif: true, actions: [] };
+  const access = accessRows?.[0] ?? { role: 'USER', status_aktif: false, actions: [] };
+  const accessReady = Boolean(user && !accessError && accessRows?.[0]);
   const role = normalizeRole(access.role);
   const actions = Array.isArray(access.actions) ? access.actions : [];
   const pathname = request.nextUrl.pathname;
@@ -49,15 +50,16 @@ export async function middleware(request: NextRequest) {
 
   if (!user && !isPublicRoute) return redirectTo('/login');
   if (user && !isPublicRoute && !hasBrowserSession) return redirectTo('/login?session=berakhir');
-  if (user && access.status_aktif !== true && pathname !== '/login') return redirectTo('/login?akses=nonaktif');
-  if (user && pathname === '/login' && hasBrowserSession) return redirectTo('/dashboard');
+  if (user && !isPublicRoute && !accessReady) return redirectTo('/login?akses=gagal');
+  if (user && !isPublicRoute && access.status_aktif !== true) return redirectTo('/login?akses=nonaktif');
+  if (user && pathname === '/login' && hasBrowserSession && accessReady && access.status_aktif === true) return redirectTo('/dashboard');
   if (user && !isPublicRoute && !canViewPath(role, pathname)) return redirectTo('/dashboard?akses=ditolak');
 
   if (user && !isPublicRoute) {
     forwardedHeaders.set('x-kavio-user-email', user.email ?? '');
     forwardedHeaders.set('x-kavio-role', role);
     forwardedHeaders.set('x-kavio-actions', actions.join(','));
-    forwardedHeaders.set('x-kavio-access-ready', accessError ? '0' : '1');
+    forwardedHeaders.set('x-kavio-access-ready', accessReady ? '1' : '0');
   }
 
   return applyCookies(NextResponse.next({ request: { headers: forwardedHeaders } }));
