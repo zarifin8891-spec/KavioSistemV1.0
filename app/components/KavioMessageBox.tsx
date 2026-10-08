@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { clearPendingKavioFormDraft } from '../lib/kavio-form-state';
 
 type LocalMessage = {
   tone: 'error' | 'success';
@@ -60,6 +61,10 @@ export default function KavioMessageBox() {
   useEffect(() => {
     if (!urlMessage && dismissedKey) setDismissedKey('');
   }, [urlMessage, dismissedKey]);
+
+  useEffect(() => {
+    if (success) clearPendingKavioFormDraft(pathname);
+  }, [pathname, success]);
 
   useEffect(() => {
     const handleKavioMessage = (event: Event) => {
