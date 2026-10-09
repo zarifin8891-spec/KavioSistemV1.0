@@ -1,30 +1,51 @@
 import './material.css';
 import { createClient } from '../../lib/supabase/server';
 import { formatKavioDate } from '../lib/date-format';
+import MaterialActionPanel from './MaterialActionPanel';
 
 type LocationStock = { id_lokasi: string; kode_lokasi: string; nama_lokasi: string; nama_material: string; kategori: string; satuan: string; jenis_item: string; jumlah: number | string; harga_rata_rata: number | string; nilai_persediaan: number | string };
-type SpkStock = { id_spk: string; jenis_spk: string; id_kavling: string | null; nama_objek: string | null; nama_material: string; satuan: string; jumlah: number | string; harga_rata_rata: number | string; nilai_stok: number | string };
+type SpkStock = { id_spk: string; id_material: string; jenis_spk: string; id_kavling: string | null; nama_objek: string | null; nama_material: string; satuan: string; jumlah: number | string; harga_rata_rata: number | string; nilai_stok: number | string };
 type Movement = { id_transaksi: string; no_transaksi: string; jenis_transaksi: string; tanggal: string; id_spk: string | null; nama_pemasok: string | null; no_nota: string | null; keterangan: string | null };
+type SearchParams = Promise<{ error?: string; success?: string; focus?: string }>;
 
 const currency = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 const quantity = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 });
 
-export default async function MaterialPage() {
+export default async function MaterialPage({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams;
   const supabase = await createClient();
-  const [warehouseResult, spkStockResult, movementResult] = await Promise.all([
+  const [warehouseResult, spkStockResult, movementResult, materialsResult, locationsResult, spksResult, requestsResult, requestItemsResult] = await Promise.all([
     supabase.from('v_material_stock_location').select('id_lokasi,kode_lokasi,nama_lokasi,nama_material,kategori,satuan,jenis_item,jumlah,harga_rata_rata,nilai_persediaan').gt('jumlah', 0).order('nama_material').limit(300),
-    supabase.from('v_material_stock_spk').select('id_spk,jenis_spk,id_kavling,nama_objek,nama_material,satuan,jumlah,harga_rata_rata,nilai_stok').gt('jumlah', 0).order('nama_material').limit(300),
+    supabase.from('v_material_stock_spk').select('id_spk,id_material,jenis_spk,id_kavling,nama_objek,nama_material,satuan,jumlah,harga_rata_rata,nilai_stok').gt('jumlah', 0).order('nama_material').limit(300),
     supabase.from('material_transaction').select('id_transaksi,no_transaksi,jenis_transaksi,tanggal,id_spk,nama_pemasok,no_nota,keterangan').order('created_at', { ascending: false }).limit(20),
+    supabase.from('master_material').select('id_material,nama_material,satuan,jenis_item').eq('status_aktif', true).order('nama_material'),
+    supabase.from('material_location').select('id_lokasi,kode_lokasi,nama_lokasi').eq('status_aktif', true).eq('jenis_lokasi', 'GUDANG').order('nama_lokasi'),
+    supabase.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek').eq('is_active', true).eq('status_spk', 'AKTIF').order('tgl_target_selesai'),
+    supabase.from('material_request').select('id_permintaan,no_permintaan,id_spk,status').in('status', ['DIAJUKAN','SEBAGIAN_DIPENUHI']).order('created_at', { ascending: false }),
+    supabase.from('material_request_item').select('id_permintaan,id_material,jumlah_diminta,jumlah_dipenuhi'),
   ]);
   const warehouse = (warehouseResult.data ?? []) as LocationStock[];
   const spkStock = (spkStockResult.data ?? []) as SpkStock[];
   const movements = (movementResult.data ?? []) as Movement[];
-  const error = warehouseResult.error?.message ?? spkStockResult.error?.message ?? movementResult.error?.message;
+  const materials = materialsResult.data ?? [];
+  const locations = locationsResult.data ?? [];
+  const spks = spksResult.data ?? [];
+  const requests = requestsResult.data ?? [];
+  const requestItems = requestItemsResult.data ?? [];
+  const requestLines = requestItems.flatMap((item) => {
+    const request = requests.find((row) => row.id_permintaan === item.id_permintaan);
+    const material = materials.find((row) => row.id_material === item.id_material);
+    const sisa = Number(item.jumlah_diminta) - Number(item.jumlah_dipenuhi);
+    return request && material && sisa > 0 ? [{ id_permintaan: request.id_permintaan, no_permintaan: request.no_permintaan, id_spk: request.id_spk, id_material: item.id_material, nama_material: material.nama_material, satuan: material.satuan, sisa }] : [];
+  });
+  const error = params.error ?? warehouseResult.error?.message ?? spkStockResult.error?.message ?? movementResult.error?.message ?? materialsResult.error?.message ?? locationsResult.error?.message ?? spksResult.error?.message ?? requestsResult.error?.message ?? requestItemsResult.error?.message;
   const warehouseValue = warehouse.reduce((sum, row) => sum + Number(row.nilai_persediaan ?? 0), 0);
   const spkValue = spkStock.reduce((sum, row) => sum + Number(row.nilai_stok ?? 0), 0);
 
   return <main className="material-page">
     {error && <div className="kavio-alert error">Data Material Control belum tersedia atau tidak dapat dibaca. Pastikan migrasi V2 sudah diterapkan pada database proyek. Detail: {error}</div>}
+    {params.success && <div className="kavio-alert success">{params.success}</div>}
+    <section className="kavio-panel"><MaterialActionPanel materials={materials} locations={locations} spks={spks} requestLines={requestLines} spkStocks={spkStock.map((row)=>({id_spk:row.id_spk,id_material:row.id_material,nama_material:row.nama_material,satuan:row.satuan,jumlah:Number(row.jumlah)}))} autoOpen={Boolean(params.error)} /></section>
     <section className="material-summary">
       <Summary label="ITEM DI GUDANG" value={String(warehouse.length)} detail={currency.format(warehouseValue)} />
       <Summary label="ITEM DI SPK" value={String(spkStock.length)} detail={currency.format(spkValue)} />
