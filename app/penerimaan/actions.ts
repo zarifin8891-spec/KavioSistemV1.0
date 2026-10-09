@@ -86,3 +86,28 @@ export async function submitBankGuaranteeClaim(form: FormData) {
   revalidatePath('/penerimaan');
   redirect('/penerimaan?success=pengajuan+dana+jaminan+dicatat');
 }
+
+export async function saveSalesCancellationSettlement(form: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+  await requireKavioAction('PAYMENT_RECEIPT_WRITE','/penerimaan?error=akses+ditolak');
+  const idSales=text(form,'id_sales');
+  const decision=text(form,'keputusan');
+  const refund=Number(text(form,'nominal_dikembalikan'));
+  const retained=Number(text(form,'nominal_ditahan'));
+  const reason=text(form,'alasan');
+  const refundStatus=text(form,'status_pengembalian');
+  const refundDate=text(form,'tanggal_pengembalian');
+  if(!idSales||!decision||!Number.isFinite(refund)||refund<0||!Number.isFinite(retained)||retained<0||!reason){
+    redirectKavioFormError('/penerimaan','Keputusan pembatalan, nilai pengembalian, nilai ditahan, dan alasan wajib diisi.');
+  }
+  if(refund>0&&refundStatus==='SUDAH_DIBAYAR'&&!refundDate) redirectKavioFormError('/penerimaan','Tanggal pengembalian wajib diisi bila sudah dibayar.');
+  const {error}=await supabase.rpc('save_sales_cancellation_settlement_atomic',{
+    p_id_sales:idSales,p_keputusan:decision,p_nominal_dikembalikan:refund,p_nominal_ditahan:retained,
+    p_alasan:reason,p_status_pengembalian:refundStatus,p_tanggal_pengembalian:refundStatus==='SUDAH_DIBAYAR'?refundDate:null,
+  });
+  if(error) redirectKavioFormError('/penerimaan',error.message);
+  revalidatePath('/penerimaan');
+  redirect('/penerimaan?success=penyelesaian+pembatalan+tersimpan');
+}

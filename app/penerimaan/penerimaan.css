@@ -16,6 +16,8 @@
 .collection-alert { border-color:rgba(229,161,70,.45); }
 .guarantee-claim-form { display:flex; align-items:center; gap:8px; min-width:260px; }
 .guarantee-claim-form input { min-width:140px; }
+.cancellation-list { border-top:1px solid rgba(216,180,90,.12); }
+.cancellation-list > .collection-details:last-child { border-bottom:0; }
 .receipt-page { display:grid; gap:18px; justify-items:center; }
 .receipt-toolbar { width:min(100%,800px); display:flex; justify-content:space-between; gap:12px; }
 .receipt-paper { width:min(100%,800px); padding:38px 46px; background:#fff; color:#202020; border-radius:4px; box-shadow:0 10px 35px #0004; }
