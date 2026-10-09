@@ -71,26 +71,26 @@ export async function createProgressBatchUpdate(formData: FormData) {
     progressError(idSpk, 'SPK, tanggal, dan minimal satu progress wajib diisi', !tanggalUpdate ? 'tanggal_update' : 'progress_batch_first');
   }
 
-  let entries: Array<{ id_kategori: string; progress_percent: number; keterangan?: string | null }> = [];
+  let entries: Array<{ id_item: string; progress_percent: number; keterangan?: string | null }> = [];
   try {
     const parsed = JSON.parse(rawEntries);
     if (!Array.isArray(parsed)) throw new Error('INVALID_BATCH');
     entries = parsed
       .map((row) => ({
-        id_kategori: String(row?.id_kategori ?? '').trim(),
+        id_item: String(row?.id_item ?? '').trim(),
         progress_percent: Number(row?.progress_percent),
         keterangan: String(row?.keterangan ?? '').trim() || null,
       }))
-      .filter((row) => row.id_kategori && Number.isFinite(row.progress_percent) && row.progress_percent > 0);
+      .filter((row) => row.id_item && Number.isFinite(row.progress_percent) && row.progress_percent > 0);
   } catch {
     progressError(idSpk, 'Data progress batch tidak valid', 'progress_batch_first');
   }
 
   if (!entries.length) {
-    progressError(idSpk, 'Isi minimal satu kategori progress sebelum menyimpan', 'progress_batch_first');
+    progressError(idSpk, 'Isi minimal satu item pekerjaan sebelum menyimpan', 'progress_batch_first');
   }
 
-  const { data: inserted, error } = await supabase.rpc('insert_progress_batch_atomic', {
+  const { data: inserted, error } = await supabase.rpc('insert_progress_work_item_batch_atomic', {
     p_id_spk: idSpk,
     p_tanggal_update: tanggalUpdate,
     p_entries: entries,
@@ -105,5 +105,5 @@ export async function createProgressBatchUpdate(formData: FormData) {
   revalidatePath(`/master/spk/detail/${idSpk}`);
 
   const count = Number(inserted ?? entries.length);
-  redirect(`/progress?spk=${encodeURIComponent(idSpk)}&success=${encodeURIComponent(`${count} kategori progress berhasil disimpan`)}`);
+  redirect(`/progress?spk=${encodeURIComponent(idSpk)}&success=${encodeURIComponent(`${count} item pekerjaan berhasil disimpan`)}`);
 }

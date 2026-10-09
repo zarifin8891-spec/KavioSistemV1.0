@@ -6,23 +6,19 @@ import { createProgressBatchUpdate } from './actions';
 import KavioActionGate from '../components/KavioActionGate';
 import KavioFormModal from '../components/KavioFormModal';
 
-type Config = { id_kategori: string; bobot_final: number | string };
-type Category = { id_kategori: string; nama_kategori: string; urutan: number };
+type WorkItem = { id_item: string; urutan: number; nama_pekerjaan: string; bobot_final: number | string };
 
 export default function ProgressCreatePanel({
   idSpk,
   tglSpk,
-  configs,
-  categories,
+  workItems,
   currentProgressRows,
   autoOpen = false,
 }: {
   idSpk: string;
   tglSpk: string;
-  configs: Config[];
-  categories: Category[];
-  completedCategoryIds: string[];
-  currentProgressRows: Array<{ id_kategori: string; progress_akumulasi: number }>;
+  workItems: WorkItem[];
+  currentProgressRows: Array<{ id_item: string; progress_akumulasi: number }>;
   autoOpen?: boolean;
 }) {
   const router = useRouter();
@@ -32,29 +28,22 @@ export default function ProgressCreatePanel({
   const [values, setValues] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
 
-  const categoryMap = useMemo(
-    () => new Map(categories.map((row) => [row.id_kategori, row])),
-    [categories],
-  );
   const currentProgressMap = useMemo(
-    () => new Map(currentProgressRows.map((row) => [row.id_kategori, Number(row.progress_akumulasi ?? 0)])),
+    () => new Map(currentProgressRows.map((row) => [row.id_item, Number(row.progress_akumulasi ?? 0)])),
     [currentProgressRows],
   );
-  const sortedConfigs = useMemo(
-    () => [...configs].sort((a, b) => (categoryMap.get(a.id_kategori)?.urutan ?? 999) - (categoryMap.get(b.id_kategori)?.urutan ?? 999)),
-    [configs, categoryMap],
-  );
+  const sortedWorkItems = useMemo(() => [...workItems].sort((a, b) => a.urutan - b.urutan), [workItems]);
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const entries = sortedConfigs.flatMap((config) => {
-    const raw = values[config.id_kategori] ?? '';
+  const entries = sortedWorkItems.flatMap((config) => {
+    const raw = values[config.id_item] ?? '';
     const amount = Number(raw);
     if (!raw || !Number.isFinite(amount) || amount <= 0) return [];
     return [{
-      id_kategori: config.id_kategori,
+      id_item: config.id_item,
       progress_percent: amount,
-      keterangan: (notes[config.id_kategori] ?? '').trim() || null,
+      keterangan: (notes[config.id_item] ?? '').trim() || null,
     }];
   });
 
@@ -111,16 +100,15 @@ export default function ProgressCreatePanel({
     }
 
     for (const entry of entries) {
-      const currentPct = (currentProgressMap.get(entry.id_kategori) ?? 0) * 100;
+      const currentPct = (currentProgressMap.get(entry.id_item) ?? 0) * 100;
       const nextPct = currentPct + entry.progress_percent;
       if (entry.progress_percent <= 0 || nextPct > 100.000001) {
         event.preventDefault();
-        const category = categoryMap.get(entry.id_kategori);
         const maxAllowed = Math.max(0, 100 - currentPct);
         showError(
           'PROGRESS MELEBIHI 100%',
-          `${category?.nama_kategori ?? entry.id_kategori}: progress saat ini ${currentPct.toFixed(2)}%. Maksimal tambahan ${maxAllowed.toFixed(2)}%.`,
-          `progress_${entry.id_kategori}`,
+          `${sortedWorkItems.find((item) => item.id_item === entry.id_item)?.nama_pekerjaan ?? entry.id_item}: progress saat ini ${currentPct.toFixed(2)}%. Maksimal tambahan ${maxAllowed.toFixed(2)}%.`,
+          `progress_${entry.id_item}`,
         );
         return;
       }
@@ -145,7 +133,7 @@ export default function ProgressCreatePanel({
               <div>
                 <h2 className="kavio-panel-title">INPUT PROGRESS BATCH</h2>
                 <div className="kavio-panel-note">
-                  Isi hanya kategori yang berubah. Beberapa kategori dapat disimpan sekaligus dalam satu transaksi.
+                  Isi hanya item pekerjaan yang berubah. Beberapa item dapat disimpan sekaligus dalam satu transaksi.
                 </div>
               </div>
               <button type="button" className="kavio-command-button secondary progress-form-close" onClick={closePanel}>
@@ -163,7 +151,7 @@ export default function ProgressCreatePanel({
                   <input type="date" name="tanggal_update" min={tglSpk} max={today} defaultValue={today} required />
                 </label>
                 <div className="kavio-batch-summary">
-                  <span className="kavio-badge">{entries.length} KATEGORI DIISI</span>
+                  <span className="kavio-badge">{entries.length} ITEM DIISI</span>
                   <span>Kolom kosong tidak ikut disimpan.</span>
                 </div>
               </div>
@@ -173,7 +161,7 @@ export default function ProgressCreatePanel({
                   <thead>
                     <tr>
                       <th>#</th>
-                      <th>KATEGORI</th>
+                      <th>ITEM PEKERJAAN</th>
                       <th>BOBOT</th>
                       <th>SAAT INI</th>
                       <th>SISA</th>
@@ -183,11 +171,10 @@ export default function ProgressCreatePanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedConfigs.map((config) => {
-                      const category = categoryMap.get(config.id_kategori);
-                      const currentPct = Math.max(0, Math.min(100, (currentProgressMap.get(config.id_kategori) ?? 0) * 100));
+                    {sortedWorkItems.map((config) => {
+                      const currentPct = Math.max(0, Math.min(100, (currentProgressMap.get(config.id_item) ?? 0) * 100));
                       const remainingPct = Math.max(0, 100 - currentPct);
-                      const rawValue = values[config.id_kategori] ?? '';
+                      const rawValue = values[config.id_item] ?? '';
                       const periodPct = Number(rawValue || 0);
                       const afterPct = Math.min(100, currentPct + (Number.isFinite(periodPct) ? periodPct : 0));
                       const completed = remainingPct <= 0.000001;
@@ -195,17 +182,17 @@ export default function ProgressCreatePanel({
                       if (assignRef) firstEditableAssigned = true;
 
                       return (
-                        <tr key={config.id_kategori} className={completed ? 'kavio-batch-row-complete' : ''}>
-                          <td>{category?.urutan ?? '—'}</td>
-                          <td>{category?.nama_kategori ?? config.id_kategori}</td>
+                        <tr key={config.id_item} className={completed ? 'kavio-batch-row-complete' : ''}>
+                          <td>{config.urutan}</td>
+                          <td>{config.nama_pekerjaan}</td>
                           <td className="kavio-number">{(Number(config.bobot_final) * 100).toFixed(2)}%</td>
                           <td className="kavio-number">{currentPct.toFixed(2)}%</td>
                           <td className="kavio-number">{remainingPct.toFixed(2)}%</td>
                           <td>
                             <input
                               ref={assignRef ? firstInputRef : undefined}
-                              data-kavio-focus={`progress_${config.id_kategori}`}
-                              name={`progress_${config.id_kategori}`}
+                              data-kavio-focus={`progress_${config.id_item}`}
+                              name={`progress_${config.id_item}`}
                               className="kavio-batch-input kavio-number"
                               type="number"
                               min="0"
@@ -215,19 +202,19 @@ export default function ProgressCreatePanel({
                               placeholder={completed ? 'SELESAI' : '0'}
                               value={rawValue}
                               disabled={completed}
-                              onChange={(event) => setValues((prev) => ({ ...prev, [config.id_kategori]: event.target.value }))}
+                              onChange={(event) => setValues((prev) => ({ ...prev, [config.id_item]: event.target.value }))}
                             />
                           </td>
                           <td className="kavio-number kavio-batch-after">{afterPct.toFixed(2)}%</td>
                           <td>
                             <input
                               className="kavio-batch-input kavio-batch-note"
-                              name={`note_${config.id_kategori}`}
+                              name={`note_${config.id_item}`}
                               type="text"
                               placeholder={completed ? 'SELESAI' : 'Opsional'}
-                              value={notes[config.id_kategori] ?? ''}
+                              value={notes[config.id_item] ?? ''}
                               disabled={completed}
-                              onChange={(event) => setNotes((prev) => ({ ...prev, [config.id_kategori]: event.target.value }))}
+                              onChange={(event) => setNotes((prev) => ({ ...prev, [config.id_item]: event.target.value }))}
                             />
                           </td>
                         </tr>
@@ -243,7 +230,7 @@ export default function ProgressCreatePanel({
                   Sistem tetap memvalidasi batas 100% dan menyimpan seluruh batch secara atomic.
                 </div>
                 <button type="submit" className="kavio-button" disabled={!entries.length}>
-                  SIMPAN {entries.length ? `${entries.length} KATEGORI` : 'PROGRESS'}
+                  SIMPAN {entries.length ? `${entries.length} ITEM` : 'PROGRESS'}
                 </button>
               </div>
             </form>
