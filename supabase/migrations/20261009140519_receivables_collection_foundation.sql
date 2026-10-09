@@ -259,7 +259,13 @@ end;
 $function$;
 
 revoke all on function public.save_sales_biaya_atomic(uuid,numeric,numeric,numeric,numeric) from public,anon,authenticated;
-revoke all on function public.save_sales_biaya_atomic(uuid,numeric,numeric,numeric,numeric,numeric) from public,anon,authenticated;
+do $migration$
+begin
+  if to_regprocedure('public.save_sales_biaya_atomic(uuid,numeric,numeric,numeric,numeric,numeric)') is not null then
+    execute 'revoke all on function public.save_sales_biaya_atomic(uuid,numeric,numeric,numeric,numeric,numeric) from public,anon,authenticated';
+  end if;
+end;
+$migration$;
 create or replace function public.save_sales_biaya_atomic(
   p_id_sales uuid,p_biaya_penambahan_bangunan numeric,p_biaya_kelebihan_tanah numeric,
   p_biaya_notaris numeric,p_biaya_akad numeric,p_biaya_hook numeric,p_biaya_lainnya numeric

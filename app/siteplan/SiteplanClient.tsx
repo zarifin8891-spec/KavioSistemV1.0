@@ -285,11 +285,19 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
       .from('siteplans')
       .download(filePath);
 
-    if (error || !blob) {
-      throw new Error(error?.message || 'File Siteplan aktif tidak dapat diunduh.');
+    // V2 imports the active legacy Siteplan metadata and mappings separately
+    // from Storage. Its byte-identical static copy remains available as a
+    // processing fallback until the image is uploaded to the V2 bucket.
+    let sourceBlob = blob;
+    if (error || !sourceBlob) {
+      const fallback = await fetch(fallbackSiteplanSrc, { cache: 'force-cache' });
+      if (!fallback.ok) {
+        throw new Error(error?.message || 'File Siteplan aktif tidak dapat diunduh.');
+      }
+      sourceBlob = await fallback.blob();
     }
 
-    const objectUrl = URL.createObjectURL(blob);
+    const objectUrl = URL.createObjectURL(sourceBlob);
     try {
       const image = new Image();
       image.decoding = 'async';
