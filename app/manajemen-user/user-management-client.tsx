@@ -16,7 +16,7 @@ type UserRow = {
   last_sign_in_at: string | null;
 };
 
-const ROLES = ['DIREKTUR', 'ADMIN', 'MARKETING', 'PELAKSANA', 'USER'] as const;
+const ROLES = ['DIREKTUR', 'ADMIN', 'MARKETING', 'PELAKSANA', 'GUDANG', 'USER'] as const;
 
 const roleLabel = (role: string) => {
   const labels: Record<string, string> = {
@@ -24,6 +24,7 @@ const roleLabel = (role: string) => {
     ADMIN: 'ADMIN',
     MARKETING: 'MARKETING',
     PELAKSANA: 'PELAKSANA',
+    GUDANG: 'PETUGAS GUDANG',
     USER: 'USER',
   };
   return labels[role] ?? role;

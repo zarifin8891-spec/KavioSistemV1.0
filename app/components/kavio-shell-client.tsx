@@ -14,7 +14,7 @@ const sections = [
   { title: 'UTAMA', items: [['Beranda', '/dashboard']] },
   { title: 'MASTER DATA', items: [['Master Data', '/master']] },
   { title: 'KAVLING', items: [['Siteplan', '/siteplan'], ['Kavling', '/master/kavling']] },
-  { title: 'OPERASIONAL', items: [['Sales', '/master/sales'], ['SPK / Pekerjaan', '/master/spk'], ['Progress', '/progress']] },
+  { title: 'OPERASIONAL', items: [['Sales', '/master/sales'], ['SPK / Pekerjaan', '/master/spk'], ['Progress', '/progress'], ['Gudang & Material', '/material']] },
   { title: 'LAPORAN', items: [['Laporan', '/laporan']] },
   { title: 'PENGATURAN', items: [['Manajemen User', '/manajemen-user']] },
 ] as const;
@@ -26,6 +26,7 @@ const pageHeader = (pathname: string) => {
   if (pathname.startsWith('/master/spk/detail/')) return ['SPK Control Sheet', 'Kontrol pekerjaan, progress, target penyelesaian, dan Curva-S.'];
   if (pathname.startsWith('/master/spk')) return ['Monitoring SPK', 'Kelola SPK, tim pelaksana, target penyelesaian, dan siklus pembangunan kavling.'];
   if (pathname.startsWith('/progress')) return ['Progress Monitoring', 'Pantau progress pembangunan berdasarkan SPK aktif.'];
+  if (pathname.startsWith('/material')) return ['Gudang & Material', 'Pantau stok, permintaan, pemakaian, dan rekonsiliasi material per SPK.'];
   if (pathname.startsWith('/laporan')) return ['Laporan Monitoring', 'Ringkasan penjualan, progress pembangunan, dan kondisi operasional proyek.'];
   if (pathname.startsWith('/manajemen-user')) return ['Manajemen User', 'Kelola akun pengguna, role, dan akses KAVIO.'];
   if (pathname.startsWith('/master/template-progress')) return ['Template Progress', 'Kelola bobot progress standar berdasarkan tipe rumah.'];
@@ -73,6 +74,7 @@ export default function KavioShellClient({
     pathname.startsWith('/master/spk') ? '/master/spk' :
     pathname.startsWith('/master/kavling') ? '/master/kavling' :
     pathname.startsWith('/progress') ? '/progress' :
+    pathname.startsWith('/material') ? '/material' :
     pathname.startsWith('/laporan') ? '/laporan' :
     pathname.startsWith('/manajemen-user') ? '/manajemen-user' :
     pathname.startsWith('/dashboard') ? '/dashboard' :

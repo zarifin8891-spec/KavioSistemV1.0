@@ -1,4 +1,4 @@
-export const KAVIO_ROLES = ['DIREKTUR', 'ADMIN', 'MARKETING', 'PELAKSANA', 'USER'] as const;
+export const KAVIO_ROLES = ['DIREKTUR', 'ADMIN', 'MARKETING', 'PELAKSANA', 'GUDANG', 'USER'] as const;
 export type KavioRole = typeof KAVIO_ROLES[number];
 
 export const KAVIO_ACTIONS = [
@@ -8,6 +8,10 @@ export const KAVIO_ACTIONS = [
   'PROGRESS_WRITE',
   'SITEPLAN_MAP',
   'USER_MANAGE',
+  'MATERIAL_CATALOG_WRITE',
+  'MATERIAL_WAREHOUSE_WRITE',
+  'MATERIAL_REQUEST_WRITE',
+  'MATERIAL_USE_WRITE',
 ] as const;
 export type KavioAction = typeof KAVIO_ACTIONS[number];
 
@@ -22,10 +26,11 @@ const MASTER_DATA_ROUTES = [
 ] as const;
 
 export const ROLE_MENU_ACCESS: Record<KavioRole, string[]> = {
-  DIREKTUR: ['/dashboard', '/master', ...MASTER_DATA_ROUTES, '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/laporan', '/manajemen-user'],
-  ADMIN: ['/dashboard', '/master', ...MASTER_DATA_ROUTES, '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/laporan', '/manajemen-user'],
+  DIREKTUR: ['/dashboard', '/master', ...MASTER_DATA_ROUTES, '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/material', '/laporan', '/manajemen-user'],
+  ADMIN: ['/dashboard', '/master', ...MASTER_DATA_ROUTES, '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/material', '/laporan', '/manajemen-user'],
   MARKETING: ['/dashboard', '/siteplan', '/master/kavling', '/master/sales', '/laporan'],
-  PELAKSANA: ['/dashboard', '/siteplan', '/master/kavling', '/master/spk', '/progress', '/laporan'],
+  PELAKSANA: ['/dashboard', '/siteplan', '/master/kavling', '/master/spk', '/progress', '/material', '/laporan'],
+  GUDANG: ['/dashboard', '/master/spk', '/progress', '/material'],
   USER: ['/dashboard', '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/laporan'],
 };
 

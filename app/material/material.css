@@ -1,0 +1,6 @@
+.material-page { display:grid; gap:18px; }
+.material-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.material-summary-card { padding:16px 18px; }
+.material-summary-detail { margin-top:6px; color:var(--kavio-muted); font-size:12px; }
+.material-subtext { display:block; margin-top:4px; color:var(--kavio-muted); font-size:11px; }
+@media (max-width:760px) { .material-summary { grid-template-columns:1fr; } }
