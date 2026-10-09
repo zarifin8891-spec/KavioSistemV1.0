@@ -10,7 +10,9 @@ type Cost = { jenis_biaya: string; nominal: number | string };
 
 const ITEMS = [
   ['PENAMBAHAN BANGUNAN', 'biaya_penambahan_bangunan'],
+  ['KELEBIHAN TANAH', 'biaya_kelebihan_tanah'],
   ['NOTARIS', 'biaya_notaris'],
+  ['BIAYA AKAD', 'biaya_akad'],
   ['PEMILIHAN LOKASI HOOK', 'biaya_hook'],
   ['BIAYA LAINNYA', 'biaya_lainnya'],
 ] as const;
@@ -29,8 +31,10 @@ export default function SalesCostPanel({
     Object.fromEntries(ITEMS.map(([label, name]) => [name, costMap.get(label) ?? 0])),
   );
   const base = Number(hargaDasar) || 0;
-  const totalBiaya = Object.values(values).reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0);
-  const totalHarga = base + totalBiaya;
+  const includedPriceCosts = (values.biaya_penambahan_bangunan ?? 0) + (values.biaya_kelebihan_tanah ?? 0) + (values.biaya_hook ?? 0);
+  const separateFees = (values.biaya_notaris ?? 0) + (values.biaya_akad ?? 0) + (values.biaya_lainnya ?? 0);
+  const totalHargaJual = base + includedPriceCosts;
+  const totalTagihan = totalHargaJual + separateFees;
 
   return (
     <section className="kavio-panel sales-cost-panel">
@@ -66,8 +70,10 @@ export default function SalesCostPanel({
               </div>
               <div className="sales-cost-summary">
                 <div><span>HARGA JUAL DASAR</span><strong className="kavio-money">{formatKavioMoney(base)}</strong></div>
-                <div><span>TOTAL BIAYA TAMBAHAN</span><strong className="kavio-money">{formatKavioMoney(totalBiaya)}</strong></div>
-                <div><span>TOTAL HARGA SALES</span><strong className="kavio-money">{formatKavioMoney(totalHarga)}</strong></div>
+                <div><span>BIAYA YANG DIGABUNG KE HARGA</span><strong className="kavio-money">{formatKavioMoney(includedPriceCosts)}</strong></div>
+                <div><span>HARGA JUAL</span><strong className="kavio-money">{formatKavioMoney(totalHargaJual)}</strong></div>
+                <div><span>NOTARIS & BIAYA TERPISAH</span><strong className="kavio-money">{formatKavioMoney(separateFees)}</strong></div>
+                <div><span>TOTAL TAGIHAN</span><strong className="kavio-money">{formatKavioMoney(totalTagihan)}</strong></div>
               </div>
               <div className="kavio-actions">
                 <button type="submit" className="kavio-button">SIMPAN BIAYA</button>
@@ -78,8 +84,10 @@ export default function SalesCostPanel({
       </div>
       <div className="sales-cost-summary kavio-panel-body">
         <div><span>HARGA JUAL DASAR</span><strong className="kavio-money">{formatKavioMoney(base)}</strong></div>
-        <div><span>TOTAL BIAYA TAMBAHAN</span><strong className="kavio-money">{formatKavioMoney(totalBiaya)}</strong></div>
-        <div><span>TOTAL HARGA SALES</span><strong className="kavio-money">{formatKavioMoney(totalHarga)}</strong></div>
+        <div><span>BIAYA YANG DIGABUNG KE HARGA</span><strong className="kavio-money">{formatKavioMoney(includedPriceCosts)}</strong></div>
+        <div><span>HARGA JUAL</span><strong className="kavio-money">{formatKavioMoney(totalHargaJual)}</strong></div>
+        <div><span>NOTARIS & BIAYA TERPISAH</span><strong className="kavio-money">{formatKavioMoney(separateFees)}</strong></div>
+        <div><span>TOTAL TAGIHAN</span><strong className="kavio-money">{formatKavioMoney(totalTagihan)}</strong></div>
       </div>
     </section>
   );

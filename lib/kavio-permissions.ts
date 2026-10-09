@@ -1,4 +1,4 @@
-export const KAVIO_ROLES = ['DIREKTUR', 'ADMIN', 'MARKETING', 'PELAKSANA', 'GUDANG', 'USER'] as const;
+export const KAVIO_ROLES = ['DIREKTUR', 'ADMIN', 'MARKETING', 'PELAKSANA', 'GUDANG', 'KEUANGAN', 'USER'] as const;
 export type KavioRole = typeof KAVIO_ROLES[number];
 
 export const KAVIO_ACTIONS = [
@@ -12,6 +12,8 @@ export const KAVIO_ACTIONS = [
   'MATERIAL_WAREHOUSE_WRITE',
   'MATERIAL_REQUEST_WRITE',
   'MATERIAL_USE_WRITE',
+  'PAYMENT_PLAN_WRITE',
+  'PAYMENT_RECEIPT_WRITE',
 ] as const;
 export type KavioAction = typeof KAVIO_ACTIONS[number];
 
@@ -31,6 +33,7 @@ export const ROLE_MENU_ACCESS: Record<KavioRole, string[]> = {
   MARKETING: ['/dashboard', '/siteplan', '/master/kavling', '/master/sales', '/laporan'],
   PELAKSANA: ['/dashboard', '/siteplan', '/master/kavling', '/master/spk', '/progress', '/material', '/laporan'],
   GUDANG: ['/dashboard', '/master/spk', '/progress', '/material'],
+  KEUANGAN: ['/dashboard', '/master/sales', '/penerimaan', '/laporan'],
   USER: ['/dashboard', '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/laporan'],
 };
 

@@ -7,6 +7,7 @@ import './kavio-ui-components.css';
 import './siteplan/siteplan.css';
 import './laporan/laporan.css';
 import './manajemen-user/manajemen-user.css';
+import './penerimaan/penerimaan.css';
 import './kavio-ui-foundation.css';
 
 export const metadata: Metadata = {

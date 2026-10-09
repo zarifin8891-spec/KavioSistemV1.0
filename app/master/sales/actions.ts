@@ -142,14 +142,18 @@ export async function saveSalesBiaya(formData: FormData) {
   if (!idSales) pageError('ID SALES TIDAK VALID');
 
   const biayaPenambahanBangunan = Number(formData.get('biaya_penambahan_bangunan') ?? 0);
+  const biayaKelebihanTanah = Number(formData.get('biaya_kelebihan_tanah') ?? 0);
   const biayaNotaris = Number(formData.get('biaya_notaris') ?? 0);
+  const biayaAkad = Number(formData.get('biaya_akad') ?? 0);
   const biayaHook = Number(formData.get('biaya_hook') ?? 0);
   const biayaLainnya = Number(formData.get('biaya_lainnya') ?? 0);
 
   const { error } = await supabase.rpc('save_sales_biaya_atomic', {
     p_id_sales: idSales,
     p_biaya_penambahan_bangunan: biayaPenambahanBangunan,
+    p_biaya_kelebihan_tanah: biayaKelebihanTanah,
     p_biaya_notaris: biayaNotaris,
+    p_biaya_akad: biayaAkad,
     p_biaya_hook: biayaHook,
     p_biaya_lainnya: biayaLainnya,
   });
