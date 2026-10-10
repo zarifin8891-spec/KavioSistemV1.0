@@ -37,15 +37,42 @@ begin
  perform public.post_sales_receipt_v2_atomic(data||jsonb_build_object('jenis_penerimaan','UANG_MUKA','nominal',10000000));
  perform public.save_sales_v2_atomic(jsonb_build_object('id_sales',kpr,'nama_konsumen','TEST ROLLBACK KPR','status_sales','AKAD','jenis_pembayaran','KPR','id_bank',bank,'id_notaris',notary,'tgl_akad',current_date,'target_akad',current_date));
  select saldo_piutang into bal from public.v_sales_financial_position where id_sales=kpr;
- got_error:=false;begin perform public.post_sales_receipt_v2_atomic(data||jsonb_build_object('jenis_penerimaan','PENCAIRAN_KPR','nominal',bal,'jaminan',jsonb_build_array(jsonb_build_object('jenis_item','GLOBAL','nominal_tagihan',1000000))));exception when others then if sqlerrm like '%melebihi sisa%' then got_error:=true;else raise;end if;end;
- if not got_error then raise exception 'FAILED KPR retention overbalance';end if;
- if exists(select 1 from public.sales_bank_guarantee_item where id_sales=kpr) then raise exception 'FAILED atomic rollback retention';end if;
 
- select id_penerimaan into origin from public.post_sales_receipt_v2_atomic(data||jsonb_build_object('jenis_penerimaan','PENCAIRAN_KPR','nominal',bal-4000000,'jaminan',jsonb_build_array(jsonb_build_object('jenis_item','IMB','nominal_tagihan',1000000),jsonb_build_object('jenis_item','SERTIFIKAT','nominal_tagihan',1000000),jsonb_build_object('jenis_item','AIR_LISTRIK','nominal_tagihan',1000000),jsonb_build_object('jenis_item','BESTEK','nominal_tagihan',1000000))));
- if (select count(*) from public.sales_bank_guarantee_item where id_sales=kpr)<>4 or (select saldo_piutang from public.v_sales_financial_position where id_sales=kpr)<>4000000 then raise exception 'FAILED four retained guarantees';end if;
+ -- The UI passes gross disbursement; the stored receipt remains cash net.
+ data:=data||jsonb_build_object('jenis_penerimaan','PENCAIRAN_KPR','nominal_bruto',bal,'jaminan',jsonb_build_array(jsonb_build_object('jenis_item','GLOBAL','nominal_tagihan',bal+1)));
+ got_error:=false;begin perform public.post_sales_receipt_v2_atomic(data);exception when others then if sqlerrm like '%khairan%' or sqlerrm like '%melebihi pencairan%' then got_error:=true;else raise;end if;end;
+ if not got_error then raise exception 'FAILED held greater than gross';end if;
+ if exists(select 1 from public.sales_bank_guarantee_item where id_sales=kpr) then raise exception 'FAILED invalid atomic rollback';end if;
+ got_error:=false;begin perform public.post_sales_receipt_v2_atomic(data||jsonb_build_object('nominal_bruto',bal+1,'jaminan','[]'::jsonb));exception when others then if sqlerrm like '%melebihi sisa%' then got_error:=true;else raise;end if;end;
+ if not got_error then raise exception 'FAILED gross overbalance';end if;
+ -- Exact 100% withholding is valid: cash zero, bank receivable equals gross.
+ select id_penerimaan into origin from public.post_sales_receipt_v2_atomic(data||jsonb_build_object('jaminan',jsonb_build_array(jsonb_build_object('jenis_item','GLOBAL','nominal_tagihan',bal))));
+ if (select nominal from public.sales_receipt where id_penerimaan=origin)<>0 or (select saldo_piutang from public.v_sales_financial_position where id_sales=kpr)<>0 then raise exception 'FAILED zero cash with full bank receivable';end if;
+ perform public.amend_sales_receipt_atomic(origin,'Rollback pending guarantee');
+ if (select saldo_piutang from public.v_sales_financial_position where id_sales=kpr)<>bal or exists(select 1 from public.sales_bank_guarantee_item where id_sales=kpr) then raise exception 'FAILED void restores consumer balance';end if;
+ -- Four items, then amend before any claim. Values stay gross during correction.
+ data:=data||jsonb_build_object('jaminan',jsonb_build_array(jsonb_build_object('jenis_item','IMB','nominal_tagihan',1000000),jsonb_build_object('jenis_item','SERTIFIKAT','nominal_tagihan',1000000),jsonb_build_object('jenis_item','AIR_LISTRIK','nominal_tagihan',1000000),jsonb_build_object('jenis_item','BESTEK','nominal_tagihan',1000000)));
+ select id_penerimaan into origin from public.post_sales_receipt_v2_atomic(data);
+ origin:=public.amend_sales_receipt_atomic(origin,'Correct same gross',data);
+ if (select count(*) from public.sales_bank_guarantee_item where id_sales=kpr)<>4 or (select saldo_piutang from public.v_sales_financial_position where id_sales=kpr)<>0 then raise exception 'FAILED consumer settled via bank transfer';end if;
+ if (select nominal from public.sales_receipt where id_penerimaan=origin)<>bal-4000000 then raise exception 'FAILED net cash';end if;
+ if (select sum(saldo_piutang_bank) from public.v_sales_bank_receivable where id_sales=kpr)<>4000000 then raise exception 'FAILED bank receivable';end if;
+ if (select sum(nilai_mutasi) from public.v_sales_bank_movement where id_penerimaan=origin)<>bal-4000000 or (select count(*) from public.v_sales_bank_movement where id_penerimaan=origin)<>2 then raise exception 'FAILED gross debit / withholding credit';end if;
+ select id_jaminan into item from public.sales_bank_guarantee_item where id_sales=kpr and jenis_item='IMB';
+ perform public.submit_sales_bank_guarantee_claim_atomic(item,current_date,'TEST CLAIM');
+ data:=jsonb_build_object('id_sales',kpr,'jenis_penerimaan','PENCAIRAN_DANA_JAMINAN','tanggal_penerimaan',current_date,'nominal',400000,'id_jaminan',item,'metode_penerimaan','TRANSFER','id_bank_penerimaan',bank);
+ select id_penerimaan into claim from public.post_sales_receipt_v2_atomic(data);
+ if (select saldo_piutang from public.v_sales_financial_position where id_sales=kpr)<>0 or (select saldo_piutang_bank from public.v_sales_bank_receivable where id_jaminan=item)<>600000 then raise exception 'FAILED partial claim affects bank only';end if;
+ perform public.post_sales_receipt_v2_atomic(data||jsonb_build_object('nominal',600000));
+ if (select status from public.sales_bank_guarantee_item where id_jaminan=item)<>'DICAIRKAN' or (select saldo_piutang_bank from public.v_sales_bank_receivable where id_jaminan=item)<>0 then raise exception 'FAILED final claim';end if;
+ if (select total_pelunasan_konsumen from public.v_sales_financial_position where id_sales=kpr)<>(select total_tagihan from public.v_sales_financial_position where id_sales=kpr) then raise exception 'FAILED double consumer settlement';end if;
+ replacement:=public.amend_sales_receipt_atomic(claim,'Correct partial claim',data||jsonb_build_object('nominal',300000));
+ if (select saldo_piutang_bank from public.v_sales_bank_receivable where id_jaminan=item)<>100000 then raise exception 'FAILED correction of completed bank claim';end if;
+ got_error:=false;begin perform public.amend_sales_receipt_atomic(origin,'Invalid origin delete after claim');exception when others then if (sqlerrm like '%riwayat pencairan%' or sqlerrm like '%sudah diajukan/dicairkan%') then got_error:=true;else raise;end if;end;
+ if not got_error then raise exception 'FAILED origin deletion after bank claim';end if;
  raise exception using errcode='ZX001',message='ROLLBACK_ALL_SUCCESS';
  exception when sqlstate 'ZX001' then null;
  end;
 end $test$;
-select 'PASS: post-AKAD KPR receipt with four retained items, cash net of retention, atomic rollback on overbalance' as verification;
+select 'PASS: gross KPR, net cash, transfer to bank receivable, zero net, four guarantees, partial/final claims, correction/void, atomic invalid rollback' as verification;
 rollback;

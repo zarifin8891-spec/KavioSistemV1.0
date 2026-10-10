@@ -27,7 +27,7 @@ export async function postSalesReceipt(form: FormData) {
   const kinds=jenis==='PENCAIRAN_KPR'?(mode==='GLOBAL'?['GLOBAL']:mode==='RINCI'?['IMB','SERTIFIKAT','AIR_LISTRIK','BESTEK']:[]):[];
   if(kinds.some(k=>!Number.isFinite(Number(text(form,`nominal_${k}`)))||Number(text(form,`nominal_${k}`))<0))redirectKavioFormError('/penerimaan','Nominal dana jaminan wajib valid dan tidak negatif.',{focus,params:{tab:'piutang',...(idReceipt?{edit:idReceipt}:{}),...(text(form,'id_jaminan')?{jaminan:text(form,'id_jaminan')}:{})}});
   const jaminan=kinds.filter(k=>Number(text(form,`nominal_${k}`))>0).map(k=>({jenis_item:k,nominal_tagihan:Number(text(form,`nominal_${k}`))}));
-  const payload={id_sales:idSales,jenis_penerimaan:jenis,tanggal_penerimaan:tanggal,nominal,metode_penerimaan:metode,id_bank_penerimaan:text(form,'id_bank_penerimaan'),id_jaminan:text(form,'id_jaminan')||null,no_referensi:text(form,'no_referensi')||null,keterangan:text(form,'keterangan')||null,jaminan};
+  const payload={id_sales:idSales,jenis_penerimaan:jenis,tanggal_penerimaan:tanggal,nominal,...(jenis==='PENCAIRAN_KPR'?{nominal_bruto:nominal}:{}),metode_penerimaan:metode,id_bank_penerimaan:text(form,'id_bank_penerimaan'),id_jaminan:text(form,'id_jaminan')||null,no_referensi:text(form,'no_referensi')||null,keterangan:text(form,'keterangan')||null,jaminan};
   const {data,error}=idReceipt
     ?await supabase.rpc('amend_sales_receipt_atomic',{p_id_penerimaan:idReceipt,p_alasan:text(form,'alasan'),p_pengganti:payload})
     :await supabase.rpc('post_sales_receipt_v2_atomic',{p_data:payload});

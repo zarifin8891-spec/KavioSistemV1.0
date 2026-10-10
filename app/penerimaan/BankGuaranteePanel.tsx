@@ -9,7 +9,7 @@ import KavioFormActions from '../components/KavioFormActions';
 import {ReceiptForm,Sale,Account} from './ReceiptEntryPanel';
 import {formatKavioMoney} from '../lib/number-format';
 
-type Guarantee={id_jaminan:string;id_sales:string;jenis_item:string;nominal_tagihan:number|string;status:string};
+type Guarantee={id_bank_kpr?:string|null;id_jaminan:string;id_sales:string;jenis_item:string;nominal_tagihan:number|string;status:string};
 type Props={sales:Sale[];items:Guarantee[];accounts:Account[];received:Record<string,number>};
 
 export default function BankGuaranteePanel(props:Props){
@@ -20,12 +20,12 @@ export default function BankGuaranteePanel(props:Props){
       <KavioActionGate action="PAYMENT_RECEIPT_WRITE"><KavioTransactionModal title="PENCAIRAN DANA JAMINAN" focusIds={['guarantee_receipt_select']}><GuaranteeDisbursementForm {...props} ready={ready}/></KavioTransactionModal></KavioActionGate>
     </div>
     <div className="kavio-panel-body collection-note">{ready.length} item siap dicairkan. Pencairan dapat dicatat bertahap atau sekaligus.</div>
-    <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>KAVLING</th><th>KONSUMEN</th><th>ITEM</th><th>TAGIHAN</th><th>DITERIMA</th><th>SISA</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody>
+    <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>KAVLING</th><th>KONSUMEN</th><th>BANK KPR</th><th>ITEM</th><th>TAGIHAN</th><th>DITERIMA</th><th>SISA</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody>
       {items.map(item=>{
         const sale=sales.find(s=>s.id_sales===item.id_sales);
         const paid=received[item.id_jaminan]??0;
         const due=Number(item.nominal_tagihan)-paid;
-        return <tr key={item.id_jaminan}><td>{sale?.id_kavling??'—'}</td><td>{sale?.nama_konsumen??'—'}</td><td>{item.jenis_item.replaceAll('_',' & ')}</td><td>{formatKavioMoney(item.nominal_tagihan)}</td><td>{formatKavioMoney(paid)}</td><td>{formatKavioMoney(due)}</td><td>{item.status.replaceAll('_',' ')}</td><td>
+        return <tr key={item.id_jaminan}><td>{sale?.id_kavling??'—'}</td><td>{sale?.nama_konsumen??'—'}</td><td>{accounts.find(a=>a.id_bank===item.id_bank_kpr)?.nama_bank??'—'}</td><td>{item.jenis_item.replaceAll('_',' & ')}</td><td>{formatKavioMoney(item.nominal_tagihan)}</td><td>{formatKavioMoney(paid)}</td><td>{formatKavioMoney(due)}</td><td>{item.status.replaceAll('_',' ')}</td><td>
           <KavioActionGate action="PAYMENT_RECEIPT_WRITE">{item.status==='BELUM_DIAJUKAN'?<KavioTransactionModal title="AJUKAN KE BANK" focusIds={[`guarantee_claim:${item.id_jaminan}`]}>
             <form action={submitBankGuaranteeClaim} className="kavio-form collection-form">
               <input name="id_jaminan" type="hidden" value={item.id_jaminan}/><input name="focus" type="hidden" value={`guarantee_claim:${item.id_jaminan}`}/>
@@ -39,7 +39,7 @@ export default function BankGuaranteePanel(props:Props){
           </KavioTransactionModal>}</KavioActionGate>
         </td></tr>;
       })}
-      {!items.length&&<tr><td colSpan={8} className="kavio-empty">BELUM ADA DANA JAMINAN. INPUT BERSAMA PENCAIRAN KPR PADA TAB PIUTANG.</td></tr>}
+      {!items.length&&<tr><td colSpan={9} className="kavio-empty">BELUM ADA DANA JAMINAN. INPUT BERSAMA PENCAIRAN KPR PADA TAB PIUTANG.</td></tr>}
     </tbody></table></div>
   </section>;
 }

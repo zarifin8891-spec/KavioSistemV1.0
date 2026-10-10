@@ -65,3 +65,13 @@ Validation: production build/TypeScript, DOM interactions for purchase line/dest
 - Full history is in **Laporan Material**, with 50 detail lines per page and correlated period, source/destination location, recorded supplier and material category filters. Kartu Stok keeps its existing period/material/location lookup.
 - New reporting views use security invoker and have no public/anonymous grants. Material operation mutations continue through the existing authorized atomic engine.
 - Validation: production build/TypeScript; DOM checks for shared line/draft state, all five operational dialogs, paired footers, 20-document query limits, report filters/paging, and KPR prerequisite; SQL rollback tests for two-material batches, atomic failure, 21-document history/40 retained lines in a 20-document display, and post-AKAD disbursement with four guarantee items. No actual browser visual verification is claimed.
+
+
+## Koreksi pencairan KPR dan dana jaminan — 10 Oktober 2026
+
+- Input pencairan KPR adalah nilai bruto/plafond yang dicairkan sebelum potongan jaminan, paling tinggi sisa piutang konsumen. Total jaminan tidak boleh melebihi bruto; jaminan sama dengan bruto menghasilkan uang bersih nol.
+- Piutang konsumen berkurang sebesar bruto. Kas/Bank bertambah sebesar bruto dan berkurang sebesar jaminan ditahan. Jaminan menjadi piutang bank pemberi KPR pada Sales, terpisah dari rekening penerima uang.
+- `sales_receipt.nominal` tetap uang bersih agar riwayat lama dan format kuitansi yang dibekukan tetap konsisten. Form baru mengirim `nominal_bruto`; wrapper atomik menghitung nominal bersih. Edit mengembalikan input bruto dari nominal bersih + snapshot jaminan.
+- Klaim jaminan bertahap menambah Kas/Bank dan mengurangi piutang bank tanpa mengurangi piutang konsumen kedua kali. Kuitansi batal dikeluarkan dari semua agregasi aktif. Koreksi/void mengikuti engine audit yang sama.
+- View invoker bersama menjadi sumber nominal bruto, pelunasan konsumen, mutasi bruto/jaminan, saldo jaminan bank, dan akumulasi penerimaan per rekening. Akumulasi penerimaan bukan saldo buku besar Kas/Bank lengkap.
+- Uji regresi mencakup bruto penuh, net nol, empat jaminan, klaim parsial/final, koreksi, void, dan rollback nilai tidak valid.
