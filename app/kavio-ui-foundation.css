@@ -1968,3 +1968,7 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 .kavio-guarantee-batch .kavio-table-wrap {max-height:350px;}
 .kavio-guarantee-batch input[type=number] {width:130px;min-width:0;text-align:right;}
 .kavio-guarantee-batch input[type=checkbox] {width:16px;height:16px;min-height:0;}
+
+/* Shared master catalog filters and summary; used by all new master catalogs. */
+.kavio-master-filters { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:12px; padding:14px 16px; align-items:end; }
+.kavio-master-summary { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; padding:0 16px 14px; font-size:14px; }
