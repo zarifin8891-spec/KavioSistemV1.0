@@ -75,3 +75,12 @@ Validation: production build/TypeScript, DOM interactions for purchase line/dest
 - Klaim jaminan bertahap menambah Kas/Bank dan mengurangi piutang bank tanpa mengurangi piutang konsumen kedua kali. Kuitansi batal dikeluarkan dari semua agregasi aktif. Koreksi/void mengikuti engine audit yang sama.
 - View invoker bersama menjadi sumber nominal bruto, pelunasan konsumen, mutasi bruto/jaminan, saldo jaminan bank, dan akumulasi penerimaan per rekening. Akumulasi penerimaan bukan saldo buku besar Kas/Bank lengkap.
 - Uji regresi mencakup bruto penuh, net nol, empat jaminan, klaim parsial/final, koreksi, void, dan rollback nilai tidak valid.
+
+
+## Pengajuan/pencairan dana jaminan multi item — 10 Oktober 2026
+
+- Satu form memilih bank KPR, beberapa item termasuk beberapa kavling pada bank yang sama, dan tanggal bersama. Ada pilih semua; pencairan boleh parsial dengan nominal per item serta satu Kas/Bank tujuan, metode, dan referensi bersama.
+- Seluruh pilihan diproses atomik melalui engine pengajuan/penerimaan yang sama. Duplikasi, bank berbeda, item belum diajukan, atau pencairan melebihi sisa membatalkan seluruh batch. Lock Sales dilakukan berurutan sebelum item.
+- Kuitansi per item dan format cetak tetap mengikuti foundation sebelumnya. Semua kuitansi tampil pada daftar penerimaan; tidak otomatis membuka satu cetakan yang dapat menutupi item lainnya.
+- Kategori Master Material menggunakan dropdown dari kategori RAB standar dan kategori lama yang sudah ada. Upah tetap terpisah. Validasi server menolak kategori di luar daftar.
+- Semua form multi material memakai satu heading bersama dan label aksesibel tersembunyi pada setiap baris, melalui komponen global yang sama.

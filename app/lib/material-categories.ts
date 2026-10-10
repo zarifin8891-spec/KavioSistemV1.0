@@ -1,0 +1,2 @@
+export const MATERIAL_CATEGORIES = ['ALAT LISTRIK (PENERANGAN)', 'ALAT PENGGANTUNG', 'ALAT-ALAT', 'BAHAN AGREGAT', 'BAHAN FINISHING', 'BAHAN KAYU', 'BAHAN LANTAI', 'BAHAN LOGAM', 'BAHAN PENUTUP ATAP', 'BAHAN PENUTUP PLAFOND', 'BAHAN PIPA', 'BAHAN SANITAR'] as const;
+export const materialCategories=(existing:string[]=[])=>Array.from(new Set([...MATERIAL_CATEGORIES,...existing.filter(c=>c&&c.toUpperCase()!=='UPAH')])).sort((a,b)=>a.localeCompare(b,'id'));

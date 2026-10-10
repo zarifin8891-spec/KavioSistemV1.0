@@ -55,7 +55,7 @@ export default async function PenerimaanPage({searchParams}:{searchParams:Search
     </section>
     <KavioModuleTabs tabs={[
       {id:'piutang',label:'Piutang',focusIds:['receipt_cash','receipt_kpr','receipt_edit','receipt_void']},
-      {id:'jaminan',label:'Dana Jaminan',focusIds:['guarantee_receipt_select','claim_date',...guarantees.flatMap(g=>[`guarantee_receipt:${g.id_jaminan}`,`guarantee_claim:${g.id_jaminan}`])]},
+      {id:'jaminan',label:'Dana Jaminan',focusIds:['guarantee_batch_claim','guarantee_receipt_select','claim_date',...guarantees.flatMap(g=>[`guarantee_receipt:${g.id_jaminan}`,`guarantee_claim:${g.id_jaminan}`])]},
       {id:'pembatalan',label:'Pembatalan',focusIds:['settlement_reason',...canceled.map(s=>`settlement_reason:${s.id_sales}`)]},
     ]}>
       <div className="kavio-module-content">

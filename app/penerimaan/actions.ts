@@ -87,3 +87,19 @@ export async function voidSalesReceipt(form:FormData){
  if(error)redirectKavioFormError('/penerimaan',error.message,{focus:'receipt_void',params:{tab:'piutang',hapus:text(form,'id_penerimaan')}});
  revalidatePath('/penerimaan');revalidatePath('/dashboard');revalidatePath('/master/sales');redirect('/penerimaan?tab=piutang&success=Penerimaan+dihapus.+Riwayat+kuitansi+ditandai+batal');
 }
+
+export async function submitGuaranteeBatch(form:FormData){
+ const supabase=await createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)redirect('/login');
+ await requireKavioAction('PAYMENT_RECEIPT_WRITE','/penerimaan?error=akses+ditolak');
+ const mode=text(form,'mode');const focus=text(form,'focus')||'guarantee_receipt_select';
+ const fail=(message:string):never=>redirectKavioFormError('/penerimaan',message,{focus,params:{tab:'jaminan'}});
+ let items:{id_jaminan:string;nominal?:number}[]=[];
+ try{const parsed=JSON.parse(text(form,'items'));if(!Array.isArray(parsed)||!parsed.length||parsed.some(i=>!i||typeof i.id_jaminan!=='string'||!i.id_jaminan))fail('Pilih minimal satu item dana jaminan.');items=parsed;}catch{fail('Pilihan item dana jaminan tidak valid.');}
+ if(!['PENGAJUAN','PENCAIRAN'].includes(mode)||!text(form,'tanggal')||!text(form,'id_bank_kpr'))fail('Proses, bank KPR, dan tanggal wajib diisi.');
+ if(new Set(items.map(i=>i.id_jaminan)).size!==items.length)fail('Item dana jaminan tidak boleh berulang.');
+ if(mode==='PENCAIRAN'&&(items.some(i=>!Number.isFinite(i.nominal)||Number(i.nominal)<=0)||!text(form,'id_bank_penerimaan')))fail('Nominal setiap item harus positif dan Kas/Bank tujuan wajib dipilih.');
+ const {error}=await supabase.rpc('process_sales_guarantee_batch_atomic',{p_data:{mode,items,id_bank_kpr:text(form,'id_bank_kpr'),tanggal:text(form,'tanggal'),id_bank_penerimaan:text(form,'id_bank_penerimaan'),metode_penerimaan:text(form,'metode_penerimaan'),no_referensi:text(form,'no_referensi')||null,keterangan:text(form,'keterangan')||null}});
+ if(error)fail(error.message);
+ revalidatePath('/penerimaan');revalidatePath('/master/sales');revalidatePath('/dashboard');
+ redirect(`/penerimaan?tab=jaminan&success=${encodeURIComponent(`${mode==='PENGAJUAN'?'Pengajuan':'Pencairan'} ${items.length} item dana jaminan tersimpan`)}`);
+}
