@@ -16,7 +16,7 @@ const sections = [
   { title: 'KAVLING', items: [['Siteplan', '/siteplan'], ['Kavling', '/master/kavling']] },
   { title: 'OPERASIONAL', items: [['Sales', '/master/sales'], ['Piutang', '/penerimaan'], ['SPK / Pekerjaan', '/master/spk'], ['Progress', '/progress'], ['Gudang & Material', '/material']] },
   { title: 'LAPORAN', items: [['Laporan', '/laporan']] },
-  { title: 'PENGATURAN', items: [['Manajemen User', '/manajemen-user']] },
+  { title: 'PENGATURAN', items: [['Perusahaan', '/pengaturan'], ['Manajemen User', '/manajemen-user']] },
 ] as const;
 
 const pageHeader = (pathname: string) => {
@@ -29,6 +29,7 @@ const pageHeader = (pathname: string) => {
   if (pathname.startsWith('/material')) return ['Gudang & Material', 'Pantau stok, permintaan, pemakaian, dan rekonsiliasi material per SPK.'];
   if (pathname.startsWith('/penerimaan')) return ['Piutang & Penerimaan', 'Catat penerimaan, kelola saldo piutang, dan terbitkan kuitansi.'];
   if (pathname.startsWith('/laporan')) return ['Laporan Monitoring', 'Ringkasan penjualan, progress pembangunan, dan kondisi operasional proyek.'];
+  if (pathname.startsWith('/pengaturan')) return ['Pengaturan Perusahaan', 'Identitas perusahaan pada kuitansi pembayaran.'];
   if (pathname.startsWith('/manajemen-user')) return ['Manajemen User', 'Kelola akun pengguna, role, dan akses KAVIO.'];
   if (pathname.startsWith('/master/template-progress')) return ['Template Progress', 'Kelola bobot progress standar berdasarkan tipe rumah.'];
   if (pathname.startsWith('/master/material')) return ['Master Material', 'Referensi material RAB, kategori, satuan, dan jenis item.'];
@@ -80,6 +81,7 @@ export default function KavioShellClient({
     pathname.startsWith('/material') ? '/material' :
     pathname.startsWith('/penerimaan') ? '/penerimaan' :
     pathname.startsWith('/laporan') ? '/laporan' :
+    pathname.startsWith('/pengaturan') ? '/pengaturan' :
     pathname.startsWith('/manajemen-user') ? '/manajemen-user' :
     pathname.startsWith('/dashboard') ? '/dashboard' :
     pathname === '/master' || pathname.startsWith('/master/') ? '/master' :

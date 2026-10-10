@@ -30,8 +30,8 @@ const MASTER_DATA_ROUTES = [
 ] as const;
 
 export const ROLE_MENU_ACCESS: Record<KavioRole, string[]> = {
-  DIREKTUR: ['/dashboard', '/master', ...MASTER_DATA_ROUTES, '/siteplan', '/master/kavling', '/master/sales', '/penerimaan', '/master/spk', '/progress', '/material', '/laporan', '/manajemen-user'],
-  ADMIN: ['/dashboard', '/master', ...MASTER_DATA_ROUTES, '/siteplan', '/master/kavling', '/master/sales', '/penerimaan', '/master/spk', '/progress', '/material', '/laporan', '/manajemen-user'],
+  DIREKTUR: ['/dashboard', '/master', ...MASTER_DATA_ROUTES, '/siteplan', '/master/kavling', '/master/sales', '/penerimaan', '/master/spk', '/progress', '/material', '/laporan', '/manajemen-user', '/pengaturan'],
+  ADMIN: ['/dashboard', '/master', ...MASTER_DATA_ROUTES, '/siteplan', '/master/kavling', '/master/sales', '/penerimaan', '/master/spk', '/progress', '/material', '/laporan', '/manajemen-user', '/pengaturan'],
   MARKETING: ['/dashboard', '/siteplan', '/master/kavling', '/master/sales', '/laporan'],
   PELAKSANA: ['/dashboard', '/siteplan', '/master/kavling', '/master/spk', '/progress', '/material', '/laporan'],
   GUDANG: ['/master', '/master/material', '/master/pemasok', '/dashboard', '/master/spk', '/progress', '/material'],

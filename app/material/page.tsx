@@ -1,94 +1,46 @@
 import './material.css';
-import { createClient } from '../../lib/supabase/server';
-import { formatKavioDate } from '../lib/date-format';
+import {createClient} from '../../lib/supabase/server';
 import MaterialActionPanel from './MaterialActionPanel';
 import KavioModuleTabs from '../components/KavioModuleTabs';
-import { formatKavioMoney } from '../lib/number-format';
-
-type LocationStock = { id_lokasi: string; kode_lokasi: string; nama_lokasi: string; nama_material: string; kategori: string; satuan: string; jenis_item: string; jumlah: number | string; harga_rata_rata: number | string; nilai_persediaan: number | string };
-type SpkStock = { id_spk: string; id_material: string; jenis_spk: string; id_kavling: string | null; nama_objek: string | null; nama_material: string; satuan: string; jumlah: number | string; harga_rata_rata: number | string; nilai_stok: number | string };
-type Movement = { id_transaksi: string; no_transaksi: string; jenis_transaksi: string; tanggal: string; id_spk: string | null; nama_pemasok: string | null; no_nota: string | null; keterangan: string | null };
-type SearchParams = Promise<{ error?: string; success?: string; focus?: string }>;
-
-const currency = { format: formatKavioMoney };
-const quantity = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 });
-
-export default async function MaterialPage({ searchParams }: { searchParams: SearchParams }) {
-  const params = await searchParams;
-  const supabase = await createClient();
-  const [warehouseResult, spkStockResult, movementResult, materialsResult, locationsResult, spksResult, requestsResult, requestItemsResult, suppliersResult] = await Promise.all([
-    supabase.from('v_material_stock_location').select('id_lokasi,kode_lokasi,nama_lokasi,nama_material,kategori,satuan,jenis_item,jumlah,harga_rata_rata,nilai_persediaan').gt('jumlah', 0).order('nama_material').limit(300),
-    supabase.from('v_material_stock_spk').select('id_spk,id_material,jenis_spk,id_kavling,nama_objek,nama_material,satuan,jumlah,harga_rata_rata,nilai_stok').gt('jumlah', 0).order('nama_material').limit(300),
-    supabase.from('material_transaction').select('id_transaksi,no_transaksi,jenis_transaksi,tanggal,id_spk,nama_pemasok,no_nota,keterangan').order('created_at', { ascending: false }).limit(20),
-    supabase.from('master_material').select('id_material,kode_referensi,nama_material,kategori,satuan,jenis_item').eq('status_aktif', true).neq('jenis_item', 'UPAH').order('nama_material'),
-    supabase.from('material_location').select('id_lokasi,kode_lokasi,nama_lokasi').eq('status_aktif', true).eq('jenis_lokasi', 'GUDANG').order('nama_lokasi'),
-    supabase.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek').eq('is_active', true).eq('status_spk', 'AKTIF').order('tgl_target_selesai'),
-    supabase.from('material_request').select('id_permintaan,no_permintaan,id_spk,status').in('status', ['DIAJUKAN','SEBAGIAN_DIPENUHI']).order('created_at', { ascending: false }),
-    supabase.from('material_request_item').select('id_permintaan,id_material,jumlah_diminta,jumlah_dipenuhi'),
-    supabase.from('master_pemasok').select('id_pemasok,nama_pemasok').eq('status_aktif', true).order('nama_pemasok'),
-  ]);
-  const warehouse = (warehouseResult.data ?? []) as LocationStock[];
-  const spkStock = (spkStockResult.data ?? []) as SpkStock[];
-  const movements = (movementResult.data ?? []) as Movement[];
-  const materials = materialsResult.data ?? [];
-  const suppliers = suppliersResult.data ?? [];
-  const locations = locationsResult.data ?? [];
-  const spks = spksResult.data ?? [];
-  const requests = requestsResult.data ?? [];
-  const requestItems = requestItemsResult.data ?? [];
-  const requestLines = requestItems.flatMap((item) => {
-    const request = requests.find((row) => row.id_permintaan === item.id_permintaan);
-    const material = materials.find((row) => row.id_material === item.id_material);
-    const sisa = Number(item.jumlah_diminta) - Number(item.jumlah_dipenuhi);
-    return request && material && sisa > 0 ? [{ id_permintaan: request.id_permintaan, no_permintaan: request.no_permintaan, id_spk: request.id_spk, id_material: item.id_material, nama_material: material.nama_material, satuan: material.satuan, sisa }] : [];
-  });
-  const error = params.error ?? warehouseResult.error?.message ?? spkStockResult.error?.message ?? movementResult.error?.message ?? materialsResult.error?.message ?? locationsResult.error?.message ?? spksResult.error?.message ?? requestsResult.error?.message ?? requestItemsResult.error?.message ?? suppliersResult.error?.message;
-  const warehouseValue = warehouse.reduce((sum, row) => sum + Number(row.nilai_persediaan ?? 0), 0);
-  const spkValue = spkStock.reduce((sum, row) => sum + Number(row.nilai_stok ?? 0), 0);
-
-  return <main className="material-page">
-    {error && <div className="kavio-alert error">{error}</div>}
-    {params.success && <div className="kavio-alert success">{params.success}</div>}
-    <section className="material-summary">
-      <Summary label="PERMINTAAN TERBUKA" value={String(requests.length)} detail="Kebutuhan material belum selesai" />
-      <Summary label="ITEM DI GUDANG" value={String(warehouse.length)} detail={currency.format(warehouseValue)} />
-      <Summary label="ITEM DI SPK" value={String(spkStock.length)} detail={currency.format(spkValue)} />
-      <Summary label="TRANSAKSI TERBARU" value={String(movements.length)} detail="Maksimal 20 transaksi" />
-    </section>
-    <KavioModuleTabs tabs={[
-      {id:'saldo',label:'Saldo Gudang',focusIds:['receipt_material','receipt_supplier']},
-      {id:'permintaan',label:'Permintaan & Pengeluaran',focusIds:['request_spk','issue_request']},
-      {id:'pemakaian',label:'Pemakaian & Rekonsiliasi',focusIds:['direct_spk','spk_usage_spk','supplier_spk','reconcile_spk']},
-      {id:'mutasi',label:'Riwayat Transaksi'},
-    ]}>
-      <div className="kavio-module-content">
-        <section className="kavio-panel"><MaterialActionPanel mode="saldo" materials={materials} suppliers={suppliers} locations={locations} spks={spks} requestLines={requestLines} spkStocks={spkStock.map((row)=>({id_spk:row.id_spk,id_material:row.id_material,nama_material:row.nama_material,satuan:row.satuan,jumlah:Number(row.jumlah)}))} /></section>
-    <section className="kavio-panel">
-      <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">SALDO GUDANG</h2><div className="kavio-panel-note">Saldo dan nilai berdasarkan harga rata-rata tertimbang.</div></div><span className="kavio-badge">{warehouse.length} BARIS</span></div>
-      <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>LOKASI</th><th>MATERIAL</th><th>JENIS</th><th>STOK</th><th>HARGA RATA-RATA</th><th>NILAI</th></tr></thead><tbody>{warehouse.map((row, i) => <tr key={`${row.id_lokasi}-${row.nama_material}-${i}`}><td>{row.kode_lokasi} · {row.nama_lokasi}</td><td>{row.nama_material}<small className="material-subtext">{row.kategori}</small></td><td>{row.jenis_item.replaceAll('_', ' ')}</td><td className="text-right">{quantity.format(Number(row.jumlah))} {row.satuan}</td><td className="text-right">{currency.format(Number(row.harga_rata_rata))}</td><td className="text-right">{currency.format(Number(row.nilai_persediaan))}</td></tr>)}{!warehouse.length && <tr><td colSpan={6} className="kavio-empty">BELUM ADA SALDO GUDANG. CATAT PENERIMAAN ATAU SALDO AWAL UNTUK MEMBENTUK STOK.</td></tr>}</tbody></table></div>
-    </section>
-      </div>
-      <div className="kavio-module-content">
-        <section className="kavio-panel"><MaterialActionPanel mode="permintaan" materials={materials} suppliers={suppliers} locations={locations} spks={spks} requestLines={requestLines} spkStocks={spkStock.map((row)=>({id_spk:row.id_spk,id_material:row.id_material,nama_material:row.nama_material,satuan:row.satuan,jumlah:Number(row.jumlah)}))} /></section>
-<section className="kavio-panel"><div className="kavio-panel-head"><h2 className="kavio-panel-title">PERMINTAAN MATERIAL TERBUKA</h2><span className="kavio-badge">{requestLines.length} ITEM</span></div><div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>PERMINTAAN</th><th>OBJEK SPK</th><th>MATERIAL</th><th className="text-right">SISA KEBUTUHAN</th></tr></thead><tbody>{requestLines.map((row)=><tr key={`${row.id_permintaan}-${row.id_material}`}><td>{row.no_permintaan}</td><td>{spks.find((spk)=>spk.id_spk===row.id_spk)?.id_kavling || spks.find((spk)=>spk.id_spk===row.id_spk)?.nama_objek || 'SPK'}</td><td>{row.nama_material}</td><td className="text-right">{quantity.format(row.sisa)} {row.satuan}</td></tr>)}{!requestLines.length&&<tr><td colSpan={4} className="kavio-empty">TIDAK ADA PERMINTAAN TERBUKA.</td></tr>}</tbody></table></div></section>
-      </div>
-      <div className="kavio-module-content">
-        <section className="kavio-panel"><MaterialActionPanel mode="pemakaian" materials={materials} suppliers={suppliers} locations={locations} spks={spks} requestLines={requestLines} spkStocks={spkStock.map((row)=>({id_spk:row.id_spk,id_material:row.id_material,nama_material:row.nama_material,satuan:row.satuan,jumlah:Number(row.jumlah)}))} /></section>
-    <section className="kavio-panel">
-      <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">STOK MATERIAL PER SPK</h2><div className="kavio-panel-note">Stok yang sudah dialokasikan ke objek pekerjaan dan perlu dipakai atau direkonsiliasi sebelum SPK ditutup.</div></div><span className="kavio-badge">{spkStock.length} BARIS</span></div>
-      <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>OBJEK</th><th>MATERIAL</th><th>STOK</th><th>HARGA RATA-RATA</th><th>NILAI</th></tr></thead><tbody>{spkStock.map((row, i) => <tr key={`${row.id_spk}-${row.nama_material}-${i}`}><td>{row.jenis_spk} · {row.jenis_spk === 'KAVLING' ? row.id_kavling : row.nama_objek}</td><td>{row.nama_material}</td><td className="text-right">{quantity.format(Number(row.jumlah))} {row.satuan}</td><td className="text-right">{currency.format(Number(row.harga_rata_rata))}</td><td className="text-right">{currency.format(Number(row.nilai_stok))}</td></tr>)}{!spkStock.length && <tr><td colSpan={5} className="kavio-empty">TIDAK ADA SISA STOK PADA SPK.</td></tr>}</tbody></table></div>
-    </section>
-      </div>
-      <div className="kavio-module-content">
-    <section className="kavio-panel">
-      <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">TRANSAKSI TERBARU</h2><div className="kavio-panel-note">Jejak transaksi stok yang sudah diposting.</div></div><span className="kavio-badge">20 TERAKHIR</span></div>
-      <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>TANGGAL</th><th>NOMOR</th><th>JENIS</th><th>PEMASOK / NOTA</th><th>KETERANGAN</th></tr></thead><tbody>{movements.map((row) => <tr key={row.id_transaksi}><td>{formatKavioDate(row.tanggal)}</td><td>{row.no_transaksi}</td><td>{row.jenis_transaksi.replaceAll('_', ' ')}</td><td>{row.nama_pemasok || '—'}{row.no_nota ? <small className="material-subtext">{row.no_nota}</small> : null}</td><td>{row.keterangan || '—'}</td></tr>)}{!movements.length && <tr><td colSpan={5} className="kavio-empty">BELUM ADA TRANSAKSI MATERIAL.</td></tr>}</tbody></table></div>
-    </section>
-      </div>
-    </KavioModuleTabs>
-  </main>;
+import KavioDataTable from '../components/KavioDataTable';
+import PurchaseEntry,{type MaterialOptions,type LocationOptions,type SpkOptions,type SupplierOptions} from './PurchaseForm';
+import {StockTable,HistoryTable} from './MaterialTables';
+import {formatKavioMoney} from '../lib/number-format';
+// Master/stock lists are read in pages to avoid Supabase's default 1000-row cap.
+type WarehouseStock={id_lokasi:string;id_material:string;nama_lokasi:string;nama_material:string;satuan:string;jumlah:number;harga_rata_rata:number;nilai_persediaan:number};
+type SpkStock={id_spk:string;id_material:string;jenis_spk:string;id_kavling:string|null;nama_objek:string;nama_material:string;satuan:string;jumlah:number;harga_rata_rata:number;nilai_stok:number};
+type Spk=SpkOptions[number]&{is_active:boolean;status_spk:string};
+type Request={id_permintaan:string;no_permintaan:string;id_spk:string;status:string;tanggal:string};
+type RequestItem={id_permintaan:string;id_material:string;jumlah_diminta:number;jumlah_dipenuhi:number};
+type Supplier=SupplierOptions[number]&{status_aktif:boolean};
+async function allRows<T>(query:{range:(from:number,to:number)=>PromiseLike<{data:unknown[]|null;error:{message:string}|null}>}):Promise<T[]> {let rows:T[]=[];for(let page=0;;page++){const {data,error}=await query.range(page*1000,page*1000+999);if(error)throw new Error(error.message);rows.push(...((data??[]) as T[]));if(!data||data.length<1000)return rows;}}
+export default async function MaterialPage({searchParams}:{searchParams:Promise<{error?:string;success?:string}>}) {
+ const params=await searchParams,supabase=await createClient();
+ const [warehouse,spkStock,materials,locations,spks,requests,requestItems,suppliers]=await Promise.all([
+  allRows<WarehouseStock>(supabase.from('v_material_stock_location').select('*').gt('jumlah',0).order('id_lokasi').order('id_material')),
+  allRows<SpkStock>(supabase.from('v_material_stock_spk').select('*').gt('jumlah',0).order('id_spk').order('id_material')),
+  allRows<MaterialOptions[number]&{status_aktif:boolean}>(supabase.from('master_material').select('id_material,nama_material,satuan,jenis_item,status_aktif').neq('jenis_item','UPAH').order('id_material')),
+  allRows<LocationOptions[number]>(supabase.from('material_location').select('id_lokasi,kode_lokasi,nama_lokasi').eq('status_aktif',true).eq('jenis_lokasi','GUDANG').order('id_lokasi')),
+  allRows<Spk>(supabase.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek,is_active,status_spk').order('id_spk')),
+  allRows<Request>(supabase.from('material_request').select('id_permintaan,no_permintaan,id_spk,status,tanggal').order('id_permintaan')),
+  allRows<RequestItem>(supabase.from('material_request_item').select('id_permintaan,id_material,jumlah_diminta,jumlah_dipenuhi').order('id_item_permintaan')),
+  allRows<Supplier>(supabase.from('master_pemasok').select('id_pemasok,nama_pemasok,status_aktif').order('id_pemasok')),
+ ]);
+ materials.sort((a,b)=>a.nama_material.localeCompare(b.nama_material,'id'));suppliers.sort((a,b)=>a.nama_pemasok.localeCompare(b.nama_pemasok,'id'));
+ const activeSpks=spks.filter(s=>s.is_active&&s.status_spk==='AKTIF');
+ const requestTable=requestItems.flatMap(item=>{const r=requests.find(r=>r.id_permintaan===item.id_permintaan),m=materials.find(m=>m.id_material===item.id_material);return r&&m?[{...r,...item,nama_material:m.nama_material,satuan:m.satuan,sisa:Number(item.jumlah_diminta)-Number(item.jumlah_dipenuhi)}]:[];});
+ const requestLines=requestTable.filter(r=>['DIAJUKAN','SEBAGIAN_DIPENUHI'].includes(r.status)&&r.sisa>0);
+ const actionProps={materials:materials.filter(m=>m.status_aktif),suppliers:suppliers.filter(s=>s.status_aktif),locations,spks:activeSpks,requestLines,spkStocks:spkStock.map(s=>({...s,jumlah:Number(s.jumlah)}))};
+ const historyOptions={materials,suppliers,locations,spks};
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const stockRows=[...warehouse.map(s=>({key:`g:${s.id_lokasi}:${s.id_material}`,kind:'GUDANG',holder:s.id_lokasi,location:s.nama_lokasi,material:s.nama_material,unit:s.satuan,qty:Number(s.jumlah),average:Number(s.harga_rata_rata),value:Number(s.nilai_persediaan)})),...spkStock.map(s=>({key:`s:${s.id_spk}:${s.id_material}`,kind:'SPK',holder:s.id_spk,location:s.jenis_spk==='KAVLING'?`Kavling ${s.id_kavling}`:s.nama_objek,material:s.nama_material,unit:s.satuan,qty:Number(s.jumlah),average:Number(s.harga_rata_rata),value:Number(s.nilai_stok)}))];
+ return <main className="material-page">{params.error&&<div className="kavio-alert error">{params.error}</div>}{params.success&&<div className="kavio-alert success">{params.success}</div>}
+ <section className="material-summary"><Summary label="PERMINTAAN TERBUKA" value={String(requests.filter(r=>['DIAJUKAN','SEBAGIAN_DIPENUHI'].includes(r.status)).length)} detail="Kebutuhan material belum selesai"/><Summary label="ITEM DI GUDANG" value={String(warehouse.length)} detail={formatKavioMoney(warehouse.reduce((n,s)=>n+Number(s.nilai_persediaan),0))}/><Summary label="ITEM DI SPK" value={String(spkStock.length)} detail={formatKavioMoney(spkStock.reduce((n,s)=>n+Number(s.nilai_stok),0))}/></section>
+ <KavioModuleTabs tabs={[{id:'saldo',label:'Saldo Gudang',focusIds:['receipt_material']},{id:'pembelian',label:'Pembelian',focusIds:['purchase_entry']},{id:'pemakaian',label:'Pemakaian & Rekonsiliasi',focusIds:['request_spk','issue_request','direct_spk','spk_usage_spk','reconcile_spk']},{id:'kartu',label:'Kartu Stok'}]}>
+ <div className="kavio-module-content"><section className="kavio-panel"><MaterialActionPanel {...actionProps} mode="saldo"/></section><StockTable stocks={stockRows}/></div>
+ <div className="kavio-module-content"><section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PEMBELIAN MATERIAL</h2><p className="kavio-panel-note">Masuk ke Gudang atau langsung menjadi stok SPK.</p></div><PurchaseEntry options={{...historyOptions,materials:actionProps.materials,suppliers:actionProps.suppliers,spks:activeSpks}}/></div></section><HistoryTable mode="purchase" options={historyOptions} today={today} revision={String(Date.now())}/></div>
+ <div className="kavio-module-content"><section className="kavio-panel"><MaterialActionPanel {...actionProps} mode="pemakaian"/></section><section className="kavio-panel"><div className="kavio-panel-head"><h2 className="kavio-panel-title">PERMINTAAN MATERIAL</h2><span className="kavio-badge">{requestTable.length} ITEM</span></div><KavioDataTable label="Permintaan material" columns={[{key:'no',label:'PERMINTAAN',width:'20%'},{key:'obj',label:'OBJEK SPK',width:'16%'},{key:'material',label:'MATERIAL',width:'23%'},{key:'qty',label:'DIMINTA',align:'right',width:'11%'},{key:'done',label:'DIPENUHI',align:'right',width:'11%'},{key:'status',label:'STATUS',width:'19%'}]}>{requestTable.map(r=><tr key={`${r.id_permintaan}-${r.id_material}`}><td>{r.no_permintaan}</td><td>{spks.find(s=>s.id_spk===r.id_spk)?.id_kavling??spks.find(s=>s.id_spk===r.id_spk)?.nama_objek??'SPK'}</td><td>{r.nama_material}</td><td className="kavio-number">{Number(r.jumlah_diminta).toLocaleString('id-ID')} {r.satuan}</td><td className="kavio-number">{Number(r.jumlah_dipenuhi).toLocaleString('id-ID')} {r.satuan}</td><td>{r.status.replaceAll('_',' ')}</td></tr>)}{!requestTable.length&&<tr><td colSpan={6} className="kavio-empty">BELUM ADA PERMINTAAN MATERIAL.</td></tr>}</KavioDataTable></section><HistoryTable mode="usage" options={historyOptions} today={today} revision={String(Date.now())}/></div>
+ <div className="kavio-module-content"><HistoryTable mode="card" options={historyOptions} today={today} revision={String(Date.now())}/></div>
+ </KavioModuleTabs></main>;
 }
-
-function Summary({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return <div className="kavio-kpi material-summary-card"><div className="kavio-kpi-label">{label}</div><div className="kavio-kpi-value">{value}</div><div className="material-summary-detail">{detail}</div></div>;
-}
+function Summary({label,value,detail}:{label:string;value:string;detail:string}) {return <div className="kavio-kpi material-summary-card"><div className="kavio-kpi-label">{label}</div><div className="kavio-kpi-value">{value}</div><div className="material-summary-detail">{detail}</div></div>;}

@@ -42,3 +42,7 @@
 .receipt-note { padding-top:13px; margin:22px 0 0; border-top:1px solid #ddd; text-align:center; color:#777; font-size:10px; }
 @media print { body { background:#fff !important; } .receipt-toolbar,.kavio-sidebar,.kavio-topbar { display:none !important; } .kavio-shell { display:block !important; } .kavio-main { width:100% !important; margin:0 !important; } .kavio-content { padding:0 !important; } .receipt-page { display:block; } .receipt-paper { width:100%; padding:18mm; box-shadow:none; } }
 @media (max-width:760px) { .collection-summary { grid-template-columns:1fr; } .collection-form { grid-template-columns:1fr; } .collection-wide { grid-column:auto; } .receipt-paper { padding:24px 18px; } .receipt-details { grid-template-columns:1fr; } .receipt-number { align-items:start; flex-direction:column; gap:6px; } .receipt-footer { align-items:start; flex-direction:column; gap:22px; } }
+
+.receipt-company-logo {width:74px;height:74px;object-fit:contain;flex-shrink:0;}
+.receipt-company-name {font-size:17px;font-weight:800;margin-bottom:7px;}
+.receipt-terbilang {margin:4px 0;font-size:13px;font-style:italic;line-height:1.6;}

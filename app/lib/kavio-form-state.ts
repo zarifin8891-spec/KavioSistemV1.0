@@ -47,7 +47,9 @@ function isPersistable(element: Element): element is PersistableControl {
   if (!element.name || element.dataset.kavioNoPersist === 'true') return false;
 
   if (element instanceof HTMLInputElement) {
-    const blocked = new Set(['password', 'file', 'hidden', 'submit', 'button', 'reset', 'image']);
+    // Structured form state can opt in; identifiers and other hidden fields stay excluded.
+    if(element.type==='hidden') return element.dataset.kavioPersistHidden==='true';
+    const blocked = new Set(['password', 'file', 'submit', 'button', 'reset', 'image']);
     if (blocked.has(element.type)) return false;
   }
 
