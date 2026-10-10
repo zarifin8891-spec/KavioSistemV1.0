@@ -27,3 +27,14 @@ export async function saveCompanySettings(form:FormData) {
  revalidatePath('/pengaturan');revalidatePath('/penerimaan/kuitansi');
  redirect('/pengaturan?success=Pengaturan+perusahaan+berhasil+disimpan');
 }
+
+export async function saveProgressSettings(form:FormData) {
+ await requireKavioAction('MASTER_WRITE');
+ const mode=String(form.get('mode_progress_default')??'');
+ if(!['KATEGORI','PERINCIAN'].includes(mode))redirect('/pengaturan?error=Mode+progress+tidak+valid');
+ const supabase=await createClient();
+ const {error}=await supabase.from('company_settings').update({mode_progress_default:mode,updated_at:new Date().toISOString()}).eq('id',true).select('id').single();
+ if(error)redirect(`/pengaturan?error=${encodeURIComponent(error.message)}`);
+ revalidatePath('/pengaturan');revalidatePath('/master/spk');
+ redirect('/pengaturan?success=Mode+default+SPK+baru+berhasil+disimpan');
+}

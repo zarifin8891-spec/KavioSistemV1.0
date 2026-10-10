@@ -3,6 +3,7 @@ import { getKavioRequestContext } from '../../lib/kavio-request-context';
 import { canViewPath } from '../../lib/kavio-permissions';
 
 const masterLinks = [
+  { href: '/master/perincian-pekerjaan', title: 'Perincian Pekerjaan', desc: 'Item pekerjaan per tipe, bobot, volume, satuan, upah, dan retensi.', icon: '▦' },
   { href: '/master/material', title: 'Material', desc: 'Referensi nama material, kategori, satuan, dan jenis item RAB.', icon: '▦' },
   { href: '/master/pemasok', title: 'Pemasok', desc: 'Kelola pemasok material, kontak, dan alamat.', icon: '▤' },
   { href: '/master/tipe-rumah', title: 'Tipe Rumah', desc: 'Kelola referensi tipe rumah dan spesifikasi luas.', icon: '⌂' },

@@ -39,3 +39,20 @@
 
 .kavio-module-content[hidden] { display:none; }
 .kavio-module-tab:focus-visible { outline:2px solid var(--kavio-champagne); outline-offset:2px; }
+
+/* Shared work breakdown form and its read-only master / SPK summaries. */
+.work-detail-fields {border:0;padding:0;margin:0;min-width:0;}
+.work-detail-settings {align-items:end;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-bottom:18px;}
+.work-detail-summary {display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:18px 0;}
+.work-detail-group {margin:20px 0;padding:14px;border:1px solid var(--kavio-border,#314354);border-radius:10px;min-width:0;}
+.work-detail-group-head {display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:12px;}
+.work-detail-group-head h3 {margin:0;flex:1;min-width:180px;font-size:14px;}
+.work-detail-group-head .kavio-field {width:155px;}
+.work-detail-table {min-width:1000px;}
+.work-detail-table th:first-child {min-width:235px;}
+.work-detail-table td {padding:8px;vertical-align:middle;}
+.work-detail-table input,.work-detail-table select {width:100%;min-width:80px;padding:9px;border:1px solid #43576a;border-radius:6px;background:#172839;color:inherit;font:inherit;}
+.work-detail-table select {min-width:135px;}
+.work-detail-money {text-align:right!important;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.work-detail-panel .kavio-form-actions {margin-top:20px;}
+@media(max-width:640px){.work-detail-group{padding:10px;}.work-detail-summary{gap:10px;}}

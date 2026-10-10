@@ -33,6 +33,7 @@ export async function createTipeRumah(formData: FormData) {
   const namaTipe = text(formData.get('nama_tipe'));
   const luasTanah = number(formData.get('luas_tanah'));
   const luasBangunan = number(formData.get('luas_bangunan'));
+  const totalUpah = number(formData.get('total_upah_borongan'));
 
   if (!idTipe || !namaTipe) {
     createFail('ID dan nama tipe wajib diisi', !idTipe ? 'id_tipe' : 'nama_tipe');
@@ -42,11 +43,13 @@ export async function createTipeRumah(formData: FormData) {
     createFail('Luas tanah dan luas bangunan harus bernilai positif', !Number.isFinite(luasTanah) || luasTanah <= 0 ? 'luas_tanah' : 'luas_bangunan');
   }
 
+  if (!Number.isFinite(totalUpah) || totalUpah < 0) createFail('Total upah harus berupa angka nol atau lebih', 'total_upah_borongan');
   const { error } = await supabase.from('master_tipe_rumah').insert({
     id_tipe: idTipe,
     nama_tipe: namaTipe,
     luas_tanah_m2: luasTanah,
     luas_bangunan_m2: luasBangunan,
+    total_upah_borongan: totalUpah,
     status_aktif: true,
   });
 
@@ -71,16 +74,19 @@ export async function updateTipeRumah(formData: FormData) {
   const namaTipe = text(formData.get('nama_tipe'));
   const luasTanah = number(formData.get('luas_tanah'));
   const luasBangunan = number(formData.get('luas_bangunan'));
+  const totalUpah = number(formData.get('total_upah_borongan'));
   if (!idTipe) redirectKavioFormError('/master/tipe-rumah', 'ID tipe tidak valid');
   if (!namaTipe) editFail(idTipe, 'Nama tipe wajib diisi', 'nama_tipe');
   if (!Number.isFinite(luasTanah) || luasTanah <= 0 || !Number.isFinite(luasBangunan) || luasBangunan <= 0) {
     editFail(idTipe, 'Luas tanah dan luas bangunan harus bernilai positif', !Number.isFinite(luasTanah) || luasTanah <= 0 ? 'luas_tanah' : 'luas_bangunan');
   }
 
+  if (!Number.isFinite(totalUpah) || totalUpah < 0) editFail(idTipe, 'Total upah harus berupa angka nol atau lebih', 'total_upah_borongan');
   const { error } = await supabase.from('master_tipe_rumah').update({
     nama_tipe: namaTipe,
     luas_tanah_m2: luasTanah,
     luas_bangunan_m2: luasBangunan,
+    total_upah_borongan: totalUpah,
   }).eq('id_tipe', idTipe);
   if (error) editFail(idTipe, error.message);
 

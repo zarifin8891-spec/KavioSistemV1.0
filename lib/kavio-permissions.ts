@@ -23,6 +23,7 @@ const MASTER_DATA_ROUTES = [
   '/master/kantor-pelaksana',
   '/master/mandor',
   '/master/template-progress',
+  '/master/perincian-pekerjaan',
   '/master/bank',
   '/master/notaris',
   '/master/material',

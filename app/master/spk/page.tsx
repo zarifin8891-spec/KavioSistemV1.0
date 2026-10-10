@@ -94,6 +94,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
                 <td><span className={`spk-badge ${row.status_spk.toLowerCase()}`}>{row.status_spk}</span></td>
                 <td><div className="spk-actions">
                   <Link href={row.jenis_spk === 'FASUM' ? `/progress?spk=${row.id_spk}` : `/master/spk/detail/${row.id_spk}`} prefetch={false} className="kavio-button secondary">DETAIL</Link>
+                  <Link href={`/master/spk/konfigurasi?id=${row.id_spk}`} className="kavio-button secondary">KONFIGURASI</Link>
                   <KavioActionGate action="SPK_WRITE">
                     {row.status_spk === 'DRAFT' && !row.is_active ? <form action={activateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="kavio-button">AKTIFKAN</button></form> : null}
                     {row.is_active ? <KavioConfirmAction action={deactivateSpk} hidden={{ id_spk: row.id_spk }} label="SELESAIKAN" confirmMessage={'Konfirmasi: SPK ' + row.id_spk.slice(0, 8) + ' untuk objek ' + (row.jenis_spk === 'FASUM' ? row.nama_objek : row.id_kavling) + ' akan ditandai SELESAI. Pastikan progress aktual sudah 100%. Lanjutkan?'} /> : null}

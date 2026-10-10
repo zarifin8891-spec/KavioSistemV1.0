@@ -133,6 +133,7 @@ export async function createSpk(formData: FormData) {
   revalidatePath('/dashboard');
   if (idSpk) revalidatePath(`/master/spk/detail/${idSpk}`);
 
+  if (idSpk) redirect(`/master/spk/konfigurasi?id=${encodeURIComponent(idSpk)}&success=SPK+draft+tersimpan.+Periksa+konfigurasi+pekerjaan+sebelum+aktivasi.`);
   redirect(statusSpk === 'AKTIF'
     ? '/master/spk?success=SPK%20DRAFT%20berhasil%20diperbarui%20dan%20diaktifkan'
     : '/master/spk?success=SPK%20berhasil%20dibuat%20sebagai%20DRAFT');
@@ -185,7 +186,7 @@ export async function createFasumSpk(formData: FormData) {
   revalidatePath('/master/spk');
   revalidatePath('/progress');
   revalidatePath('/dashboard');
-  redirect(`/master/spk?success=${encodeURIComponent(`SPK Fasum ${namaObjek} tersimpan sebagai DRAFT (${String(idSpk).slice(0, 8)})`)}`);
+  redirect(`/master/spk/konfigurasi?id=${encodeURIComponent(String(idSpk))}&success=${encodeURIComponent(`SPK Fasum ${namaObjek} tersimpan sebagai DRAFT (${String(idSpk).slice(0, 8)})`)}`);
 }
 
 export async function activateSpk(formData: FormData) {
