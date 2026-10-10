@@ -30,7 +30,8 @@ pembuatan kini tetap DRAFT; aktivasi merupakan perintah terpisah.
 - `spk_work_detail` menyimpan rincian yang disalin/diatur untuk satu SPK,
   termasuk mandor dan retensi; tidak bergantung pada baris master setelah disimpan.
 - Bobot disimpan sebagai pecahan dengan enam angka desimal, ditampilkan
-  sebagai persen dengan empat angka desimal.
+  sebagai persen dengan dua angka desimal pada form dan tabel. Nilai rinci sumber
+  dipertahankan sampai pengguna mengedit bobot, agar format tampilan tidak mengubah upah.
 - Total upah item = bobot item terhadap seluruh SPK × total upah SPK.
 - Harga satuan = total upah item ÷ volume.
 - Kedua RPC penyimpanan memvalidasi dan menulis seluruh konfigurasi secara atomik.
@@ -66,3 +67,14 @@ mandor, aktivasi Kavling/Fasum mode kategori, penguncian konfigurasi, hak RPC, d
 Pengujian form dengan React/jsdom memeriksa contoh 70 item, 14 item tanpa retensi,
 header per kelompok, penambahan item, pemulihan draft terstruktur, mandor, perhitungan
 upah, pergantian mode, dan penutupan form setelah penyimpanan berhasil.
+
+## Perbaikan form perincian
+
+Kategori dipilih melalui navigator; hanya item kategori aktif yang ditampilkan.
+Nilai kategori lain tetap disertakan dalam penyimpanan dan pemulihan draft.
+Nama pekerjaan, volume, satuan, dan bobot berada di baris utama; retensi, mandor,
+dan hasil upah di baris berikutnya. Header utama hanya satu untuk seluruh item
+kategori. Di layar kecil navigator mendatar dan field ditata bertingkat.
+Bobot menggunakan input desimal dengan koma atau titik, diformat dua desimal
+ketika selesai diedit. Validasi memperhitungkan seluruh kategori dan membuka
+kategori yang memiliki item belum lengkap sebelum penyimpanan.

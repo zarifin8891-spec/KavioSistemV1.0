@@ -13,3 +13,5 @@ export function workWeightIssues(groups:WorkGroup[],details:WorkDetail[]) {
  return issues;
 }
 export const workMoney=(value:number)=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(value);
+
+export const workPercent=(fraction:number)=>new Intl.NumberFormat('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}).format(fraction*100);
