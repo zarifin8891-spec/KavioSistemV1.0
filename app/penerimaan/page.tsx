@@ -1,3 +1,5 @@
+import KavioDataTable from '../components/KavioDataTable';
+import KavioFormActions from '../components/KavioFormActions';
 import Link from 'next/link';
 import KavioModuleTabs from '../components/KavioModuleTabs';
 import { createClient } from '../../lib/supabase/server';
@@ -52,15 +54,19 @@ export default async function PenerimaanPage({searchParams}:{searchParams:Search
     </section>
     <KavioModuleTabs tabs={[
       {id:'piutang',label:'Piutang',focusIds:['receipt_cash','receipt_kpr','receipt_edit','receipt_void']},
-      {id:'jaminan',label:'Dana Jaminan',focusIds:['claim_date',...guarantees.map(g=>`guarantee_receipt:${g.id_jaminan}`)]},
-      {id:'pembatalan',label:'Pembatalan',focusIds:['settlement_reason']},
+      {id:'jaminan',label:'Dana Jaminan',focusIds:['guarantee_receipt_select','claim_date',...guarantees.flatMap(g=>[`guarantee_receipt:${g.id_jaminan}`,`guarantee_claim:${g.id_jaminan}`])]},
+      {id:'pembatalan',label:'Pembatalan',focusIds:['settlement_reason',...canceled.map(s=>`settlement_reason:${s.id_sales}`)]},
     ]}>
       <div className="kavio-module-content">
         <ReceiptEntryPanel sales={sales} accounts={accounts??[]} />
     {alerts.length>0&&<section className="kavio-panel collection-alert"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PERHATIAN CASH BERTAHAP</h2><div className="kavio-panel-note">Progress bangunan sudah melampaui persentase pembayaran harga jual.</div></div><span className="kavio-badge">{alerts.length} PERLU DITINJAU</span></div><div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>KAVLING</th><th>KONSUMEN</th><th>PROGRESS</th><th>TERBAYAR</th><th>SELISIH NILAI</th></tr></thead><tbody>{alerts.map((row)=><tr key={row.id_sales}><td>{row.id_kavling}</td><td>{row.nama_konsumen}</td><td>{(Number(row.progress_bangunan)*100).toFixed(1)}%</td><td>{(Number(row.persentase_terbayar)*100).toFixed(1)}%</td><td className="text-right">{formatKavioMoney(row.nominal_ketertinggal)}</td></tr>)}</tbody></table></div></section>}
     <section className="kavio-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">POSISI PIUTANG</h2><div className="kavio-panel-note">Biaya bangunan, kelebihan tanah, dan hook menjadi harga jual; biaya notaris, akad, dan biaya lain ditampilkan terpisah dalam total tagihan.</div></div><span className="kavio-badge">{sales.length} SALES AKTIF</span></div>
-      <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>KAVLING</th><th>KONSUMEN</th><th>PEMBAYARAN</th><th>TOTAL TAGIHAN</th><th>DITERIMA</th><th>SALDO PIUTANG</th><th>TERBAYAR</th></tr></thead><tbody>{sales.map((row)=><tr key={row.id_sales}><td>{row.id_kavling}</td><td>{row.nama_konsumen}</td><td>{row.jenis_pembayaran}</td><td className="text-right">{formatKavioMoney(row.total_tagihan)}</td><td className="text-right">{formatKavioMoney(row.total_diterima)}</td><td className="collection-due text-right">{formatKavioMoney(row.saldo_piutang)}</td><td>{(Number(row.persentase_terbayar)*100).toFixed(1)}%</td></tr>)}{!sales.length&&<tr><td colSpan={7} className="kavio-empty">BELUM ADA SALES AKTIF. BUAT SALES TERLEBIH DAHULU UNTUK MENCATAT PENERIMAAN.</td></tr>}</tbody></table></div>
+      <KavioDataTable label="Posisi Piutang" minWidth="850px" columns={[
+        {key:'kavling',label:'KAVLING',width:'9%'},{key:'konsumen',label:'KONSUMEN',width:'21%'},{key:'pembayaran',label:'PEMBAYARAN',width:'16%'},
+        {key:'tagihan',label:'TOTAL TAGIHAN',align:'right',width:'15%'},{key:'diterima',label:'DITERIMA',align:'right',width:'14%'},
+        {key:'saldo',label:'SALDO PIUTANG',align:'right',width:'15%'},{key:'terbayar',label:'TERBAYAR',align:'right',width:'10%'}
+      ]}>{sales.map((row)=><tr key={row.id_sales}><td>{row.id_kavling}</td><td>{row.nama_konsumen}</td><td>{row.jenis_pembayaran}</td><td className="kavio-number">{formatKavioMoney(row.total_tagihan)}</td><td className="kavio-number">{formatKavioMoney(row.total_diterima)}</td><td className="collection-due kavio-number">{formatKavioMoney(row.saldo_piutang)}</td><td className="kavio-number">{(Number(row.persentase_terbayar)*100).toFixed(1)}%</td></tr>)}{!sales.length&&<tr><td colSpan={7} className="kavio-empty">BELUM ADA SALES AKTIF. BUAT SALES TERLEBIH DAHULU UNTUK MENCATAT PENERIMAAN.</td></tr>}</KavioDataTable>
     </section>
 
     <section className="kavio-panel">
@@ -72,7 +78,7 @@ export default async function PenerimaanPage({searchParams}:{searchParams:Search
       <CancellationSettlementPanel sales={canceled} settlements={settlements} />
     </KavioModuleTabs>
     {edit&&<KavioActionGate action="PAYMENT_RECEIPT_WRITE"><KavioFormModal open closeHref="/penerimaan?tab=piutang" ariaLabel="Edit penerimaan" persistenceKey={`receipt-edit:${edit.id_penerimaan}`}><section className="kavio-panel"><div className="kavio-panel-head"><h2>EDIT PENERIMAAN — {edit.no_kuitansi}</h2></div><ReceiptForm sales={sales} accounts={accounts??[]} initial={edit}/></section></KavioFormModal></KavioActionGate>}
-    {remove&&<KavioActionGate action="PAYMENT_RECEIPT_WRITE"><KavioFormModal open closeHref="/penerimaan?tab=piutang" ariaLabel="Hapus penerimaan" persistenceKey={`receipt-void:${remove.id_penerimaan}`}><section className="kavio-panel"><div className="kavio-panel-head"><h2>HAPUS PENERIMAAN — {remove.no_kuitansi}</h2></div><form action={voidSalesReceipt} className="kavio-form kavio-panel-body"><input type="hidden" name="id_penerimaan" value={remove.id_penerimaan}/><p className="collection-wide">{formatKavioMoney(remove.nominal)} akan dikeluarkan dari penerimaan aktif. Kuitansi tetap tersimpan dengan status BATAL.</p><label className="kavio-field collection-wide"><span>ALASAN HAPUS</span><input id="receipt_void" name="alasan" required/></label><div className="kavio-actions"><button type="submit" className="kavio-button">HAPUS PENERIMAAN</button></div></form></section></KavioFormModal></KavioActionGate>}
+    {remove&&<KavioActionGate action="PAYMENT_RECEIPT_WRITE"><KavioFormModal open closeHref="/penerimaan?tab=piutang" ariaLabel="Hapus penerimaan" persistenceKey={`receipt-void:${remove.id_penerimaan}`}><section className="kavio-panel"><div className="kavio-panel-head"><h2>HAPUS PENERIMAAN — {remove.no_kuitansi}</h2></div><form action={voidSalesReceipt} className="kavio-form kavio-panel-body"><input type="hidden" name="id_penerimaan" value={remove.id_penerimaan}/><p className="collection-wide">{formatKavioMoney(remove.nominal)} akan dikeluarkan dari penerimaan aktif. Kuitansi tetap tersimpan dengan status BATAL.</p><label className="kavio-field collection-wide"><span>ALASAN HAPUS</span><input id="receipt_void" name="alasan" required/></label><KavioFormActions><button type="submit" className="kavio-button">HAPUS PENERIMAAN</button></KavioFormActions></form></section></KavioFormModal></KavioActionGate>}
   </main>;
 }
 

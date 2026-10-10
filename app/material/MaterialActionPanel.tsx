@@ -1,5 +1,7 @@
 'use client';
 
+import KavioFormActions from '../components/KavioFormActions';
+
 import { useState } from 'react';
 
 import {
@@ -45,7 +47,7 @@ export default function MaterialActionPanel({ materials, suppliers, locations, s
       <label className="kavio-field"><span>NOMOR NOTA</span><input name="no_nota" placeholder="Wajib untuk pembelian" /></label>
       <label className="kavio-field material-checkbox"><input name="saldo_awal" type="checkbox" /><span>CATAT SEBAGAI SALDO AWAL</span></label>
       <label className="kavio-field material-wide"><span>KETERANGAN</span><input name="keterangan" /></label>
-      <div className="kavio-actions"><button className="kavio-button" type="submit" disabled={!gudang.length || !stockable.length}>SIMPAN PENERIMAAN</button></div>
+      <KavioFormActions><button className="kavio-button" type="submit" disabled={!gudang.length || !stockable.length}>SIMPAN PENERIMAAN</button></KavioFormActions>
     </form></KavioTransactionModal></KavioActionGate>}
 
     {mode === "permintaan" && <KavioActionGate action="MATERIAL_REQUEST_WRITE"><KavioTransactionModal title="Ajukan kebutuhan material ke SPK" focusIds={["request_spk"]}><form action={createMaterialRequest} className="kavio-form material-form">
@@ -54,7 +56,7 @@ export default function MaterialActionPanel({ materials, suppliers, locations, s
       <label className="kavio-field"><span>MATERIAL</span><select name="id_material" required defaultValue=""><option value="" disabled>PILIH MATERIAL</option>{stockable.map((m)=><option key={m.id_material} value={m.id_material}>{m.nama_material} ({m.satuan})</option>)}</select></label>
       <label className="kavio-field"><span>JUMLAH DIMINTA</span><input name="jumlah" type="number" min="0.001" step="0.001" required /></label>
       <label className="kavio-field material-wide"><span>KETERANGAN</span><input name="keterangan" /></label>
-      <div className="kavio-actions"><button className="kavio-button" type="submit" disabled={!spks.length || !stockable.length}>AJUKAN PERMINTAAN</button></div>
+      <KavioFormActions><button className="kavio-button" type="submit" disabled={!spks.length || !stockable.length}>AJUKAN PERMINTAAN</button></KavioFormActions>
     </form></KavioTransactionModal></KavioActionGate>}
 
     {mode === "permintaan" && <KavioActionGate action="MATERIAL_WAREHOUSE_WRITE"><KavioTransactionModal title="Keluarkan gudang untuk memenuhi permintaan" focusIds={["issue_request"]}><form action={issueMaterialToSpk} className="kavio-form material-form">
@@ -63,7 +65,7 @@ export default function MaterialActionPanel({ materials, suppliers, locations, s
       <label className="kavio-field"><span>GUDANG</span><select name="id_lokasi" required defaultValue=""><option value="" disabled>PILIH GUDANG</option>{gudang.map((l)=><option key={l.id_lokasi} value={l.id_lokasi}>{l.kode_lokasi} · {l.nama_lokasi}</option>)}</select></label>
       <label className="kavio-field"><span>JUMLAH DIPENUHI</span><input name="jumlah" type="number" min="0.001" step="0.001" required /></label>
       <label className="kavio-field material-wide"><span>KETERANGAN</span><input name="keterangan" /></label>
-      <div className="kavio-actions"><button className="kavio-button" type="submit" disabled={!requestLines.length || !gudang.length}>POSTING PENGELUARAN</button></div>
+      <KavioFormActions><button className="kavio-button" type="submit" disabled={!requestLines.length || !gudang.length}>POSTING PENGELUARAN</button></KavioFormActions>
     </form></KavioTransactionModal></KavioActionGate>}
 
     {mode === "pemakaian" && <KavioActionGate action="MATERIAL_USE_WRITE"><KavioTransactionModal title="Pemakaian langsung dari gudang ke SPK" focusIds={["direct_spk"]}><form action={postDirectMaterialUsage} className="kavio-form material-form">
@@ -72,7 +74,7 @@ export default function MaterialActionPanel({ materials, suppliers, locations, s
       <label className="kavio-field"><span>BAHAN</span><select name="id_material" required defaultValue=""><option value="" disabled>PILIH BAHAN</option>{bahan.map((m)=><option key={m.id_material} value={m.id_material}>{m.nama_material} ({m.satuan})</option>)}</select></label>
       <label className="kavio-field"><span>JUMLAH PAKAI</span><input name="jumlah" type="number" min="0.001" step="0.001" required /></label>
       <label className="kavio-field material-wide"><span>KETERANGAN</span><input name="keterangan" /></label>
-      <div className="kavio-actions"><button className="kavio-button" type="submit" disabled={!spks.length || !gudang.length || !bahan.length}>CATAT PEMAKAIAN</button></div>
+      <KavioFormActions><button className="kavio-button" type="submit" disabled={!spks.length || !gudang.length || !bahan.length}>CATAT PEMAKAIAN</button></KavioFormActions>
     </form></KavioTransactionModal></KavioActionGate>}
 
     {mode === "pemakaian" && <KavioActionGate action="MATERIAL_USE_WRITE"><KavioTransactionModal title="Pemakaian dari stok SPK" focusIds={["spk_usage_spk"]}><form action={postSpkMaterialUsage} className="kavio-form material-form">
@@ -80,7 +82,7 @@ export default function MaterialActionPanel({ materials, suppliers, locations, s
       <input type="hidden" name="id_spk" value={spkUseSelection.split('|')[0] ?? ''} /><input type="hidden" name="id_material" value={spkUseSelection.split('|')[1] ?? ''} />
       <label className="kavio-field"><span>JUMLAH PAKAI</span><input name="jumlah" type="number" min="0.001" step="0.001" required /></label>
       <label className="kavio-field material-wide"><span>KETERANGAN</span><input name="keterangan" /></label>
-      <div className="kavio-actions"><button className="kavio-button" type="submit" disabled={!spkStocks.length}>CATAT PEMAKAIAN SPK</button></div>
+      <KavioFormActions><button className="kavio-button" type="submit" disabled={!spkStocks.length}>CATAT PEMAKAIAN SPK</button></KavioFormActions>
     </form></KavioTransactionModal></KavioActionGate>}
 
     {mode === "pemakaian" && <KavioActionGate action="MATERIAL_USE_WRITE"><KavioTransactionModal title="Pembelian dan pemakaian langsung ke SPK" focusIds={["supplier_spk"]}><form action={postSupplierDirectUsage} className="kavio-form material-form">
@@ -91,7 +93,7 @@ export default function MaterialActionPanel({ materials, suppliers, locations, s
       <label className="kavio-field"><span>JUMLAH</span><input name="jumlah" type="number" min="0.001" step="0.001" required /></label>
       <label className="kavio-field"><span>HARGA SATUAN</span><input name="harga_satuan" type="number" min="0" step="0.01" required /></label>
       <label className="kavio-field material-wide"><span>KETERANGAN</span><input name="keterangan" /></label>
-      <div className="kavio-actions"><button className="kavio-button" type="submit" disabled={!spks.length || !bahan.length}>CATAT PEMAKAIAN</button></div>
+      <KavioFormActions><button className="kavio-button" type="submit" disabled={!spks.length || !bahan.length}>CATAT PEMAKAIAN</button></KavioFormActions>
     </form></KavioTransactionModal></KavioActionGate>}
 
     {mode === "pemakaian" && <KavioActionGate action="MATERIAL_WAREHOUSE_WRITE"><KavioTransactionModal title="Rekonsiliasi sisa material SPK" focusIds={["reconcile_spk"]}><form action={reconcileSpkMaterial} className="kavio-form material-form">
@@ -102,7 +104,7 @@ export default function MaterialActionPanel({ materials, suppliers, locations, s
       <label className="kavio-field"><span>GUDANG TUJUAN (UNTUK PENGEMBALIAN)</span><select name="id_lokasi_tujuan" defaultValue=""><option value="">PILIH JIKA DIKEMBALIKAN</option>{gudang.map((l)=><option key={l.id_lokasi} value={l.id_lokasi}>{l.kode_lokasi} · {l.nama_lokasi}</option>)}</select></label>
       <label className="kavio-field"><span>SPK TUJUAN (UNTUK TRANSFER)</span><select name="id_spk_tujuan" defaultValue=""><option value="">PILIH JIKA DIPINDAHKAN</option>{spks.map((s)=><option key={s.id_spk} value={s.id_spk}>{labelSpk(s)}</option>)}</select></label>
       <label className="kavio-field material-wide"><span>ALASAN (WAJIB UNTUK HILANG / RUSAK)</span><input name="alasan" /></label>
-      <div className="kavio-actions"><button className="kavio-button" type="submit" disabled={!spkStocks.length}>POSTING REKONSILIASI</button></div>
+      <KavioFormActions><button className="kavio-button" type="submit" disabled={!spkStocks.length}>POSTING REKONSILIASI</button></KavioFormActions>
     </form></KavioTransactionModal></KavioActionGate>}
   </section>;
 }

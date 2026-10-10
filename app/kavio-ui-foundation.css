@@ -1910,3 +1910,39 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
     animation:none;
   }
 }
+
+/* GLOBAL FOUNDATION: paired input-form commands and compact data tables. */
+.kavio-form-modal .kavio-form-actions {
+  grid-column:1 / -1;
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:stretch;
+  justify-content:flex-end;
+  gap:8px;
+  width:100%;
+  padding-top:12px;
+  margin-top:8px;
+  border-top:1px solid var(--kavio-line);
+}
+.kavio-form-modal .kavio-form-actions > button {
+  min-width:0;
+  width:auto;
+  min-height:36px;
+  white-space:normal;
+  line-height:1.25;
+}
+.kavio-form-actions > .secondary { flex-shrink:0; }
+.kavio-data-table { table-layout:fixed; }
+.kavio-data-table th,.kavio-data-table td {
+  padding:7px 10px;
+  height:auto;
+  line-height:1.25;
+}
+.kavio-data-table th { letter-spacing:.15px; }
+.kavio-data-table th.kavio-number,.kavio-data-table td.kavio-number { text-align:right; font-variant-numeric:tabular-nums; }
+.kavio-data-table .kavio-cell-center { text-align:center; }
+.kavio-data-table th:last-child,.kavio-data-table td:last-child { width:auto; }
+.kavio-data-table td:not(.kavio-number) { white-space:normal; overflow-wrap:anywhere; }
+@media (max-width:600px) {
+  .kavio-form-modal .kavio-form-actions > button { flex:1 1 0; padding:9px 10px; }
+}

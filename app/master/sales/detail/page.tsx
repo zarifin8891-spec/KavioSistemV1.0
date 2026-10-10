@@ -1,3 +1,4 @@
+import KavioFormActions from '../../../components/KavioFormActions';
 import Link from 'next/link';
 import SalesPaymentFields from '../SalesPaymentFields';
 import { redirect } from 'next/navigation';
@@ -47,7 +48,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
              <label className="kavio-field"><span>TARGET AKAD</span><input type="date" name="target_akad" defaultValue={s.target_akad??''}/></label>
              <label className="kavio-field"><span>TANGGAL AKAD</span><input type="date" name="tgl_akad" defaultValue={s.tgl_akad??''}/></label>
              <label className="kavio-field"><span>NOTARIS AKAD</span><select name="id_notaris" defaultValue={s.id_notaris??''}><option value="">PILIH NOTARIS</option>{nr.map(x=><option key={x.id_notaris} value={x.id_notaris}>{x.nama_notaris}</option>)}</select></label>
-             <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN PERUBAHAN</button></div>
+             <KavioFormActions><button type="submit" className="kavio-button">SIMPAN PERUBAHAN</button></KavioFormActions>
            </form>
          </KavioModalAction>
        </KavioActionGate>
@@ -84,7 +85,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
                <label className="kavio-field"><span>TAHAP</span><select name="tahap" defaultValue="KELENGKAPAN_DATA">{STAGES.map(x=><option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>
                <label className="kavio-field"><span>TANGGAL UPDATE</span><input type="date" name="tanggal_update" required/></label>
                <label className="kavio-field sales-span-2"><span>KETERANGAN</span><input name="keterangan" placeholder="CATATAN PROSES KPR"/></label>
-               <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN UPDATE KPR</button></div>
+               <KavioFormActions><button type="submit" className="kavio-button">SIMPAN UPDATE KPR</button></KavioFormActions>
              </form>
            </KavioModalAction>
          </KavioActionGate>

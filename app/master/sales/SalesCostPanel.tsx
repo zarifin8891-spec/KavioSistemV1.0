@@ -1,5 +1,7 @@
 "use client";
 
+import KavioFormActions from '../../components/KavioFormActions';
+
 import { useState } from 'react';
 import { saveSalesBiaya } from './actions';
 import KavioActionGate from '../../components/KavioActionGate';
@@ -75,9 +77,9 @@ export default function SalesCostPanel({
                 <div><span>NOTARIS & BIAYA TERPISAH</span><strong className="kavio-money">{formatKavioMoney(separateFees)}</strong></div>
                 <div><span>TOTAL TAGIHAN</span><strong className="kavio-money">{formatKavioMoney(totalTagihan)}</strong></div>
               </div>
-              <div className="kavio-actions">
+              <KavioFormActions>
                 <button type="submit" className="kavio-button">SIMPAN BIAYA</button>
-              </div>
+              </KavioFormActions>
             </form>
           </KavioModalAction>
         </KavioActionGate>

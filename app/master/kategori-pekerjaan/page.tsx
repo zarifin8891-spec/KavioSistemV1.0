@@ -1,3 +1,4 @@
+import KavioFormActions from '../../components/KavioFormActions';
 import {deleteMaster} from '../delete-actions';
 import KavioConfirmAction from '../../components/KavioConfirmAction';
 import { redirect } from 'next/navigation';
@@ -27,13 +28,13 @@ const { data, error } = await supabase.from('master_kategori_pekerjaan').select(
         {!rows.length && <tr><td colSpan={5} className="kavio-empty">BELUM ADA DATA KATEGORI PEKERJAAN.</td></tr>}
       </tbody></table></div>
     </section>
-    {editRow ? <KavioActionGate action="MASTER_WRITE"><KavioFormModal open closeHref="/master/kategori-pekerjaan" size="standard" ariaLabel="Edit Kategori Pekerjaan" closeOnBackdrop={false} persistenceKey={`master-kategori-edit:${editRow.id_kategori}`}><section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">EDIT KATEGORI — {editRow.id_kategori}</h2><div className="kavio-panel-note">ID kategori tetap. Nama dan urutan dapat diperbarui.</div></div><a href="/master/kategori-pekerjaan" className="kavio-button secondary">BATAL</a></div><form action={updateKategoriPekerjaan} className="kavio-form kavio-panel-body"><input type="hidden" name="id_kategori" value={editRow.id_kategori}/><label className="kavio-field"><span>ID KATEGORI</span><input value={editRow.id_kategori} readOnly/></label><label className="kavio-field"><span>NAMA KATEGORI</span><input name="nama_kategori" defaultValue={editRow.nama_kategori} required/></label><label className="kavio-field"><span>URUTAN</span><input type="number" name="urutan" min="1" step="1" defaultValue={editRow.urutan} required/></label><div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN PERUBAHAN</button></div></form></section></KavioFormModal></KavioActionGate> : null}
+    {editRow ? <KavioActionGate action="MASTER_WRITE"><KavioFormModal open closeHref="/master/kategori-pekerjaan" size="standard" ariaLabel="Edit Kategori Pekerjaan" closeOnBackdrop={false} persistenceKey={`master-kategori-edit:${editRow.id_kategori}`}><section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">EDIT KATEGORI — {editRow.id_kategori}</h2><div className="kavio-panel-note">ID kategori tetap. Nama dan urutan dapat diperbarui.</div></div></div><form action={updateKategoriPekerjaan} className="kavio-form kavio-panel-body"><input type="hidden" name="id_kategori" value={editRow.id_kategori}/><label className="kavio-field"><span>ID KATEGORI</span><input value={editRow.id_kategori} readOnly/></label><label className="kavio-field"><span>NAMA KATEGORI</span><input name="nama_kategori" defaultValue={editRow.nama_kategori} required/></label><label className="kavio-field"><span>URUTAN</span><input type="number" name="urutan" min="1" step="1" defaultValue={editRow.urutan} required/></label><KavioFormActions><button type="submit" className="kavio-button">SIMPAN PERUBAHAN</button></KavioFormActions></form></section></KavioFormModal></KavioActionGate> : null}
     <KavioCreatePanel formKey="master-kategori-create" buttonLabel="+ TAMBAH KATEGORI" title="INPUT KATEGORI PEKERJAAN" note="Kategori ini menjadi dasar konfigurasi bobot progress SPK." badge="MASTER">
       <KavioActionGate action="MASTER_WRITE"><form action={createKategoriPekerjaan} className="kavio-form kavio-panel-body">
         <label className="kavio-field"><span>ID KATEGORI</span><input name="id_kategori" placeholder="KAT01" required/></label>
         <label className="kavio-field"><span>NAMA KATEGORI</span><input name="nama_kategori" placeholder="Pekerjaan Pondasi" required/></label>
         <label className="kavio-field"><span>URUTAN</span><input type="number" name="urutan" min="1" step="1" placeholder="1" required/></label>
-        <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN KATEGORI</button></div>
+        <KavioFormActions><button type="submit" className="kavio-button">SIMPAN KATEGORI</button></KavioFormActions>
       </form></KavioActionGate>
     </KavioCreatePanel>
   </main>;

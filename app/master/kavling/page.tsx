@@ -1,3 +1,4 @@
+import KavioFormActions from '../../components/KavioFormActions';
 import { getKavioRequestContext } from '../../../lib/kavio-request-context';
 import { createClient } from '../../../lib/supabase/server';
 import { createKavling, toggleKavling, updateKavling } from './actions';
@@ -39,7 +40,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
       <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">◆</div><div className="kavio-kpi-label">SIAP AKAD</div><div className="kavio-kpi-value">{statusCounts.SIAP_AKAD ?? 0}</div><div className="kavio-kpi-note">Syarat kesiapan akad terpenuhi</div></div>
       <div className="kavio-kpi kavio-dashboard-kpi"><div className="kavio-kpi-icon" aria-hidden="true">●</div><div className="kavio-kpi-label">SOLD</div><div className="kavio-kpi-value">{statusCounts.SOLD ?? 0}</div><div className="kavio-kpi-note">Sudah akad / terjual</div></div>
     </section>
-    {canWrite && <KavioCreatePanel formKey="master-kavling-create" triggerTargetId="kavling-add-action" buttonLabel="+ TAMBAH KAVLING" closeLabel="× TUTUP FORM" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE.">
+    {canWrite && <KavioCreatePanel formKey="master-kavling-create" triggerTargetId="kavling-add-action" buttonLabel="+ TAMBAH KAVLING" title="INPUT KAVLING BARU" note="Kavling baru dimulai dari status AVAILABLE.">
       <form action={createKavling} className="kavio-form kavio-panel-body">
         <label className="kavio-field"><span>ID KAVLING</span><input name="id_kavling" placeholder="A-11" required/></label>
         <label className="kavio-field"><span>BLOK</span><input name="blok" placeholder="A" required/></label>
@@ -49,7 +50,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
         <label className="kavio-field"><span>LUAS TANAH REAL (M²)</span><input name="luas_tanah_real" type="number" min="0" step="0.01" placeholder="0.00" required/></label>
         <label className="kavio-field"><span>HARGA STANDAR</span><input name="harga_standar" type="number" min="0" step="1000" placeholder="0" required/></label>
         <label className="kavio-field"><span>HARGA TANAH / M²</span><input name="harga_tanah_meter" type="number" min="0" step="1000" placeholder="0" required/></label>
-        <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN KAVLING</button></div>
+        <KavioFormActions><button type="submit" className="kavio-button">SIMPAN KAVLING</button></KavioFormActions>
       </form>
     </KavioCreatePanel>}
     <section className="kavio-panel">
@@ -59,7 +60,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
         {!rows.length&&<tr><td colSpan={13} className="kavio-empty">BELUM ADA DATA KAVLING.</td></tr>}
       </tbody></table></div>
       {canWrite && editRow && <KavioFormModal open closeHref="/master/kavling" size="standard" ariaLabel="Edit Data Kavling" className="kavio-kavling-edit-modal" closeOnBackdrop={false} persistenceKey={`master-kavling-edit:${editRow.id_kavling}`}><section className="kavio-panel">
-      <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">EDIT DATA KAVLING — {editRow.id_kavling}</h2><div className="kavio-panel-note">ID kavling dan status lifecycle tetap dikendalikan sistem. Data lokasi, tipe, luas tanah, dan harga dapat diperbarui.</div></div><a href="/master/kavling" className="kavio-button secondary">BATAL</a></div>
+      <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">EDIT DATA KAVLING — {editRow.id_kavling}</h2><div className="kavio-panel-note">ID kavling dan status lifecycle tetap dikendalikan sistem. Data lokasi, tipe, luas tanah, dan harga dapat diperbarui.</div></div></div>
       <form action={updateKavling} className="kavio-form kavio-panel-body">
         <input type="hidden" name="id_kavling" value={editRow.id_kavling}/>
         <label className="kavio-field"><span>BLOK</span><input name="blok" defaultValue={editRow.blok} required/></label>
@@ -71,7 +72,7 @@ export default async function MasterKavlingPage({ searchParams }: { searchParams
         <label className="kavio-field"><span>HARGA STANDAR</span><input name="harga_standar" type="number" min="0" step="1000" defaultValue={editRow.harga_standar} required/></label>
         <label className="kavio-field"><span>HARGA TANAH / M²</span><input name="harga_tanah_meter" type="number" min="0" step="1000" defaultValue={editRow.harga_tanah_meter} required/></label>
         <div className="kavio-form-note"><strong>CATATAN:</strong> HARGA JUAL dihitung otomatis: Harga Standar + (Kelebihan Tanah × Harga Tanah/M²). Perubahan tipe tidak diizinkan setelah ada histori Sales/SPK.</div>
-        <div className="kavio-actions"><button type="submit" className="kavio-button">SIMPAN PERUBAHAN KAVLING</button></div>
+        <KavioFormActions><button type="submit" className="kavio-button">SIMPAN PERUBAHAN KAVLING</button></KavioFormActions>
       </form>
     </section></KavioFormModal>}
     </section>

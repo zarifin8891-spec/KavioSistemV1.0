@@ -1,5 +1,7 @@
 'use client';
 
+import KavioFormActions from '../../components/KavioFormActions';
+
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createFasumSpk } from './actions';
@@ -51,7 +53,7 @@ export default function FasumSpkCreatePanel({ kantorRows, mandorRows }: { kantor
           <section className="kavio-panel">
             <div className="kavio-panel-head">
               <div><h2 className="kavio-panel-title">INPUT SPK FASUM</h2><div className="kavio-panel-note">Rincian pekerjaan dan bobot dibuat khusus untuk setiap objek Fasum.</div></div>
-              <button type="button" className="kavio-command-button secondary" onClick={close}><span className="kavio-command-icon" aria-hidden="true">×</span><span>Tutup Form</span></button>
+              
             </div>
             <form action={createFasumSpk} className="kavio-form kavio-fasum-form">
               <label className="kavio-field"><span>NAMA OBJEK FASUM</span><input name="nama_objek" required placeholder="Contoh: Jalan Utama Blok A" /></label>
@@ -64,7 +66,7 @@ export default function FasumSpkCreatePanel({ kantorRows, mandorRows }: { kantor
               <div className="kavio-table-wrap kavio-form-section"><table className="kavio-table"><thead><tr><th>URUTAN</th><th>NAMA PEKERJAAN</th><th className="text-right">BOBOT (%)</th><th>AKSI</th></tr></thead><tbody>
                 {items.map((item, index) => <tr key={index}><td>{index + 1}</td><td><label className="kavio-field"><input aria-label={`Nama pekerjaan ${index + 1}`} value={item.nama_pekerjaan} required onChange={(event) => updateItem(index, 'nama_pekerjaan', event.target.value)} /></label></td><td><label className="kavio-field"><input aria-label={`Bobot pekerjaan ${index + 1}`} type="number" min="0.01" max="100" step="0.01" value={item.bobot_percent} required onChange={(event) => updateItem(index, 'bobot_percent', event.target.value)} /></label></td><td><button type="button" className="kavio-button secondary" disabled={items.length === 1} onClick={() => setItems((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}>HAPUS</button></td></tr>)}
               </tbody></table></div>
-              <div className="kavio-actions"><button type="button" className="kavio-button secondary" onClick={() => setItems((rows) => [...rows, { nama_pekerjaan: '', bobot_percent: '' }])}>TAMBAH ITEM</button><button type="submit" className="kavio-button" disabled={!items.length || Math.abs(total - 100) > 0.001 || !kantorRows.length}>SIMPAN SPK FASUM SEBAGAI DRAFT</button></div>
+              <div className="kavio-form-section"><button type="button" className="kavio-button secondary" onClick={() => setItems((rows) => [...rows, { nama_pekerjaan: '', bobot_percent: '' }])}>TAMBAH ITEM</button></div><KavioFormActions><button type="submit" className="kavio-button" disabled={!items.length || Math.abs(total - 100) > 0.001 || !kantorRows.length}>SIMPAN SPK FASUM SEBAGAI DRAFT</button></KavioFormActions>
             </form>
           </section>
         </KavioFormModal>

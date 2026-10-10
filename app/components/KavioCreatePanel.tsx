@@ -19,24 +19,20 @@ function prettyLabel(value: string) {
 
 export default function KavioCreatePanel({
   buttonLabel,
-  closeLabel = '× TUTUP FORM',
   title,
   note,
   badge,
   children,
   triggerTargetId,
-  headerActions,
   modalSize = 'standard',
   formKey,
 }: {
   buttonLabel: string;
-  closeLabel?: string;
   title: string;
   note?: string;
   badge?: string;
   children: React.ReactNode;
   triggerTargetId?: string;
-  headerActions?: React.ReactNode;
   modalSize?: 'compact' | 'standard' | 'wide' | 'full';
   formKey?: string;
 }) {
@@ -87,13 +83,6 @@ export default function KavioCreatePanel({
             {note && <div className="kavio-panel-note">{note}</div>}
           </div>
           {badge && <span className="kavio-badge">{badge}</span>}
-          <div className="kavio-create-head-actions">
-            {headerActions}
-            <button type="button" className="kavio-command-button secondary" onClick={close}>
-              <span className="kavio-command-icon" aria-hidden="true">×</span>
-              <span>{prettyLabel(closeLabel)}</span>
-            </button>
-          </div>
         </div>
         {children}
       </section>

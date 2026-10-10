@@ -1,4 +1,6 @@
 'use client';
+
+import KavioFormActions from '../components/KavioFormActions';
 import {useState} from 'react';
 import {postSalesReceipt} from './actions';
 import KavioActionGate from '../components/KavioActionGate';
@@ -33,6 +35,6 @@ export function ReceiptForm({sales,accounts,initial,guarantee,focus='receipt_edi
  <label className="kavio-field"><span>NO. REFERENSI</span><input name="no_referensi" defaultValue={initial?.no_referensi??''}/></label>
  <label className="kavio-field collection-wide"><span>KETERANGAN</span><input name="keterangan" defaultValue={initial?.keterangan??''}/></label>
  {initial&&<label className="kavio-field collection-wide"><span>ALASAN KOREKSI</span><input name="alasan" required/><small>Kuitansi sebelumnya ditandai batal dan diganti kuitansi baru.</small></label>}
- <div className="kavio-actions"><button type="submit" className="kavio-button" disabled={!sale||!accounts.length}>SIMPAN & TERBITKAN KUITANSI</button></div>
+ <KavioFormActions><button type="submit" className="kavio-button" disabled={!sale||!accounts.length}>SIMPAN & TERBITKAN KUITANSI</button></KavioFormActions>
  </form>;
 }

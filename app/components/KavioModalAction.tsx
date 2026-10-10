@@ -74,10 +74,6 @@ export default function KavioModalAction({
             </div>
             <div className="kavio-create-head-actions">
               {badge && <span className="kavio-badge">{badge}</span>}
-              <button type="button" className="kavio-command-button secondary" onClick={close}>
-                <span className="kavio-command-icon" aria-hidden="true">×</span>
-                <span>Tutup Form</span>
-              </button>
             </div>
           </div>
           {children}

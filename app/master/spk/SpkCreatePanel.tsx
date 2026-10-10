@@ -1,5 +1,7 @@
 'use client';
 
+import KavioFormActions from '../../components/KavioFormActions';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSpk } from './actions';
 import KavioActionGate from '../../components/KavioActionGate';
@@ -72,9 +74,7 @@ export default function SpkCreatePanel({
             </div>
             <div className="kavio-create-head-actions">
               <span className="kavio-badge">DRAFT</span>
-              <button type="button" className="kavio-command-button secondary" onClick={closePanel}>
-                <span className="kavio-command-icon" aria-hidden="true">×</span><span>Tutup Form</span>
-              </button>
+              
             </div>
           </div>
           <form action={createSpk} className="kavio-form kvio-spk-form">
@@ -84,7 +84,7 @@ export default function SpkCreatePanel({
             <label className="kavio-field"><span>KANTOR / PELAKSANA</span><select name="id_kantor" required defaultValue="" onChange={(event) => setSelectedKantor(event.target.value)}><option value="" disabled>PILIH KANTOR</option>{kantorRows.map((item) => <option key={item.id_kantor} value={item.id_kantor}>{item.nama_kantor_pelaksana}</option>)}</select></label>
             <label className="kavio-field"><span>MANDOR</span><select name="id_mandor" required defaultValue=""><option value="" disabled>PILIH MANDOR</option>{filteredMandorRows.map((item) => <option key={item.id_mandor} value={item.id_mandor}>{item.nama_mandor}</option>)}</select></label>
             <div className="kavio-form-note"><strong>ATURAN:</strong> Satu kavling hanya boleh memiliki satu SPK. Jika sudah ada SPK DRAFT, sistem menggunakan record tersebut, memperbarui datanya, lalu mengaktifkannya. SPK baru hanya untuk kavling AVAILABLE atau BOOKING. Saat aktif, kavling menjadi BUILDING. Mandor harus berasal dari kantor yang dipilih dan tipe rumah SPK mengikuti kavling.</div>
-            <div className="kavio-actions"><button type="submit" className="kavio-button" disabled={!kavlingRows.length || !kantorRows.length || !filteredMandorRows.length || !kategoriRows.length}>SIMPAN SPK SEBAGAI DRAFT</button></div>
+            <KavioFormActions><button type="submit" className="kavio-button" disabled={!kavlingRows.length || !kantorRows.length || !filteredMandorRows.length || !kategoriRows.length}>SIMPAN SPK SEBAGAI DRAFT</button></KavioFormActions>
           </form>
         </section>
         </KavioFormModal>

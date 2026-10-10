@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import {KavioFormContext} from './KavioFormActions';
 import { useRouter } from 'next/navigation';
 import {
   clearKavioFormDraft,
@@ -132,7 +133,7 @@ export default function KavioFormModal({
           if (anchor?.getAttribute('href') === closeHref) clearDraft();
         }}
       >
-        {children}
+        <KavioFormContext.Provider value={close}>{children}</KavioFormContext.Provider>
       </div>
     </div>,
     document.body,

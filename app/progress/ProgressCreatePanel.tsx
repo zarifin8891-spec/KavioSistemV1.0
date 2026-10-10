@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createProgressBatchUpdate } from './actions';
 import KavioActionGate from '../components/KavioActionGate';
+import KavioFormActions from '../components/KavioFormActions';
 import KavioFormModal from '../components/KavioFormModal';
 
 type WorkItem = { id_item: string; urutan: number; nama_pekerjaan: string; bobot_final: number | string };
@@ -136,9 +137,7 @@ export default function ProgressCreatePanel({
                   Isi hanya item pekerjaan yang berubah. Beberapa item dapat disimpan sekaligus dalam satu transaksi.
                 </div>
               </div>
-              <button type="button" className="kavio-command-button secondary progress-form-close" onClick={closePanel}>
-                <span className="kavio-command-icon" aria-hidden="true">×</span><span>Tutup Form</span>
-              </button>
+              
             </div>
 
             <form action={createProgressBatchUpdate} onSubmit={validateBeforeSubmit}>
@@ -229,9 +228,9 @@ export default function ProgressCreatePanel({
                   <strong>PENTING:</strong> Angka pada INPUT PERIODE adalah tambahan progress, bukan nilai kumulatif.
                   Sistem tetap memvalidasi batas 100% dan menyimpan seluruh batch secara atomic.
                 </div>
-                <button type="submit" className="kavio-button" disabled={!entries.length}>
+                <KavioFormActions><button type="submit" className="kavio-button" disabled={!entries.length}>
                   SIMPAN {entries.length ? `${entries.length} ITEM` : 'PROGRESS'}
-                </button>
+                </button></KavioFormActions>
               </div>
             </form>
           </section>

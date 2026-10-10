@@ -28,7 +28,7 @@ export default function KavioTransactionModal({ title, focusIds, children }: {
     <button type="button" className="kavio-command-button secondary" onClick={() => setOpen(true)}>{title}</button>
     <KavioFormModal open={open} onClose={close} size="standard" ariaLabel={title} closeOnBackdrop={false} persistenceKey={`transaction:${focusIds[0]}`}>
       <section className="kavio-panel kavio-transaction-panel">
-        <div className="kavio-panel-head"><h2 className="kavio-panel-title">{title}</h2><button type="button" className="kavio-command-button secondary" onClick={close}>Tutup Form</button></div>
+        <div className="kavio-panel-head"><h2 className="kavio-panel-title">{title}</h2></div>
         {failed && <div className="kavio-alert error" role="alert">{params.get('error')}</div>}
         {children}
       </section>

@@ -1,5 +1,6 @@
 "use client";
 
+import KavioFormActions from '../../components/KavioFormActions';
 import { useState } from 'react';
 import { createSales } from './actions';
 import KavioActionGate from '../../components/KavioActionGate';
@@ -34,10 +35,8 @@ export default function SalesCreatePanel({
         formKey="sales-create"
         triggerTargetId={triggerTargetId}
         buttonLabel="+ TAMBAH SALES"
-        closeLabel="× TUTUP FORM"
         title="INPUT SALES BARU"
         note="Data awal transaksi penjualan. Data akad diisi saat transaksi benar-benar AKAD."
-        headerActions={<button type="submit" form="sales-create-form" className="kavio-button" disabled={!kavlings.length}>SIMPAN SALES</button>}
       >
           <form id="sales-create-form" action={createSales} className="kavio-form sales-create-grid">
             <label className="kavio-field"><span>TANGGAL BOOKING</span><input name="tgl_booking" type="date" /></label>
@@ -67,6 +66,7 @@ export default function SalesCreatePanel({
             </div>
             <div className="sales-contact-note"><span>{isKpr ? 'BANK KPR WAJIB DIISI.' : 'PEMBAYARAN CASH TIDAK MEMERLUKAN BANK.'}</span></div>
 
+          <KavioFormActions><button type="submit" className="kavio-button" disabled={!kavlings.length}>SIMPAN SALES</button></KavioFormActions>
           </form>
       </KavioCreatePanel>
     </KavioActionGate>

@@ -1,5 +1,7 @@
 'use client';
 
+import KavioFormActions from '../components/KavioFormActions';
+
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
 import { formatKavioDate } from '../lib/date-format';
@@ -303,7 +305,7 @@ export default function UserManagementClient() {
                 Ubah password untuk {passwordUser.nama || passwordUser.email || 'pengguna'}.
               </div>
             </div>
-            <button type="button" className="kavio-button secondary" onClick={resetForm}>TUTUP</button>
+            
           </div>
 
           <form className="kavio-form manajemen-user-form" onSubmit={handlePasswordChange}>
@@ -355,12 +357,11 @@ export default function UserManagementClient() {
               <strong>Catatan:</strong> password baru langsung berlaku untuk login berikutnya.
             </div>
 
-            <div className="kavio-actions">
-              <button type="button" className="kavio-button secondary" onClick={resetForm} disabled={saving}>BATAL</button>
+            <KavioFormActions disabled={saving}>
               <button type="submit" className="kavio-button" disabled={saving}>
                 {saving ? 'MENYIMPAN...' : 'GANTI PASSWORD'}
               </button>
-            </div>
+            </KavioFormActions>
           </form>
         </section>
         )}
@@ -376,7 +377,7 @@ export default function UserManagementClient() {
                 {editing ? 'Perbarui identitas dan role pengguna.' : 'Buat akun login baru untuk pengguna KAVIO.'}
               </div>
             </div>
-            <button type="button" className="kavio-button secondary" onClick={resetForm}>TUTUP</button>
+            
           </div>
 
           <form className="kavio-form manajemen-user-form" onSubmit={editing ? handleUpdate : handleCreate}>
@@ -460,12 +461,11 @@ export default function UserManagementClient() {
               <strong>Catatan:</strong> akun baru langsung dikonfirmasi oleh sistem. Pengguna dapat login setelah akun dibuat.
             </div>
 
-            <div className="kavio-actions">
-              <button type="button" className="kavio-button secondary" onClick={resetForm} disabled={saving}>BATAL</button>
+            <KavioFormActions disabled={saving}>
               <button type="submit" className="kavio-button" disabled={saving}>
                 {saving ? 'MENYIMPAN...' : editing ? 'SIMPAN PERUBAHAN' : 'BUAT USER'}
               </button>
-            </div>
+            </KavioFormActions>
           </form>
         </section>
       )}
