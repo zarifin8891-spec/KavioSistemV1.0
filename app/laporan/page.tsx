@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import ReceivableReport from './ReceivableReport';
+import KavioActionGate from '../components/KavioActionGate';
 import MaterialReport from './MaterialReport';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
@@ -8,6 +10,8 @@ import { formatKavioMoney } from '../lib/number-format';
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const REPORTS = [
+  {key:'piutang',label:'LAPORAN PIUTANG',note:'Posisi piutang konsumen berdasarkan kategori pembayaran.'},
+  {key:'jaminan',label:'PIUTANG DANA JAMINAN',note:'Tagihan dana jaminan ke bank KPR berdasarkan jenis item.'},
   {key:'material',label:'LAPORAN MATERIAL',note:'Riwayat pembelian, permintaan, pemakaian dan rekonsiliasi stok.'},
   { key: 'sales', label: 'LAPORAN SALES', note: 'Rekap status penjualan, konsumen, pembayaran, dan target akad.' },
   { key: 'progress', label: 'LAPORAN PROGRESS', note: 'Rekap progress pembangunan per SPK/kavling.' },
@@ -51,6 +55,12 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   const selected = REPORTS.some((item) => item.key === textParam(params, 'jenis'))
     ? textParam(params, 'jenis')
     : 'sales';
+
+  if(selected==='piutang'||selected==='jaminan') {
+    const supabase=await createClient();
+    const {data:banks,error}=selected==='jaminan'?await supabase.from('master_bank').select('id_bank,nama_bank').eq('jenis_akun','BANK').order('nama_bank'):{data:[],error:null};
+    return <main className="laporan-page"><ReportSelector selected={selected}/><KavioActionGate action="PAYMENT_RECEIPT_WRITE" fallback={<div className="kavio-alert warning">Akses laporan piutang mengikuti hak akses Keuangan.</div>}>{error?<div className="kavio-alert error">{error.message}</div>:<ReceivableReport key={selected} mode={selected} banks={banks??[]}/>}</KavioActionGate></main>;
+  }
 
   if(selected==='material') {
     const supabase=await createClient();

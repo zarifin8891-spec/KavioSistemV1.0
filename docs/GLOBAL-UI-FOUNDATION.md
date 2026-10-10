@@ -84,3 +84,11 @@ Validation: production build/TypeScript, DOM interactions for purchase line/dest
 - Kuitansi per item dan format cetak tetap mengikuti foundation sebelumnya. Semua kuitansi tampil pada daftar penerimaan; tidak otomatis membuka satu cetakan yang dapat menutupi item lainnya.
 - Kategori Master Material menggunakan dropdown dari kategori RAB standar dan kategori lama yang sudah ada. Upah tetap terpisah. Validasi server menolak kategori di luar daftar.
 - Semua form multi material memakai satu heading bersama dan label aksesibel tersembunyi pada setiap baris, melalui komponen global yang sama.
+
+## Laporan Piutang dan Piutang Dana Jaminan — 10 Oktober 2026
+
+- Menu Laporan menambah dua pilihan dengan komponen filter, pagination, dan tabel Global Foundation yang sama. Enam pilihan tersusun 3 kolom pada desktop, 2 pada tablet, dan 1 pada layar kecil.
+- Laporan Piutang memfilter kategori pembayaran CASH/CASH BERTAHAP/KPR. Sales aktif selain BATAL ditampilkan, termasuk saldo nol. Pelunasan konsumen memakai bruto KPR; dana jaminan dipisahkan menjadi piutang bank.
+- Laporan Piutang Dana Jaminan memfilter bank pemberi KPR dan jenis IMB/SERTIFIKAT/AIR & LISTRIK/BESTEK/GLOBAL. Menampilkan tagihan, sudah dicairkan, saldo bank, status, kavling, dan konsumen. Bank bukan rekening penerima. Termasuk item lunas untuk rekonsiliasi.
+- Posisi laporan adalah saldo terkini, bukan saldo historis per tanggal. Filter dilakukan di database sebelum pagination 50 baris, tanpa batas riwayat 20 transaksi. Subtotal halaman diberi label jelas; bukan total seluruh hasil filter.
+- View security invoker memakai engine piutang bank bersama. Hak akses Keuangan dan RLS dipertahankan.
