@@ -19,7 +19,7 @@ export async function postSalesReceipt(form: FormData) {
   const nominal=Number(text(form,'nominal'));
   const metode=text(form,'metode_penerimaan');
   if (!idSales || !jenis || !tanggal || !Number.isFinite(nominal) || nominal<=0 || !metode) {
-    redirectKavioFormError('/penerimaan','Sales, jenis, tanggal, nominal, dan metode penerimaan wajib valid.',{focus:'receipt_sales'});
+    redirectKavioFormError('/penerimaan','Sales, jenis, tanggal, nominal, dan metode penerimaan wajib valid.',{focus:'receipt_sales',params:{tab:'penerimaan'}});
   }
   const { data, error } = await supabase.rpc('post_sales_receipt_atomic', {
     p_id_sales:idSales,
@@ -31,13 +31,13 @@ export async function postSalesReceipt(form: FormData) {
     p_no_referensi:text(form,'no_referensi') || null,
     p_keterangan:text(form,'keterangan') || null,
   });
-  if (error) redirectKavioFormError('/penerimaan',error.message,{focus:'receipt_sales'});
+  if (error) redirectKavioFormError('/penerimaan',error.message,{focus:'receipt_sales',params:{tab:'penerimaan'}});
   revalidatePath('/penerimaan');
   revalidatePath('/master/sales');
   revalidatePath('/dashboard');
   const receipt=Array.isArray(data)?data[0]:data;
   if (receipt?.id_penerimaan) redirect(`/penerimaan/kuitansi?id=${encodeURIComponent(receipt.id_penerimaan)}`);
-  redirect('/penerimaan?success=penerimaan+tersimpan');
+  redirect('/penerimaan?tab=penerimaan&success=penerimaan+tersimpan');
 }
 
 export async function saveCashInstallmentTerms(form: FormData) {
@@ -49,12 +49,12 @@ export async function saveCashInstallmentTerms(form: FormData) {
   const tenor=Number(text(form,'tenor_bulan'));
   const pola=text(form,'pola_pelunasan');
   if (!idSales || !Number.isInteger(tenor) || tenor<6 || tenor>12 || !['CICILAN_FLEKSIBEL','LUNAS_DI_AKHIR'].includes(pola)) {
-    redirectKavioFormError('/penerimaan','Pilih transaksi Cash Bertahap, tenor 6–12 bulan, dan pola pelunasan.',{focus:'terms_sales'});
+    redirectKavioFormError('/penerimaan','Pilih transaksi Cash Bertahap, tenor 6–12 bulan, dan pola pelunasan.',{focus:'terms_sales',params:{tab:'piutang'}});
   }
   const { error }=await supabase.rpc('save_sales_cash_installment_terms_atomic',{p_id_sales:idSales,p_tenor_bulan:tenor,p_pola_pelunasan:pola});
-  if (error) redirectKavioFormError('/penerimaan',error.message,{focus:'terms_sales'});
+  if (error) redirectKavioFormError('/penerimaan',error.message,{focus:'terms_sales',params:{tab:'piutang'}});
   revalidatePath('/penerimaan');
-  redirect('/penerimaan?success=ketentuan+cash+bertahap+tersimpan');
+  redirect('/penerimaan?tab=piutang&success=ketentuan+cash+bertahap+tersimpan');
 }
 
 export async function saveBankGuaranteeItems(form: FormData) {
@@ -66,11 +66,11 @@ export async function saveBankGuaranteeItems(form: FormData) {
   const kind=text(form,'jenis_item');
   const selected=kind==='GLOBAL' ? ['GLOBAL'] : ['IMB','SERTIFIKAT','AIR_LISTRIK','BESTEK'].filter((item)=>Number(text(form,`nominal_${item}`))>0);
   const items=selected.map((item)=>({jenis_item:item,nominal_tagihan:item==='GLOBAL'?Number(text(form,'nominal_GLOBAL')):Number(text(form,`nominal_${item}`)),keterangan:text(form,`keterangan_${item}`)||null}));
-  if (!idSales||!items.length||items.some((item)=>!Number.isFinite(item.nominal_tagihan)||item.nominal_tagihan<=0)) redirectKavioFormError('/penerimaan','Pilih Sales KPR setelah akad dan isi minimal satu nilai jaminan.',{focus:'guarantee_sales'});
+  if (!idSales||!items.length||items.some((item)=>!Number.isFinite(item.nominal_tagihan)||item.nominal_tagihan<=0)) redirectKavioFormError('/penerimaan','Pilih Sales KPR setelah akad dan isi minimal satu nilai jaminan.',{focus:'guarantee_sales',params:{tab:'jaminan'}});
   const {error}=await supabase.rpc('upsert_sales_bank_guarantee_atomic',{p_id_sales:idSales,p_items:items});
-  if(error) redirectKavioFormError('/penerimaan',error.message,{focus:'guarantee_sales'});
+  if(error) redirectKavioFormError('/penerimaan',error.message,{focus:'guarantee_sales',params:{tab:'jaminan'}});
   revalidatePath('/penerimaan');
-  redirect('/penerimaan?success=dana+jaminan+tersimpan');
+  redirect('/penerimaan?tab=jaminan&success=dana+jaminan+tersimpan');
 }
 
 export async function submitBankGuaranteeClaim(form: FormData) {
@@ -80,11 +80,11 @@ export async function submitBankGuaranteeClaim(form: FormData) {
   await requireKavioAction('PAYMENT_RECEIPT_WRITE','/penerimaan?error=akses+ditolak');
   const id=text(form,'id_jaminan');
   const date=text(form,'tanggal_pengajuan');
-  if(!id||!date) redirectKavioFormError('/penerimaan','Item jaminan dan tanggal pengajuan wajib diisi.');
+  if(!id||!date) redirectKavioFormError('/penerimaan','Item jaminan dan tanggal pengajuan wajib diisi.',{focus:'claim_date',params:{tab:'jaminan'}});
   const {error}=await supabase.rpc('submit_sales_bank_guarantee_claim_atomic',{p_id_jaminan:id,p_tanggal_pengajuan:date,p_keterangan:text(form,'keterangan_pengajuan')||null});
-  if(error) redirectKavioFormError('/penerimaan',error.message);
+  if(error) redirectKavioFormError('/penerimaan',error.message,{focus:'claim_date',params:{tab:'jaminan'}});
   revalidatePath('/penerimaan');
-  redirect('/penerimaan?success=pengajuan+dana+jaminan+dicatat');
+  redirect('/penerimaan?tab=jaminan&success=pengajuan+dana+jaminan+dicatat');
 }
 
 export async function saveSalesCancellationSettlement(form: FormData) {
@@ -100,14 +100,14 @@ export async function saveSalesCancellationSettlement(form: FormData) {
   const refundStatus=text(form,'status_pengembalian');
   const refundDate=text(form,'tanggal_pengembalian');
   if(!idSales||!decision||!Number.isFinite(refund)||refund<0||!Number.isFinite(retained)||retained<0||!reason){
-    redirectKavioFormError('/penerimaan','Keputusan pembatalan, nilai pengembalian, nilai ditahan, dan alasan wajib diisi.');
+    redirectKavioFormError('/penerimaan','Keputusan pembatalan, nilai pengembalian, nilai ditahan, dan alasan wajib diisi.',{focus:'settlement_reason',params:{tab:'pembatalan'}});
   }
-  if(refund>0&&refundStatus==='SUDAH_DIBAYAR'&&!refundDate) redirectKavioFormError('/penerimaan','Tanggal pengembalian wajib diisi bila sudah dibayar.');
+  if(refund>0&&refundStatus==='SUDAH_DIBAYAR'&&!refundDate) redirectKavioFormError('/penerimaan','Tanggal pengembalian wajib diisi bila sudah dibayar.',{focus:'settlement_reason',params:{tab:'pembatalan'}});
   const {error}=await supabase.rpc('save_sales_cancellation_settlement_atomic',{
     p_id_sales:idSales,p_keputusan:decision,p_nominal_dikembalikan:refund,p_nominal_ditahan:retained,
     p_alasan:reason,p_status_pengembalian:refundStatus,p_tanggal_pengembalian:refundStatus==='SUDAH_DIBAYAR'?refundDate:null,
   });
-  if(error) redirectKavioFormError('/penerimaan',error.message);
+  if(error) redirectKavioFormError('/penerimaan',error.message,{focus:'settlement_reason',params:{tab:'pembatalan'}});
   revalidatePath('/penerimaan');
-  redirect('/penerimaan?success=penyelesaian+pembatalan+tersimpan');
+  redirect('/penerimaan?tab=pembatalan&success=penyelesaian+pembatalan+tersimpan');
 }

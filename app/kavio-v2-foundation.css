@@ -22,3 +22,14 @@
   .kavio-transaction-panel .material-wide,.kavio-transaction-panel .collection-wide { grid-column:auto; }
   .kavio-fasum-form .kavio-table { min-width:520px; }
 }
+
+/* Operational module navigation and desktop Dashboard KPI composition. */
+.kavio-module-tabs { display:flex; flex-wrap:wrap; gap:8px; padding:10px; border:1px solid var(--kavio-line); border-radius:12px; background:var(--kavio-panel); }
+.kavio-module-tab { padding:10px 14px; color:var(--kavio-muted); font-size:14px; border:1px solid transparent; border-radius:8px; text-decoration:none; }
+.kavio-module-tab:hover { border-color:var(--kavio-line); color:var(--kavio-champagne); }
+.kavio-module-tab.is-active { background:linear-gradient(180deg,var(--kavio-champagne),var(--kavio-gold)); color:var(--kavio-bg); border-color:var(--kavio-gold); }
+.kavio-module-content { display:grid; gap:14px; min-width:0; }
+.kavio-dashboard .kavio-dashboard-kpi-grid { grid-template-columns:repeat(6,minmax(0,1fr)); }
+@media (max-width:1150px) { .kavio-dashboard .kavio-dashboard-kpi-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:850px) { .kavio-dashboard .kavio-dashboard-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:600px) { .kavio-dashboard .kavio-dashboard-kpi-grid { grid-template-columns:1fr; } .kavio-module-tab { flex:1 1 auto; text-align:center; } }

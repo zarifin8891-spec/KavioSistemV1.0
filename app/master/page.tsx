@@ -3,6 +3,8 @@ import { getKavioRequestContext } from '../../lib/kavio-request-context';
 import { canViewPath } from '../../lib/kavio-permissions';
 
 const masterLinks = [
+  { href: '/master/material', title: 'Material', desc: 'Referensi nama material, kategori, satuan, dan jenis item RAB.', icon: '▦' },
+  { href: '/master/pemasok', title: 'Pemasok', desc: 'Kelola pemasok material, kontak, dan alamat.', icon: '▤' },
   { href: '/master/tipe-rumah', title: 'Tipe Rumah', desc: 'Kelola referensi tipe rumah dan spesifikasi luas.', icon: '⌂' },
   { href: '/master/kategori-pekerjaan', title: 'Kategori Pekerjaan', desc: 'Kelola kategori pekerjaan dan bobot pembangunan.', icon: '▦' },
   { href: '/master/kantor-pelaksana', title: 'Kantor Pelaksana', desc: 'Kelola kantor/pelaksana yang menangani pekerjaan.', icon: '▥' },

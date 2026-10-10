@@ -31,6 +31,8 @@ const pageHeader = (pathname: string) => {
   if (pathname.startsWith('/laporan')) return ['Laporan Monitoring', 'Ringkasan penjualan, progress pembangunan, dan kondisi operasional proyek.'];
   if (pathname.startsWith('/manajemen-user')) return ['Manajemen User', 'Kelola akun pengguna, role, dan akses KAVIO.'];
   if (pathname.startsWith('/master/template-progress')) return ['Template Progress', 'Kelola bobot progress standar berdasarkan tipe rumah.'];
+  if (pathname.startsWith('/master/material')) return ['Master Material', 'Referensi material RAB, kategori, satuan, dan jenis item.'];
+  if (pathname.startsWith('/master/pemasok')) return ['Master Pemasok', 'Kelola pemasok material dan informasi kontak.'];
   if (pathname.startsWith('/master/tipe-rumah')) return ['Master Tipe Rumah', 'Kelola referensi tipe rumah dan spesifikasi luas.'];
   if (pathname.startsWith('/master/kategori-pekerjaan')) return ['Master Kategori Pekerjaan', 'Kelola kategori pekerjaan dan bobot pembangunan.'];
   if (pathname.startsWith('/master/kavling')) return ['Master Kavling', 'Kelola inventory kavling dan lifecycle pembangunan.'];

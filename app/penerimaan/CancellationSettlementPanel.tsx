@@ -20,7 +20,7 @@ export default function CancellationSettlementPanel({sales,settlements}:{sales:C
         <label className="kavio-field"><span>NILAI DITAHAN</span><input name="nominal_ditahan" type="number" min="0" step="1" defaultValue={saved?.nominal_ditahan??0} required/></label>
         <label className="kavio-field"><span>STATUS PENGEMBALIAN</span><select name="status_pengembalian" defaultValue={saved?.status_pengembalian??'BELUM_DIBAYAR'}><option value="BELUM_DIBAYAR">BELUM DIBAYAR</option><option value="SUDAH_DIBAYAR">SUDAH DIBAYAR</option><option value="TIDAK_ADA">TIDAK ADA</option></select></label>
         <label className="kavio-field"><span>TANGGAL PENGEMBALIAN (JIKA SUDAH DIBAYAR)</span><input name="tanggal_pengembalian" type="date" defaultValue={saved?.tanggal_pengembalian??''}/></label>
-        <label className="kavio-field collection-wide"><span>ALASAN / CATATAN KASUS</span><textarea name="alasan" rows={2} defaultValue={saved?.alasan??''} required/></label>
+        <label className="kavio-field collection-wide"><span>ALASAN / CATATAN KASUS</span><textarea id="settlement_reason" name="alasan" rows={2} defaultValue={saved?.alasan??''} required/></label>
         <button className="kavio-button" type="submit">SIMPAN PENYELESAIAN</button>
       </form></KavioActionGate>
     </details>})}</div>}
