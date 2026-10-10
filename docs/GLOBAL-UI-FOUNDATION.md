@@ -56,3 +56,12 @@ The tab header always exposes **Pencairan Dana Jaminan** to authorized finance u
 - V1 triggers for kavling relations and progress configuration now support Fasum and validate the shared V2 work-item weights.
 
 Validation: production build/TypeScript, DOM interactions for purchase line/destination/draft state, warehouse filter, history pagination/refresh, receipt contents and actual QR decoding; `supabase/tests/warehouse_v2_rollback.sql` and the Piutang regression suite pass. Warehouse tests also run under `authenticated` with fixtures rolled back. No actual browser/print visual approval is claimed.
+
+## Multi-material transactions and reporting revision (2026-10-10)
+
+- Receipt format is temporarily closed for revision. KPR disbursement stays gated by Sales AKAD; the observed test Sales was still BOOKING. The entry form now shows the prerequisite and links to Sales. It also shows received cash plus withheld guarantees versus available receivables, preserving the rule that withheld amounts are not cash received.
+- `KavioMaterialLines` supplies one repeatable material editor for purchase, opening stock, requests, requested fulfillment, warehouse/SPK consumption and reconciliation. It prevents duplicate selection, checks positive quantities, and retains all lines through the shared structured draft mechanism.
+- Operational purchase, request and usage tables show the latest **20 documents**, retaining every item in each selected document. Date filters no longer hide older documents in these operational lists. Open requests remain available to the fulfillment form regardless of their age.
+- Full history is in **Laporan Material**, with 50 detail lines per page and correlated period, source/destination location, recorded supplier and material category filters. Kartu Stok keeps its existing period/material/location lookup.
+- New reporting views use security invoker and have no public/anonymous grants. Material operation mutations continue through the existing authorized atomic engine.
+- Validation: production build/TypeScript; DOM checks for shared line/draft state, all five operational dialogs, paired footers, 20-document query limits, report filters/paging, and KPR prerequisite; SQL rollback tests for two-material batches, atomic failure, 21-document history/40 retained lines in a 20-document display, and post-AKAD disbursement with four guarantee items. No actual browser visual verification is claimed.

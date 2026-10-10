@@ -2,6 +2,7 @@
 
 import KavioFormActions from '../components/KavioFormActions';
 import {useState} from 'react';
+import Link from 'next/link';
 import {postSalesReceipt} from './actions';
 import KavioActionGate from '../components/KavioActionGate';
 import KavioTransactionModal from '../components/KavioTransactionModal';
@@ -17,7 +18,13 @@ export function ReceiptForm({sales,accounts,initial,guarantee,focus='receipt_edi
  const [saleId,setSaleId]=useState(initial?.id_sales??guarantee?.id_sales??'');
  const [type,setType]=useState(initial?.jenis_penerimaan??(guarantee?'PENCAIRAN_DANA_JAMINAN':'BOOKING_FEE'));
  const [retention,setRetention]=useState(initial?.jaminan_snapshot.some(i=>i.jenis_item==='GLOBAL')?'GLOBAL':initial?.jaminan_snapshot.length?'RINCI':'TANPA');
+ const [amount,setAmount]=useState(Number(initial?.nominal??guarantee?.saldo??0));
+ const [held,setHeld]=useState<Record<string,number>>(Object.fromEntries((initial?.jaminan_snapshot??[]).map(i=>[i.jenis_item,Number(i.nominal_tagihan)])));
+ const heldTotal=(retention==='GLOBAL'?['GLOBAL']:retention==='RINCI'?['IMB','SERTIFIKAT','AIR_LISTRIK','BESTEK']:[]).reduce((sum,k)=>sum+(held[k]??0),0);
  const sale=sales.find(s=>s.id_sales===saleId);
+ const balance=Number(sale?.saldo_piutang??0)+Number(initial?.nominal??0);
+ const kprBlocked=type==='PENCAIRAN_KPR'&&sale?.status_sales!=='AKAD';
+ const exceeds=type==='PENCAIRAN_KPR'&&amount+heldTotal>balance;
  const types=guarantee||initial?.jenis_penerimaan==='PENCAIRAN_DANA_JAMINAN'?['PENCAIRAN_DANA_JAMINAN']:['BOOKING_FEE','UANG_MUKA',...(sale?.jenis_pembayaran==='KPR'?['PENCAIRAN_KPR']:sale?.jenis_pembayaran==='CASH_BERTAHAP'?['CICILAN_CASH_BERTAHAP','PELUNASAN_CASH']:['PELUNASAN_CASH']),'BIAYA_NOTARIS','BIAYA_AKAD'];
  return <form action={postSalesReceipt} className="kavio-form collection-form">
  {initial&&<input name="id_penerimaan" type="hidden" value={initial.id_penerimaan}/>}
@@ -27,14 +34,14 @@ export function ReceiptForm({sales,accounts,initial,guarantee,focus='receipt_edi
  <label className="kavio-field"><span>JENIS PENERIMAAN</span><select name="jenis_penerimaan" value={type} onChange={e=>setType(e.target.value)}>{types.map(t=><option key={t} value={t}>{LABELS[t]}</option>)}</select></label>
  {sale&&<p className="collection-wide">Saldo piutang: <strong>{formatKavioMoney(sale.saldo_piutang)}</strong>{guarantee&&<> · Sisa jaminan: <strong>{formatKavioMoney(guarantee.saldo)}</strong></>}</p>}
  <label className="kavio-field"><span>TANGGAL DITERIMA</span><input name="tanggal_penerimaan" type="date" defaultValue={initial?.tanggal_penerimaan} required/></label>
- <label className="kavio-field"><span>NOMINAL UANG MASUK</span><input name="nominal" type="number" min="1" step="1" defaultValue={initial?.nominal??guarantee?.saldo} max={guarantee?.saldo} required/></label>
+ <label className="kavio-field"><span>NOMINAL UANG MASUK</span><input name="nominal" type="number" min="1" step="1" value={amount||''} onChange={e=>setAmount(Number(e.target.value))} max={guarantee?.saldo??(type==='PENCAIRAN_KPR'?Math.max(0,balance-heldTotal):undefined)} required/></label>
  <label className="kavio-field"><span>KAS / BANK TUJUAN</span><select name="id_bank_penerimaan" required defaultValue={initial?.id_bank_penerimaan??''}><option value="" disabled>PILIH KAS / BANK</option>{accounts.map(a=><option key={a.id_bank} value={a.id_bank}>{a.jenis_akun} · {a.nama_bank}</option>)}</select></label>
  <label className="kavio-field"><span>METODE</span><select name="metode_penerimaan" defaultValue={initial?.metode_penerimaan??'TRANSFER'}>{['TUNAI','TRANSFER','GIRO','LAINNYA'].map(t=><option key={t}>{t}</option>)}</select></label>
  {(guarantee||initial?.id_jaminan)&&<input name="id_jaminan" type="hidden" value={guarantee?.id_jaminan??initial?.id_jaminan??''}/>}
- {type==='PENCAIRAN_KPR'&&<><label className="kavio-field collection-wide"><span>DANA JAMINAN DITAHAN BANK</span><select name="jaminan_mode" value={retention} onChange={e=>setRetention(e.target.value)}><option value="TANPA">TANPA DANA JAMINAN</option><option value="RINCI">RINCI PER ITEM</option><option value="GLOBAL">GLOBAL</option></select></label>{(retention==='GLOBAL'?['GLOBAL']:retention==='RINCI'?['IMB','SERTIFIKAT','AIR_LISTRIK','BESTEK']:[]).map(item=><label className="kavio-field" key={item}><span>{item.replaceAll('_',' & ')} · NILAI DITAHAN</span><input name={`nominal_${item}`} type="number" min="0" step="1" defaultValue={initial?.jaminan_snapshot.find(i=>i.jenis_item===item)?.nominal_tagihan??0}/></label>)}<p className="collection-wide collection-note">Isi nominal uang yang benar-benar masuk. Dana jaminan yang ditahan menjadi tagihan ke bank dan belum dihitung sebagai penerimaan.</p></>}
+ {type==='PENCAIRAN_KPR'&&<><label className="kavio-field collection-wide"><span>DANA JAMINAN DITAHAN BANK</span><select name="jaminan_mode" value={retention} onChange={e=>setRetention(e.target.value)}><option value="TANPA">TANPA DANA JAMINAN</option><option value="RINCI">RINCI PER ITEM</option><option value="GLOBAL">GLOBAL</option></select></label>{(retention==='GLOBAL'?['GLOBAL']:retention==='RINCI'?['IMB','SERTIFIKAT','AIR_LISTRIK','BESTEK']:[]).map(item=><label className="kavio-field" key={item}><span>{item.replaceAll('_',' & ')} · NILAI DITAHAN</span><input name={`nominal_${item}`} type="number" min="0" step="1" value={held[item]??0} onChange={e=>setHeld({...held,[item]:Number(e.target.value)})}/></label>)}<p className="collection-wide">Uang masuk + dana ditahan: <strong>{formatKavioMoney(amount+heldTotal)}</strong> · Sisa harga jual: <strong>{formatKavioMoney(balance)}</strong></p>{kprBlocked&&<div className="kavio-alert warning collection-wide">Pencairan KPR hanya dapat disimpan setelah status Sales AKAD. <Link href={`/master/sales/detail?id=${sale?.id_sales}`}>Lengkapi proses akad di Sales</Link>.</div>}{exceeds&&<div className="kavio-alert error collection-wide">Uang masuk dan dana jaminan ditahan melebihi saldo piutang. Isi uang bersih yang diterima setelah potongan dana jaminan.</div>}<p className="collection-wide collection-note">Isi nominal uang yang benar-benar masuk. Dana jaminan yang ditahan menjadi tagihan ke bank dan belum dihitung sebagai penerimaan.</p></>}
  <label className="kavio-field"><span>NO. REFERENSI</span><input name="no_referensi" defaultValue={initial?.no_referensi??''}/></label>
  <label className="kavio-field collection-wide"><span>KETERANGAN</span><input name="keterangan" defaultValue={initial?.keterangan??''}/></label>
  {initial&&<label className="kavio-field collection-wide"><span>ALASAN KOREKSI</span><input name="alasan" required/><small>Kuitansi sebelumnya ditandai batal dan diganti kuitansi baru.</small></label>}
- <KavioFormActions><button type="submit" className="kavio-button" disabled={!sale||!accounts.length}>SIMPAN & TERBITKAN KUITANSI</button></KavioFormActions>
+ <KavioFormActions><button type="submit" className="kavio-button" disabled={!sale||!accounts.length||kprBlocked||exceeds}>SIMPAN & TERBITKAN KUITANSI</button></KavioFormActions>
  </form>;
 }

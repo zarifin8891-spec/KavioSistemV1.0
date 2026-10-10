@@ -1952,3 +1952,9 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 .kavio-table-pagination {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 18px;color:var(--kavio-muted);font-size:12px;}
 .kavio-table-pagination>div {display:flex;gap:8px;}
 @media(max-width:640px){.kavio-table-pagination{flex-wrap:wrap;}.kavio-table-filters .kavio-field{max-width:none;}}
+/* Multi-material forms: one repeatable-row and draft contract. */
+.kavio-material-lines {grid-column:1/-1;display:grid;gap:12px;min-width:0;}
+.kavio-material-line {display:grid;grid-template-columns:minmax(220px,2fr) minmax(110px,1fr) auto;gap:10px;align-items:flex-end;}
+.kavio-material-line.has-price {grid-template-columns:minmax(220px,2fr) minmax(110px,1fr) minmax(110px,1fr) auto;}
+.kavio-material-lines>button {justify-self:start;}
+@media(max-width:760px){.kavio-material-line,.kavio-material-line.has-price{grid-template-columns:1fr;}}

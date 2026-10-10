@@ -1,0 +1,15 @@
+'use client';
+import {useRef,useState} from 'react';
+export type MaterialLine={id_material:string;jumlah:number;harga_satuan?:number};
+export type MaterialChoice={id_material:string;nama_material:string;satuan:string};
+/** Shared repeatable material input and structured draft contract. */
+export default function KavioMaterialLines({materials,initial,withPrice=false,limits,quantityLabel='JUMLAH'}:{materials:MaterialChoice[];initial?:MaterialLine[];withPrice?:boolean;limits?:Record<string,number>;quantityLabel?:string}) {
+ const [lines,setLines]=useState((initial??[{id_material:'',jumlah:0,harga_satuan:0}]).map((line,key)=>({...line,key})));
+ const next=useRef(lines.length);
+ const update=(key:number,data:Partial<MaterialLine>)=>setLines(current=>current.map(line=>line.key===key?{...line,...data}:line));
+ return <div className="kavio-material-lines">
+ <input type="hidden" name="items" data-kavio-persist-hidden="true" value={JSON.stringify(lines.map(({id_material,jumlah,harga_satuan})=>({id_material,jumlah,...(withPrice?{harga_satuan}: {})})))} onInput={event=>{try {const saved=JSON.parse(event.currentTarget.value);if(Array.isArray(saved)&&saved.length&&saved.every(i=>typeof i.id_material==='string'&&Number.isFinite(i.jumlah)&&(!withPrice||Number.isFinite(i.harga_satuan)))){setLines(saved.map((line,key)=>({...line,key})));next.current=saved.length;}} catch {/* Keep valid state. */}}}/>
+ {lines.map(line=><div key={line.key} className={`kavio-material-line ${withPrice?'has-price':''}`}><label className="kavio-field"><span>MATERIAL</span><select required value={line.id_material} onChange={e=>update(line.key,{id_material:e.target.value})}><option value="" disabled>PILIH MATERIAL</option>{materials.map(m=><option key={m.id_material} value={m.id_material} disabled={lines.some(l=>l.key!==line.key&&l.id_material===m.id_material)}>{m.nama_material} ({m.satuan})</option>)}</select>{limits&&line.id_material&&<small>Tersedia: {Number(limits[line.id_material]??0).toLocaleString('id-ID')} {materials.find(m=>m.id_material===line.id_material)?.satuan}</small>}</label><label className="kavio-field"><span>{quantityLabel}</span><input type="number" min="0.001" step="0.001" max={limits&&line.id_material?limits[line.id_material]??0:undefined} required value={line.jumlah||''} onChange={e=>update(line.key,{jumlah:Number(e.target.value)})}/></label>{withPrice&&<label className="kavio-field"><span>HARGA SATUAN</span><input type="number" min="0" step="0.01" required value={line.harga_satuan??0} onChange={e=>update(line.key,{harga_satuan:Number(e.target.value)})}/></label>}<button className="kavio-button secondary" type="button" disabled={lines.length===1} onClick={()=>setLines(current=>current.filter(l=>l.key!==line.key))}>HAPUS ITEM</button></div>)}
+ <button className="kavio-button secondary" type="button" disabled={!materials.length||lines.length>=materials.length} onClick={()=>setLines(current=>[...current,{key:next.current++,id_material:'',jumlah:0,harga_satuan:0}])}>TAMBAH ITEM</button>
+ </div>;
+}

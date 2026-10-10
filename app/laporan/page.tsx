@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import MaterialReport from './MaterialReport';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { formatKavioDate } from '../lib/date-format';
@@ -7,6 +8,7 @@ import { formatKavioMoney } from '../lib/number-format';
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const REPORTS = [
+  {key:'material',label:'LAPORAN MATERIAL',note:'Riwayat pembelian, permintaan, pemakaian dan rekonsiliasi stok.'},
   { key: 'sales', label: 'LAPORAN SALES', note: 'Rekap status penjualan, konsumen, pembayaran, dan target akad.' },
   { key: 'progress', label: 'LAPORAN PROGRESS', note: 'Rekap progress pembangunan per SPK/kavling.' },
   { key: 'decision', label: 'LAPORAN DECISION ENGINE', note: 'Rekap kondisi operasional dan tindakan yang dihasilkan sistem.' },
@@ -49,6 +51,20 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   const selected = REPORTS.some((item) => item.key === textParam(params, 'jenis'))
     ? textParam(params, 'jenis')
     : 'sales';
+
+  if(selected==='material') {
+    const supabase=await createClient();
+    const results=await Promise.all([
+      supabase.from('master_pemasok').select('id_pemasok,nama_pemasok').order('nama_pemasok'),
+      supabase.from('material_location').select('id_lokasi,nama_lokasi').order('nama_lokasi'),
+      supabase.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek').order('created_at',{ascending:false}),
+      supabase.from('master_material').select('kategori').neq('jenis_item','UPAH').order('kategori'),
+    ]);
+    const error=results.find(r=>r.error)?.error;
+    const locations=[...(results[1].data??[]).map(l=>({id:l.id_lokasi,name:`GUDANG · ${l.nama_lokasi}`})),...(results[2].data??[]).map(s=>({id:s.id_spk,name:`SPK ${s.jenis_spk} · ${s.id_kavling??s.nama_objek}`}))];
+    const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    return <main className="laporan-page"><ReportSelector selected={selected}/>{error?<div className="kavio-alert error">{error.message}</div>:<MaterialReport suppliers={results[0].data??[]} locations={locations} categories={Array.from(new Set((results[3].data??[]).map(m=>m.kategori)))} today={today}/>}</main>;
+  }
 
   const q = textParam(params, 'q');
   const status = textParam(params, 'status');
@@ -229,16 +245,7 @@ const [
 
   return (
     <main className="laporan-page">
-      <section className="kavio-panel laporan-selector">
-        <div className="laporan-tabs">
-          {REPORTS.map((item) => (
-            <Link key={item.key} href={`/laporan?jenis=${item.key}`} className={`laporan-tab ${selected === item.key ? 'is-active' : ''}`}>
-              <span>{item.label}</span>
-              <small>{item.note}</small>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <ReportSelector selected={selected}/>
 
       {selected === 'sales' && (
         <section className="kavio-panel">
@@ -333,3 +340,5 @@ const [
     </main>
   );
 }
+
+function ReportSelector({selected}:{selected:string}) {return <section className="kavio-panel laporan-selector"><div className="laporan-tabs">{REPORTS.map(item=><Link key={item.key} href={`/laporan?jenis=${item.key}`} className={`laporan-tab ${selected===item.key?'is-active':''}`}><span>{item.label}</span><small>{item.note}</small></Link>)}</div></section>;}
