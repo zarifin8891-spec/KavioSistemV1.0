@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import KavioPercentInput from './KavioPercentInput';
 import {useSearchParams} from 'next/navigation';
 import {useFormStatus} from 'react-dom';
@@ -16,6 +16,9 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  const [open,setOpen]=useState(autoOpen),[state,setState]=useState(initial);
  const [notice,setNotice]=useState('');
  const [activeId,setActiveId]=useState(initial.groups[0]?.id_kategori??'');
+ const formRef=useRef<HTMLFormElement>(null);
+ const [focusTarget,setFocusTarget]=useState<{index:number;label:string}|null>(null);
+ useEffect(()=>{if(!focusTarget)return;const row=formRef.current?.querySelector(`[data-work-line-index="${focusTarget.index}"]`);const field=Array.from(row?.querySelectorAll<HTMLInputElement|HTMLSelectElement>('input,select')??[]).find(el=>el.getAttribute('aria-label')===focusTarget.label);field?.focus();field?.scrollIntoView({block:'nearest',inline:'nearest'});},[focusTarget,activeId]);
  const params=useSearchParams(),success=params.get('success'),error=params.get('error');
  useEffect(()=>{if(success&&!error){setOpen(false);setState(initial);setNotice('');}},[success,error,initial]);
  const details=state.details.map((d,index)=>({...d,key:index}));
@@ -26,12 +29,18 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  const preset=()=>{setState(s=>({...s,total_upah:15569000,details:t36WorkReference,groups:s.groups.map(g=>({...g,bobot:t36WorkReference.filter(d=>d.group_id===g.id_kategori).reduce((n,d)=>n+weightUnits(d.bobot),0)/1000000}))}));setNotice('Contoh PDF dimuat untuk ditinjau. Bobot sumber berjumlah 99,9964%; sesuaikan selisih pembulatan agar menjadi 100%. Dua satuan kosong perlu diisi. Satuan lain mengikuti PDF, mohon diperiksa sebelum digunakan.');};
  return <>
  <button className="kavio-button secondary" type="button" onClick={()=>setOpen(true)}>{readOnly?'LIHAT KONFIGURASI':spk?'KONFIGURASI PEKERJAAN':'EDIT PERINCIAN'}</button>
- <KavioFormModal open={open} onClose={()=>setOpen(false)} size={spk?'wide':'standard'} ariaLabel={spk?'Konfigurasi Pekerjaan SPK':'Master Perincian Pekerjaan'} persistenceKey={`work-detail:${identifier}`} closeOnBackdrop={false}>
+ <KavioFormModal open={open} onClose={()=>setOpen(false)} size={spk?'wide':'standard'} className="work-editor-modal" ariaLabel={spk?'Konfigurasi Pekerjaan SPK':'Master Perincian Pekerjaan'} persistenceKey={`work-detail:${identifier}`} closeOnBackdrop={false}>
  <section className="kavio-panel work-detail-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{spk?'KONFIGURASI PEKERJAAN SPK':'MASTER PERINCIAN PEKERJAAN'}</h2><p className="kavio-panel-note">Bobot item terhadap seluruh SPK. Total upah item = bobot item × total upah borongan.</p></div><span className="kavio-badge">TOTAL {workPercent(total/100)}%</span></div>
- <form action={action} className="kavio-panel-body" onSubmit={event=>{
+ <form ref={formRef} noValidate action={action} className="kavio-panel-body" onSubmit={event=>{
   if(readOnly)return;
-  const invalid=detailMode?state.details.find(d=>!d.nama_pekerjaan.trim()||!d.satuan.trim()||!Number.isFinite(d.volume)||d.volume<=0||!Number.isFinite(d.bobot)||d.bobot<=0||d.bobot>1||(spk&&!d.id_mandor&&!defaultMandor)):undefined;
-  if(invalid){event.preventDefault();setActiveId(invalid.group_id);setNotice('Lengkapi nama pekerjaan, volume, satuan, bobot, dan mandor pada kategori '+(state.groups.find(g=>g.id_kategori===invalid.group_id)?.nama_kategori??'yang dipilih')+'.');return;}
+  if(!Number.isFinite(state.total_upah)||state.total_upah<0){event.preventDefault();setNotice('Total upah borongan harus berupa angka minimal 0.');formRef.current?.querySelector<HTMLInputElement>('[aria-label="Total upah borongan"]')?.focus();return;}
+  const invalidIndex=detailMode?state.details.findIndex(d=>!d.nama_pekerjaan.trim()||!d.satuan.trim()||!Number.isFinite(d.volume)||d.volume<=0||!Number.isFinite(d.bobot)||d.bobot<=0||d.bobot>1||(spk&&!d.id_mandor&&!defaultMandor)):-1;
+  if(invalidIndex>=0){
+   event.preventDefault();const d=state.details[invalidIndex];
+   const field=!d.nama_pekerjaan.trim()?'Nama pekerjaan':!d.satuan.trim()?'Satuan':!Number.isFinite(d.volume)||d.volume<=0?'Volume':!Number.isFinite(d.bobot)||d.bobot<=0||d.bobot>1?'Bobot':'Mandor';
+   setActiveId(d.group_id);setFocusTarget({index:invalidIndex,label:field==='Nama pekerjaan'?field:`${field} ${d.nama_pekerjaan}`});
+   setNotice(`Belum disimpan: lengkapi ${field.toLowerCase()} pada item "${d.nama_pekerjaan||'Item '+(invalidIndex+1)}" (${state.groups.find(g=>g.id_kategori===d.group_id)?.nama_kategori??'kategori pekerjaan'}).`);return;
+  }
   const submitter=(event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement|null;
   if((spk||submitter?.value==='true')&&((detailMode&&issues.length>0)||total!==100)){
    event.preventDefault();
@@ -46,7 +55,7 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  <div className="kavio-form work-detail-settings"><label className="kavio-field"><span>TOTAL UPAH BORONGAN (RP)</span><input aria-label="Total upah borongan" type="number" min="0" step="0.01" value={state.total_upah} onChange={e=>setState(s=>({...s,total_upah:Number(e.target.value)}))} required/></label>
  {spk&&<label className="kavio-field"><span>CARA INPUT PROGRESS</span><select value={state.mode} aria-label="Cara input progress" onChange={e=>setState(s=>({...s,mode:e.target.value}))}><option value="KATEGORI">Per Kategori</option><option value="PERINCIAN">Dengan Perincian</option></select></label>}
  <div className="work-detail-tools">{!spk&&identifier==='T36'&&<button type="button" className="kavio-button secondary" onClick={preset}>MUAT CONTOH T36</button>}{spk&&reference&&reference.length>0&&detailMode&&<button className="kavio-button secondary" type="button" onClick={()=>{setState(s=>({...s,details:reference.map(d=>({...d,id_mandor:defaultMandor}))}));setNotice('Perincian master disalin. Periksa bobot custom dan penugasan mandor sebelum menyimpan.');}}>SALIN PERINCIAN MASTER</button>}</div></div>
- {notice&&<div className="kavio-alert">{notice}</div>}
+ {notice&&<div className="kavio-alert" role="alert">{notice}</div>}
  {spk&&detailMode&&<p className="kavio-panel-note">Konfigurasi dapat disimpan sebagai draft. Aktivasi menyusul setelah fitur input progress perincian tersedia.</p>}
  </fieldset>
  <p className="kavio-panel-note work-detail-precision">Bobot ditampilkan dua desimal. Nilai rinci sumber tetap digunakan sampai bobot tersebut diedit.</p>
