@@ -78,3 +78,10 @@ kategori. Di layar kecil navigator mendatar dan field ditata bertingkat.
 Bobot menggunakan input desimal dengan koma atau titik, diformat dua desimal
 ketika selesai diedit. Validasi memperhitungkan seluruh kategori dan membuka
 kategori yang memiliki item belum lengkap sebelum penyimpanan.
+
+Form Tambah/Edit Kategori memiliki urutan Urutan, ID Kategori, Nama Kategori,
+dan Bobot. Bobot mengacu pada tipe rumah yang dipilih di daftar; tautan Edit,
+validasi gagal, dan penutupan form mempertahankan pilihan tipe tersebut.
+RPC `save_master_category_weight_atomic` menyimpan kategori dan bobot bersamaan.
+Pada tipe dengan perincian siap, bobot tetap harus cocok dengan item dan total
+100%; kegagalan mengembalikan seluruh perubahan termasuk nama dan urutan.

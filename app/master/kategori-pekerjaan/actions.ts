@@ -10,73 +10,23 @@ function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
 }
 
-function integer(value: FormDataEntryValue | null) {
-  const parsed = Number.parseInt(String(value ?? '').trim(), 10);
-  return Number.isInteger(parsed) ? parsed : NaN;
+async function saveCategory(formData:FormData,creating:boolean) {
+ await requireKavioAction('MASTER_WRITE','/master/kategori-pekerjaan?error=');
+ const idKategori=text(formData.get('id_kategori')),idTipe=text(formData.get('id_tipe'));
+ const namaKategori=text(formData.get('nama_kategori')),urutan=Number(text(formData.get('urutan')));
+ const rawWeight=text(formData.get('bobot_fraction')),bobot=Number(rawWeight);
+ const fail=(message:string,focus='urutan'):never=>redirectKavioFormError('/master/kategori-pekerjaan',message,{form:creating?'master-kategori-create':undefined,focus,params:{tipe:idTipe,...(!creating?{edit:idKategori}:{})}});
+ if(!idKategori||!namaKategori)fail('ID dan nama kategori wajib diisi',!idKategori?'id_kategori':'nama_kategori');
+ if(!Number.isInteger(urutan)||urutan<1)fail('Urutan harus berupa bilangan bulat positif');
+ if(!rawWeight||!Number.isFinite(bobot)||bobot<0||bobot>1)fail('Bobot harus berupa angka 0 sampai 100%','bobot_fraction');
+ const supabase=await createClient();
+ const {error}=await supabase.rpc('save_master_category_weight_atomic',{p_id_kategori:idKategori,p_nama:namaKategori,p_urutan:urutan,p_id_tipe:idTipe||null,p_bobot:bobot,p_create:creating});
+ if(error)fail(error.message);
+ for(const path of ['/master/kategori-pekerjaan','/master/template-progress','/master/perincian-pekerjaan','/master/spk'])revalidatePath(path);
+ redirect(`/master/kategori-pekerjaan?tipe=${encodeURIComponent(idTipe)}&success=${encodeURIComponent(creating?'Kategori dan bobot berhasil ditambahkan':'Kategori dan bobot berhasil diperbarui')}`);
 }
-
-function createFail(message: string, focus = 'id_kategori'): never {
-  redirectKavioFormError('/master/kategori-pekerjaan', message, { form: 'master-kategori-create', focus });
-}
-
-function editFail(idKategori: string, message: string, focus = 'nama_kategori'): never {
-  redirectKavioFormError('/master/kategori-pekerjaan', message, { focus, params: { edit: idKategori } });
-}
-
-export async function createKategoriPekerjaan(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  await requireKavioAction('MASTER_WRITE', '/master/kategori-pekerjaan?error=');
-
-  const idKategori = text(formData.get('id_kategori'));
-  const namaKategori = text(formData.get('nama_kategori'));
-  const urutan = integer(formData.get('urutan'));
-
-  if (!idKategori || !namaKategori) {
-    createFail('ID dan nama kategori wajib diisi', !idKategori ? 'id_kategori' : 'nama_kategori');
-  }
-
-  if (!Number.isInteger(urutan) || urutan < 1) {
-    createFail('Urutan harus berupa bilangan bulat positif', 'urutan');
-  }
-
-  const { error } = await supabase.from('master_kategori_pekerjaan').insert({
-    id_kategori: idKategori,
-    nama_kategori: namaKategori,
-    urutan,
-    status_aktif: true,
-  });
-
-  if (error) {
-    createFail(error.message);
-  }
-
-  revalidatePath('/master/kategori-pekerjaan');
-  redirect('/master/kategori-pekerjaan?success=Kategori%20pekerjaan%20berhasil%20ditambahkan');
-}
-
-
-export async function updateKategoriPekerjaan(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  await requireKavioAction('MASTER_WRITE', '/master/kategori-pekerjaan?error=');
-
-  const idKategori = text(formData.get('id_kategori'));
-  const namaKategori = text(formData.get('nama_kategori'));
-  const urutan = integer(formData.get('urutan'));
-  if (!idKategori) redirectKavioFormError('/master/kategori-pekerjaan', 'ID kategori tidak valid');
-  if (!namaKategori) editFail(idKategori, 'Nama kategori wajib diisi', 'nama_kategori');
-  if (!Number.isInteger(urutan) || urutan < 1) editFail(idKategori, 'Urutan harus berupa bilangan bulat positif', 'urutan');
-
-  const { error } = await supabase.from('master_kategori_pekerjaan').update({ nama_kategori: namaKategori, urutan }).eq('id_kategori', idKategori);
-  if (error) editFail(idKategori, error.message);
-  revalidatePath('/master/kategori-pekerjaan');
-  revalidatePath('/master/template-progress');
-  revalidatePath('/master/spk');
-  redirect('/master/kategori-pekerjaan?success=Kategori%20pekerjaan%20berhasil%20diperbarui');
-}
+export async function createKategoriPekerjaan(formData:FormData){return saveCategory(formData,true);}
+export async function updateKategoriPekerjaan(formData:FormData){return saveCategory(formData,false);}
 
 export async function toggleKategoriPekerjaan(formData: FormData) {
   const supabase = await createClient();
