@@ -75,7 +75,7 @@
 .work-weight-summary strong {margin-left:8px;font-variant-numeric:tabular-nums;}
 .work-weight-summary.is-valid {color:#83c7ad;}
 .work-weight-summary.is-pending {color:var(--kavio-champagne);}
-.work-input-table {min-width:0;min-height:0;overflow:auto;flex:1;}
+.work-input-table {min-width:0;min-height:0;overflow:auto;flex:1 1 0;}
 .work-input-table .kavio-table {width:100%;table-layout:fixed;}
 .work-input-table thead th {position:sticky;top:0;z-index:1;}
 .work-input-table th:first-child {width:25%;}
@@ -91,19 +91,19 @@
 .work-input-table .kavio-button {min-width:0;}
 .work-item-empty {padding:12px 10px;border:1px dashed var(--kavio-line);border-radius:6px;color:var(--kavio-muted);font-size:13px;}
 .work-add-item {margin-top:10px;}
-.work-editor-modal {overflow:hidden;}
-.work-editor-modal > .work-detail-panel {display:flex;flex-direction:column;max-height:calc(100dvh - 48px);min-height:0;}
+.work-editor-modal {overflow:hidden;height:min(820px,calc(100dvh - 48px));}
+.work-editor-modal > .work-detail-panel {display:flex;flex-direction:column;height:100%;max-height:100%;min-height:0;}
 .work-editor-modal .kavio-panel-head {position:static;flex-shrink:0;}
-.work-editor-modal form.kavio-panel-body {display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.work-editor-modal form.kavio-panel-body {display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
 .work-editor-modal .work-editor-layout {display:flex;flex-direction:column;min-height:0;flex:1;}
-.work-editor-modal .work-category-nav {flex-shrink:0;}
+.work-editor-modal .work-category-nav,.work-editor-modal form > .work-detail-fields {flex-shrink:0;}
 .work-editor-modal .work-category-content,.work-editor-modal .work-selected-category {display:flex;flex-direction:column;min-height:0;flex:1;}
 .work-editor-modal .work-detail-settings,.work-editor-modal .work-detail-group-head,.work-editor-modal .work-weight-summary,.work-editor-modal .work-add-item,.work-editor-modal .kavio-alert {flex-shrink:0;}
 .work-editor-modal .work-add-item {align-self:flex-start;}
-.work-detail-panel .kavio-form-actions {position:static;flex-shrink:0;background:var(--kavio-panel);padding:10px 0 0;margin-top:12px;border-top:1px solid var(--kavio-line);}
+.work-editor-modal form > .kavio-form-actions {position:static;inset:auto;flex-shrink:0;background:var(--kavio-panel);padding:10px 0 0;margin-top:12px;border-top:1px solid var(--kavio-line);}
 @media(max-width:800px){.work-input-table .kavio-table{min-width:760px;}.work-input-table .has-mandor{min-width:1000px;}}
 @media(max-width:440px){.work-category-nav{grid-template-columns:1fr;}}
 
-@media(max-height:600px){.work-editor-modal{overflow:auto;}.work-editor-modal > .work-detail-panel{max-height:none;}.work-input-table{max-height:200px;}}
+@media(max-height:600px){.work-editor-modal{height:auto;overflow:auto;}.work-editor-modal > .work-detail-panel{height:auto;max-height:none;}.work-input-table{flex:none;max-height:200px;}}
 
 @media(max-width:560px){.work-detail-settings > .work-wage-field{flex-wrap:wrap;}.work-wage-field > input{flex:1;min-width:120px;}}
