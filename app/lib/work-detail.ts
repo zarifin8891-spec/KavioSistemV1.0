@@ -15,3 +15,6 @@ export function workWeightIssues(groups:WorkGroup[],details:WorkDetail[]) {
 export const workMoney=(value:number)=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(value);
 
 export const workPercent=(fraction:number)=>new Intl.NumberFormat('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}).format(fraction*100);
+
+/** Item wages are rounded to the nearest hundred rupiah (spreadsheet ROUND(value; -2)). */
+export const workItemWage=(bobot:number,totalUpah:number)=>Math.round(bobot*totalUpah/100)*100;

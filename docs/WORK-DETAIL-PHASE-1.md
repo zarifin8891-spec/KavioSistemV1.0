@@ -32,8 +32,8 @@ pembuatan kini tetap DRAFT; aktivasi merupakan perintah terpisah.
 - Bobot disimpan sebagai pecahan dengan enam angka desimal, ditampilkan
   sebagai persen dengan dua angka desimal pada form dan tabel. Nilai rinci sumber
   dipertahankan sampai pengguna mengedit bobot, agar format tampilan tidak mengubah upah.
-- Total upah item = bobot item terhadap seluruh SPK × total upah SPK.
-- Harga satuan = total upah item ÷ volume.
+- Total upah item = ROUND(bobot item terhadap seluruh SPK × total upah SPK; -2), dibulatkan ke ratusan rupiah terdekat. Aturan bersama digunakan pada editor, katalog master, dan konfigurasi SPK.
+- Harga satuan = total upah item setelah pembulatan ÷ volume.
 - Kedua RPC penyimpanan memvalidasi dan menulis seluruh konfigurasi secara atomik.
 - RLS aktif; tabel rincian hanya dapat ditulis melalui RPC dengan MASTER_WRITE
   atau SPK_WRITE. Anon tidak diberi izin menjalankan RPC.

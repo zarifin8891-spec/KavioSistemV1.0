@@ -1972,3 +1972,9 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 /* Shared master catalog filters and summary; used by all new master catalogs. */
 .kavio-master-filters { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:12px; padding:14px 16px; align-items:end; }
 .kavio-master-summary { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; padding:0 16px 14px; font-size:14px; }
+
+/* Compact editable tables share control height and row spacing. */
+.kavio-table.kavio-input-table th,.kavio-table.kavio-input-table td {padding:3px 6px;height:auto;}
+.kavio-input-table .kavio-field {margin:0;gap:0;}
+.kavio-input-table .kavio-field input,.kavio-input-table .kavio-field select {min-height:30px;height:30px;padding:4px 6px;line-height:1.2;}
+.kavio-input-table td .kavio-button {min-height:30px;height:30px;padding:4px 6px;line-height:1.2;}

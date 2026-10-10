@@ -6,7 +6,7 @@ import {useSearchParams} from 'next/navigation';
 import {useFormStatus} from 'react-dom';
 import KavioFormModal from './KavioFormModal';
 import KavioFormActions from './KavioFormActions';
-import {WorkEditorState,WorkDetail,weightUnits,workWeightIssues,workPercent} from '../lib/work-detail';
+import {WorkEditorState,WorkDetail,weightUnits,workWeightIssues,workPercent,workItemWage} from '../lib/work-detail';
 import {t36WorkReference} from '../lib/t36-work-reference';
 
 export default function KavioWorkDetailEditor({initial,action,identifier,spk=false,mandors=[],defaultMandor='',reference,autoOpen=false,readOnly=false}:{
@@ -32,7 +32,7 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  return <>
  <button className="kavio-button secondary" type="button" onClick={()=>setOpen(true)}>{readOnly?'LIHAT KONFIGURASI':spk?'KONFIGURASI PEKERJAAN':'EDIT PERINCIAN'}</button>
  <KavioFormModal open={open} onClose={()=>setOpen(false)} size={spk?'wide':'standard'} className="work-editor-modal" ariaLabel={spk?'Konfigurasi Pekerjaan SPK':'Master Perincian Pekerjaan'} persistenceKey={`work-detail:${identifier}`} closeOnBackdrop={false}>
- <section className="kavio-panel work-detail-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{spk?'KONFIGURASI PEKERJAAN SPK':'MASTER PERINCIAN PEKERJAAN'}</h2><p className="kavio-panel-note">Bobot item terhadap seluruh SPK. Total upah item = bobot item × total upah borongan.</p></div><span className="kavio-badge">TOTAL {total.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:total===100?2:4})}%</span></div>
+ <section className="kavio-panel work-detail-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{spk?'KONFIGURASI PEKERJAAN SPK':'MASTER PERINCIAN PEKERJAAN'}</h2><p className="kavio-panel-note">Bobot item terhadap seluruh SPK. Total upah item dibulatkan ke ratusan rupiah.</p></div><span className="kavio-badge">TOTAL {total.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:total===100?2:4})}%</span></div>
  <form ref={formRef} noValidate action={action} className="kavio-panel-body" onSubmit={event=>{
   if(readOnly)return;
   if(!Number.isFinite(state.total_upah)||state.total_upah<0){event.preventDefault();showSaveError('Total upah borongan harus berupa angka minimal 0.');formRef.current?.querySelector<HTMLInputElement>('[aria-label="Total upah borongan"]')?.focus();return;}
@@ -72,14 +72,14 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  const valid=sum===weightUnits(group.bobot),delta=Math.abs(sum-weightUnits(group.bobot))/1000000;
  return <div key={group.id_kategori} className="work-detail-fields work-selected-category" role="group" aria-label={group.nama_kategori}>{spk&&<div className="work-detail-group-head"><div><h3>{group.nama_kategori}</h3><p className="kavio-panel-note">{lines.length} item pekerjaan</p></div><label className="kavio-field"><span>BOBOT KATEGORI (%)</span><KavioPercentInput disabled={readOnly} label={`Bobot kategori ${group.nama_kategori}`} value={group.bobot*100} onChange={value=>setState(s=>({...s,groups:s.groups.map(g=>g.id_kategori===group.id_kategori?{...g,bobot:weightUnits(value/100)/1000000}:g)}))}/></label></div>}
  {detailMode&&<><div className={`work-weight-summary ${valid?'is-valid':'is-pending'}`} role="status"><span>TOTAL BOBOT ITEM <strong>{workPercent(sum/1000000)}%</strong></span><span>{valid?'Bobot sesuai':`Selisih ${delta<.0001?'< 0,01':workPercent(delta)}%`}</span></div>
- <div className="work-input-table"><table className={`kavio-table ${spk?'has-mandor':''}`}><thead><tr><th>NAMA PEKERJAAN</th><th>VOLUME</th><th>SATUAN</th><th>BOBOT (%)</th><th>RETENSI</th>{spk&&<th>MANDOR</th>}<th className="work-detail-money">TOTAL UPAH</th><th className="work-detail-money">HARGA SATUAN</th><th>AKSI</th></tr></thead><tbody>{lines.map((d,index)=><tr key={d.key} data-work-line-index={d.key}>
+ <div className="work-input-table"><table className={`kavio-table kavio-input-table ${spk?'has-mandor':''}`}><thead><tr><th>NAMA PEKERJAAN</th><th>VOLUME</th><th>SATUAN</th><th>BOBOT (%)</th><th>RETENSI</th>{spk&&<th>MANDOR</th>}<th className="work-detail-money">TOTAL UPAH</th><th className="work-detail-money">HARGA SATUAN</th><th>AKSI</th></tr></thead><tbody>{lines.map((d,index)=><tr key={d.key} data-work-line-index={d.key}>
  <td><label className="kavio-field"><input disabled={readOnly} aria-label="Nama pekerjaan" value={d.nama_pekerjaan} maxLength={200} placeholder="Nama item pekerjaan" onChange={e=>update(d.key,{nama_pekerjaan:e.target.value})} required/></label></td>
  <td><label className="kavio-field"><input disabled={readOnly} aria-label={`Volume ${d.nama_pekerjaan}`} type="number" min="0.0001" step="0.0001" value={d.volume||''} placeholder="0" onChange={e=>update(d.key,{volume:Number(e.target.value)})} required/></label></td>
  <td><label className="kavio-field"><input disabled={readOnly} aria-label={`Satuan ${d.nama_pekerjaan}`} value={d.satuan} maxLength={30} placeholder="Satuan" onChange={e=>update(d.key,{satuan:e.target.value})} required/></label></td>
  <td><label className="kavio-field"><KavioPercentInput disabled={readOnly} label={`Bobot ${d.nama_pekerjaan}`} min={.0001} value={d.bobot*100} onChange={value=>update(d.key,{bobot:weightUnits(value/100)/1000000})}/></label></td>
  <td><label className="kavio-field"><select disabled={readOnly} aria-label={`Retensi ${d.nama_pekerjaan}`} value={d.retensi} onChange={e=>update(d.key,{retensi:Number(e.target.value)})}><option value={.05}>5%</option><option value={0}>Tanpa retensi</option></select></label></td>
  {spk&&<td><label className="kavio-field"><select disabled={readOnly} aria-label={`Mandor ${d.nama_pekerjaan}`} value={d.id_mandor??defaultMandor} onChange={e=>update(d.key,{id_mandor:e.target.value})} required><option value="">Pilih mandor</option>{mandors.map(m=><option key={m.id_mandor} value={m.id_mandor}>{m.nama_mandor}</option>)}</select></label></td>}
- <td className="work-detail-money">{(d.bobot*state.total_upah).toLocaleString('id-ID',{maximumFractionDigits:0})}</td><td className="work-detail-money">{d.volume>0?(d.bobot*state.total_upah/d.volume).toLocaleString('id-ID',{maximumFractionDigits:0}):'—'}</td>
+ <td className="work-detail-money">{workItemWage(d.bobot,state.total_upah).toLocaleString('id-ID',{maximumFractionDigits:0})}</td><td className="work-detail-money">{d.volume>0?(workItemWage(d.bobot,state.total_upah)/d.volume).toLocaleString('id-ID',{maximumFractionDigits:0}):'—'}</td>
  <td><button disabled={readOnly} type="button" className="kavio-button secondary" aria-label={`Hapus ${d.nama_pekerjaan||'item '+(index+1)}`} onClick={()=>setState(s=>({...s,details:s.details.filter((_,i)=>i!==d.key)}))}>HAPUS</button></td>
  </tr>)}</tbody></table></div>
  {!lines.length&&<div className="work-item-empty">Belum ada item pekerjaan. Klik Tambah Item untuk mengisi.</div>}
