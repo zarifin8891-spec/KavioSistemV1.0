@@ -1,0 +1,24 @@
+/* V2 forms use the same modal and field vocabulary as the V1 foundation. */
+.kavio-transaction-panel .kavio-form { padding:16px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.kavio-transaction-panel .kavio-alert { margin:12px 16px 0; }
+.kavio-transaction-panel .material-wide,.kavio-transaction-panel .collection-wide { grid-column:span 2; }
+.kavio-transaction-panel .material-checkbox { flex-direction:row; align-items:center; gap:8px; }
+.kavio-transaction-panel .material-checkbox input { width:16px; min-height:16px; }
+.collection-actions > .kavio-command-button { margin:12px 0 12px 16px; }
+.collection-page,.material-page { gap:14px; }
+.kavio-fasum-form { padding:16px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.kavio-fasum-form .kavio-form-section { grid-column:1 / -1; position:static; }
+.kavio-fasum-form .kavio-table { table-layout:fixed; }
+.kavio-fasum-form th:first-child { width:70px; }
+.kavio-fasum-form th:nth-child(3) { width:140px; }
+.kavio-fasum-form th:last-child { width:100px; }
+.kavio-fasum-form input[type=number] { text-align:right; }
+.kavio-transaction-panel .kavio-form > .kavio-actions { margin-top:4px; }
+@media (max-width:900px) {
+  .kavio-transaction-panel .kavio-form,.kavio-fasum-form { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:650px) {
+  .kavio-transaction-panel .kavio-form,.kavio-fasum-form { grid-template-columns:1fr; }
+  .kavio-transaction-panel .material-wide,.kavio-transaction-panel .collection-wide { grid-column:auto; }
+  .kavio-fasum-form .kavio-table { min-width:520px; }
+}

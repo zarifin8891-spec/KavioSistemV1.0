@@ -2,13 +2,15 @@ import './material.css';
 import { createClient } from '../../lib/supabase/server';
 import { formatKavioDate } from '../lib/date-format';
 import MaterialActionPanel from './MaterialActionPanel';
+import MaterialCatalog from './MaterialCatalog';
+import { formatKavioMoney } from '../lib/number-format';
 
 type LocationStock = { id_lokasi: string; kode_lokasi: string; nama_lokasi: string; nama_material: string; kategori: string; satuan: string; jenis_item: string; jumlah: number | string; harga_rata_rata: number | string; nilai_persediaan: number | string };
 type SpkStock = { id_spk: string; id_material: string; jenis_spk: string; id_kavling: string | null; nama_objek: string | null; nama_material: string; satuan: string; jumlah: number | string; harga_rata_rata: number | string; nilai_stok: number | string };
 type Movement = { id_transaksi: string; no_transaksi: string; jenis_transaksi: string; tanggal: string; id_spk: string | null; nama_pemasok: string | null; no_nota: string | null; keterangan: string | null };
 type SearchParams = Promise<{ error?: string; success?: string; focus?: string }>;
 
-const currency = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+const currency = { format: formatKavioMoney };
 const quantity = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 });
 
 export default async function MaterialPage({ searchParams }: { searchParams: SearchParams }) {
@@ -18,7 +20,7 @@ export default async function MaterialPage({ searchParams }: { searchParams: Sea
     supabase.from('v_material_stock_location').select('id_lokasi,kode_lokasi,nama_lokasi,nama_material,kategori,satuan,jenis_item,jumlah,harga_rata_rata,nilai_persediaan').gt('jumlah', 0).order('nama_material').limit(300),
     supabase.from('v_material_stock_spk').select('id_spk,id_material,jenis_spk,id_kavling,nama_objek,nama_material,satuan,jumlah,harga_rata_rata,nilai_stok').gt('jumlah', 0).order('nama_material').limit(300),
     supabase.from('material_transaction').select('id_transaksi,no_transaksi,jenis_transaksi,tanggal,id_spk,nama_pemasok,no_nota,keterangan').order('created_at', { ascending: false }).limit(20),
-    supabase.from('master_material').select('id_material,nama_material,satuan,jenis_item').eq('status_aktif', true).order('nama_material'),
+    supabase.from('master_material').select('id_material,kode_referensi,nama_material,kategori,satuan,jenis_item').eq('status_aktif', true).order('nama_material'),
     supabase.from('material_location').select('id_lokasi,kode_lokasi,nama_lokasi').eq('status_aktif', true).eq('jenis_lokasi', 'GUDANG').order('nama_lokasi'),
     supabase.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek').eq('is_active', true).eq('status_spk', 'AKTIF').order('tgl_target_selesai'),
     supabase.from('material_request').select('id_permintaan,no_permintaan,id_spk,status').in('status', ['DIAJUKAN','SEBAGIAN_DIPENUHI']).order('created_at', { ascending: false }),
@@ -45,19 +47,21 @@ export default async function MaterialPage({ searchParams }: { searchParams: Sea
   return <main className="material-page">
     {error && <div className="kavio-alert error">Data Material Control belum tersedia atau tidak dapat dibaca. Pastikan migrasi V2 sudah diterapkan pada database proyek. Detail: {error}</div>}
     {params.success && <div className="kavio-alert success">{params.success}</div>}
-    <section className="kavio-panel"><MaterialActionPanel materials={materials} locations={locations} spks={spks} requestLines={requestLines} spkStocks={spkStock.map((row)=>({id_spk:row.id_spk,id_material:row.id_material,nama_material:row.nama_material,satuan:row.satuan,jumlah:Number(row.jumlah)}))} autoOpen={Boolean(params.error)} /></section>
     <section className="material-summary">
+      <Summary label="MASTER MATERIAL" value={String(materials.length)} detail="Daftar material RAB aktif" />
       <Summary label="ITEM DI GUDANG" value={String(warehouse.length)} detail={currency.format(warehouseValue)} />
       <Summary label="ITEM DI SPK" value={String(spkStock.length)} detail={currency.format(spkValue)} />
       <Summary label="TRANSAKSI TERBARU" value={String(movements.length)} detail="Maksimal 20 transaksi" />
     </section>
+    <section className="kavio-panel"><MaterialActionPanel materials={materials} locations={locations} spks={spks} requestLines={requestLines} spkStocks={spkStock.map((row)=>({id_spk:row.id_spk,id_material:row.id_material,nama_material:row.nama_material,satuan:row.satuan,jumlah:Number(row.jumlah)}))} /></section>
+    <MaterialCatalog materials={materials} />
     <section className="kavio-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">SALDO GUDANG</h2><div className="kavio-panel-note">Saldo dan nilai berdasarkan harga rata-rata tertimbang.</div></div><span className="kavio-badge">{warehouse.length} BARIS</span></div>
-      <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>LOKASI</th><th>MATERIAL</th><th>JENIS</th><th>STOK</th><th>HARGA RATA-RATA</th><th>NILAI</th></tr></thead><tbody>{warehouse.map((row, i) => <tr key={`${row.id_lokasi}-${row.nama_material}-${i}`}><td>{row.kode_lokasi} · {row.nama_lokasi}</td><td>{row.nama_material}<small className="material-subtext">{row.kategori}</small></td><td>{row.jenis_item.replaceAll('_', ' ')}</td><td>{quantity.format(Number(row.jumlah))} {row.satuan}</td><td>{currency.format(Number(row.harga_rata_rata))}</td><td>{currency.format(Number(row.nilai_persediaan))}</td></tr>)}{!warehouse.length && <tr><td colSpan={6} className="kavio-empty">BELUM ADA SALDO GUDANG.</td></tr>}</tbody></table></div>
+      <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>LOKASI</th><th>MATERIAL</th><th>JENIS</th><th>STOK</th><th>HARGA RATA-RATA</th><th>NILAI</th></tr></thead><tbody>{warehouse.map((row, i) => <tr key={`${row.id_lokasi}-${row.nama_material}-${i}`}><td>{row.kode_lokasi} · {row.nama_lokasi}</td><td>{row.nama_material}<small className="material-subtext">{row.kategori}</small></td><td>{row.jenis_item.replaceAll('_', ' ')}</td><td className="text-right">{quantity.format(Number(row.jumlah))} {row.satuan}</td><td className="text-right">{currency.format(Number(row.harga_rata_rata))}</td><td className="text-right">{currency.format(Number(row.nilai_persediaan))}</td></tr>)}{!warehouse.length && <tr><td colSpan={6} className="kavio-empty">BELUM ADA SALDO GUDANG. CATAT PENERIMAAN ATAU SALDO AWAL UNTUK MEMBENTUK STOK.</td></tr>}</tbody></table></div>
     </section>
     <section className="kavio-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">STOK MATERIAL PER SPK</h2><div className="kavio-panel-note">Stok yang sudah dialokasikan ke objek pekerjaan dan perlu dipakai atau direkonsiliasi sebelum SPK ditutup.</div></div><span className="kavio-badge">{spkStock.length} BARIS</span></div>
-      <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>OBJEK</th><th>MATERIAL</th><th>STOK</th><th>HARGA RATA-RATA</th><th>NILAI</th></tr></thead><tbody>{spkStock.map((row, i) => <tr key={`${row.id_spk}-${row.nama_material}-${i}`}><td>{row.jenis_spk} · {row.jenis_spk === 'KAVLING' ? row.id_kavling : row.nama_objek}</td><td>{row.nama_material}</td><td>{quantity.format(Number(row.jumlah))} {row.satuan}</td><td>{currency.format(Number(row.harga_rata_rata))}</td><td>{currency.format(Number(row.nilai_stok))}</td></tr>)}{!spkStock.length && <tr><td colSpan={5} className="kavio-empty">TIDAK ADA SISA STOK PADA SPK.</td></tr>}</tbody></table></div>
+      <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>OBJEK</th><th>MATERIAL</th><th>STOK</th><th>HARGA RATA-RATA</th><th>NILAI</th></tr></thead><tbody>{spkStock.map((row, i) => <tr key={`${row.id_spk}-${row.nama_material}-${i}`}><td>{row.jenis_spk} · {row.jenis_spk === 'KAVLING' ? row.id_kavling : row.nama_objek}</td><td>{row.nama_material}</td><td className="text-right">{quantity.format(Number(row.jumlah))} {row.satuan}</td><td className="text-right">{currency.format(Number(row.harga_rata_rata))}</td><td className="text-right">{currency.format(Number(row.nilai_stok))}</td></tr>)}{!spkStock.length && <tr><td colSpan={5} className="kavio-empty">TIDAK ADA SISA STOK PADA SPK.</td></tr>}</tbody></table></div>
     </section>
     <section className="kavio-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">TRANSAKSI TERBARU</h2><div className="kavio-panel-note">Jejak transaksi stok yang sudah diposting.</div></div><span className="kavio-badge">20 TERAKHIR</span></div>

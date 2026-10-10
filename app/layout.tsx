@@ -9,9 +9,10 @@ import './laporan/laporan.css';
 import './manajemen-user/manajemen-user.css';
 import './penerimaan/penerimaan.css';
 import './kavio-ui-foundation.css';
+import './kavio-v2-foundation.css';
 
 export const metadata: Metadata = {
-  title: 'KAVIO Monitor V1.0',
+  title: 'KAVIO V2.0',
   description: 'Monitoring pembangunan perumahan',
 };
 
