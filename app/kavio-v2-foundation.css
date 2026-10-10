@@ -53,8 +53,10 @@
 /* Shared compact work editor for master templates and SPK configuration. */
 .work-detail-panel .work-detail-settings {display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:12px;}
 .work-detail-settings > .kavio-field {width:220px;max-width:100%;}
+.work-detail-settings > .work-wage-field {display:flex;flex-direction:row;align-items:center;gap:12px;width:auto;}
+.work-wage-field > span {white-space:nowrap;}
+.work-wage-field > input {width:200px;max-width:100%;text-align:right;font-variant-numeric:tabular-nums;}
 .work-detail-tools {display:flex;align-items:center;flex-wrap:wrap;gap:8px;}
-.work-detail-precision {margin:4px 0 12px;}
 .work-editor-layout {display:grid;gap:12px;min-width:0;}
 .work-category-nav {display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:4px;}
 .work-category-label {grid-column:1/-1;}
@@ -96,10 +98,12 @@
 .work-editor-modal .work-editor-layout {display:flex;flex-direction:column;min-height:0;flex:1;}
 .work-editor-modal .work-category-nav {flex-shrink:0;}
 .work-editor-modal .work-category-content,.work-editor-modal .work-selected-category {display:flex;flex-direction:column;min-height:0;flex:1;}
-.work-editor-modal .work-detail-settings,.work-editor-modal .work-detail-precision,.work-editor-modal .work-detail-group-head,.work-editor-modal .work-weight-summary,.work-editor-modal .work-add-item,.work-editor-modal .kavio-alert {flex-shrink:0;}
+.work-editor-modal .work-detail-settings,.work-editor-modal .work-detail-group-head,.work-editor-modal .work-weight-summary,.work-editor-modal .work-add-item,.work-editor-modal .kavio-alert {flex-shrink:0;}
 .work-editor-modal .work-add-item {align-self:flex-start;}
 .work-detail-panel .kavio-form-actions {position:static;flex-shrink:0;background:var(--kavio-panel);padding:10px 0 0;margin-top:12px;border-top:1px solid var(--kavio-line);}
 @media(max-width:800px){.work-input-table .kavio-table{min-width:760px;}.work-input-table .has-mandor{min-width:1000px;}}
 @media(max-width:440px){.work-category-nav{grid-template-columns:1fr;}}
 
 @media(max-height:600px){.work-editor-modal{overflow:auto;}.work-editor-modal > .work-detail-panel{max-height:none;}.work-input-table{max-height:200px;}}
+
+@media(max-width:560px){.work-detail-settings > .work-wage-field{flex-wrap:wrap;}.work-wage-field > input{flex:1;min-width:120px;}}

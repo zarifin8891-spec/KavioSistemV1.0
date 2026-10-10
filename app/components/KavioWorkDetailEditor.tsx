@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import KavioPercentInput from './KavioPercentInput';
+import KavioMoneyInput from './KavioMoneyInput';
 import {useSearchParams} from 'next/navigation';
 import {useFormStatus} from 'react-dom';
 import KavioFormModal from './KavioFormModal';
@@ -52,13 +53,12 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  {error&&<div className="kavio-alert error" role="alert">{error}</div>}
  <input type="hidden" name={spk?'id_spk':'id_tipe'} value={identifier}/>
  <fieldset disabled={readOnly} className="work-detail-fields">
- <div className="kavio-form work-detail-settings"><label className="kavio-field"><span>TOTAL UPAH BORONGAN (RP)</span><input aria-label="Total upah borongan" type="number" min="0" step="0.01" value={state.total_upah} onChange={e=>setState(s=>({...s,total_upah:Number(e.target.value)}))} required/></label>
+ <div className="kavio-form work-detail-settings"><label className="kavio-field work-wage-field"><span>TOTAL UPAH BORONGAN (RP)</span><KavioMoneyInput label="Total upah borongan" value={state.total_upah} onChange={value=>setState(s=>({...s,total_upah:value}))}/></label>
  {spk&&<label className="kavio-field"><span>CARA INPUT PROGRESS</span><select value={state.mode} aria-label="Cara input progress" onChange={e=>setState(s=>({...s,mode:e.target.value}))}><option value="KATEGORI">Per Kategori</option><option value="PERINCIAN">Dengan Perincian</option></select></label>}
  <div className="work-detail-tools">{!spk&&identifier==='T36'&&<button type="button" className="kavio-button secondary" onClick={preset}>MUAT CONTOH T36</button>}{spk&&reference&&reference.length>0&&detailMode&&<button className="kavio-button secondary" type="button" onClick={()=>{setState(s=>({...s,details:reference.map(d=>({...d,id_mandor:defaultMandor}))}));setNotice('Perincian master disalin. Periksa bobot custom dan penugasan mandor sebelum menyimpan.');}}>SALIN PERINCIAN MASTER</button>}</div></div>
  {notice&&<div className="kavio-alert" role="alert">{notice}</div>}
  {spk&&detailMode&&<p className="kavio-panel-note">Konfigurasi dapat disimpan sebagai draft. Aktivasi menyusul setelah fitur input progress perincian tersedia.</p>}
  </fieldset>
- <p className="kavio-panel-note work-detail-precision">Bobot ditampilkan dua desimal. Nilai rinci sumber tetap digunakan sampai bobot tersebut diedit.</p>
  <div className="work-editor-layout">
  <nav className="work-category-nav" aria-label="Kategori pekerjaan">
  <span className="work-category-label">PILIH KATEGORI</span>
@@ -69,7 +69,7 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  const lines=details.filter(d=>d.group_id===group.id_kategori);
  const sum=lines.reduce((n,d)=>n+weightUnits(d.bobot),0);
  const valid=sum===weightUnits(group.bobot),delta=Math.abs(sum-weightUnits(group.bobot))/1000000;
- return <fieldset key={group.id_kategori} disabled={readOnly} className="work-detail-fields work-selected-category"><div className="work-detail-group-head"><div><h3>{group.nama_kategori}</h3><p className="kavio-panel-note">{lines.length} item pekerjaan</p></div><label className="kavio-field"><span>BOBOT KATEGORI (%)</span><KavioPercentInput label={`Bobot kategori ${group.nama_kategori}`} value={group.bobot*100} onChange={value=>setState(s=>({...s,groups:s.groups.map(g=>g.id_kategori===group.id_kategori?{...g,bobot:weightUnits(value/100)/1000000}:g)}))}/></label></div>
+ return <fieldset key={group.id_kategori} disabled={readOnly} className="work-detail-fields work-selected-category">{spk&&<div className="work-detail-group-head"><div><h3>{group.nama_kategori}</h3><p className="kavio-panel-note">{lines.length} item pekerjaan</p></div><label className="kavio-field"><span>BOBOT KATEGORI (%)</span><KavioPercentInput label={`Bobot kategori ${group.nama_kategori}`} value={group.bobot*100} onChange={value=>setState(s=>({...s,groups:s.groups.map(g=>g.id_kategori===group.id_kategori?{...g,bobot:weightUnits(value/100)/1000000}:g)}))}/></label></div>}
  {detailMode&&<><div className={`work-weight-summary ${valid?'is-valid':'is-pending'}`} role="status"><span>TOTAL BOBOT ITEM <strong>{workPercent(sum/1000000)}%</strong></span><span>{valid?'Bobot sesuai':`Selisih ${delta<.0001?'< 0,01':workPercent(delta)}%`}</span></div>
  <div className="work-input-table"><table className={`kavio-table ${spk?'has-mandor':''}`}><thead><tr><th>NAMA PEKERJAAN</th><th>VOLUME</th><th>SATUAN</th><th>BOBOT (%)</th><th>RETENSI</th>{spk&&<th>MANDOR</th>}<th className="work-detail-money">TOTAL UPAH</th><th className="work-detail-money">HARGA SATUAN</th><th>AKSI</th></tr></thead><tbody>{lines.map((d,index)=><tr key={d.key} data-work-line-index={d.key}>
  <td><label className="kavio-field"><input aria-label="Nama pekerjaan" value={d.nama_pekerjaan} maxLength={200} placeholder="Nama item pekerjaan" onChange={e=>update(d.key,{nama_pekerjaan:e.target.value})} required/></label></td>
