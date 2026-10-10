@@ -44,22 +44,25 @@ export async function createSales(formData: FormData) {
   const biayaHook = Number(formData.get('biaya_hook') ?? 0);
   const biayaLainnya = Number(formData.get('biaya_lainnya') ?? 0);
 
-  const { error } = await supabase.rpc('create_sales_atomic', {
-    p_id_kavling: idKavling,
-    p_nama_konsumen: namaKonsumen,
-    p_alamat_konsumen: alamatKonsumen,
-    p_hp_konsumen: hpKonsumen,
-    p_status_sales: statusSales,
-    p_jenis_pembayaran: jenisPembayaran,
-    p_id_bank: idBank,
-    p_id_notaris: idNotaris,
-    p_tgl_booking: tglBooking,
-    p_target_akad: targetAkad,
-    p_tgl_akad: tglAkad,
-    p_biaya_penambahan_bangunan: biayaPenambahanBangunan,
-    p_biaya_notaris: biayaNotaris,
-    p_biaya_hook: biayaHook,
-    p_biaya_lainnya: biayaLainnya,
+  const { error } = await supabase.rpc('save_sales_v2_atomic', { p_data: {
+    id_kavling: idKavling,
+    nama_konsumen: namaKonsumen,
+    alamat_konsumen: alamatKonsumen,
+    hp_konsumen: hpKonsumen,
+    status_sales: statusSales,
+    jenis_pembayaran: jenisPembayaran,
+    id_bank: idBank,
+    id_notaris: idNotaris,
+    tgl_booking: tglBooking,
+    target_akad: targetAkad,
+    tgl_akad: tglAkad,
+    biaya_penambahan_bangunan: biayaPenambahanBangunan,
+    biaya_notaris: biayaNotaris,
+    biaya_hook: biayaHook,
+    biaya_lainnya: biayaLainnya,
+    tenor_bulan: Number(formData.get('tenor_bulan')),
+    pola_pelunasan: text(formData.get('pola_pelunasan')) || 'CICILAN_FLEKSIBEL',
+  }
   });
 
   if (error) {
@@ -98,17 +101,20 @@ export async function updateSalesInfo(formData: FormData) {
   if (!(VALID_STATUS as readonly string[]).includes(statusSales)) detailError(idSales, 'STATUS SALES TIDAK VALID', 'sales-edit', 'status_sales');
   if (!(VALID_PAYMENT as readonly string[]).includes(jenisPembayaran)) detailError(idSales, 'JENIS PEMBAYARAN TIDAK VALID', 'sales-edit', 'jenis_pembayaran');
 
-  const { error } = await supabase.rpc('update_sales_atomic', {
-    p_id_sales: idSales,
-    p_nama_konsumen: namaKonsumen,
-    p_alamat_konsumen: alamatKonsumen,
-    p_hp_konsumen: hpKonsumen,
-    p_status_sales: statusSales,
-    p_jenis_pembayaran: jenisPembayaran,
-    p_id_bank: idBank,
-    p_id_notaris: idNotaris,
-    p_tgl_akad: tglAkad || null,
-    p_target_akad: targetAkad || null,
+  const { error } = await supabase.rpc('save_sales_v2_atomic', { p_data: {
+    id_sales: idSales,
+    nama_konsumen: namaKonsumen,
+    alamat_konsumen: alamatKonsumen,
+    hp_konsumen: hpKonsumen,
+    status_sales: statusSales,
+    jenis_pembayaran: jenisPembayaran,
+    id_bank: idBank,
+    id_notaris: idNotaris,
+    tgl_akad: tglAkad || null,
+    target_akad: targetAkad || null,
+    tenor_bulan: Number(formData.get('tenor_bulan')),
+    pola_pelunasan: text(formData.get('pola_pelunasan')) || 'CICILAN_FLEKSIBEL',
+  }
   });
 
   if (error) {

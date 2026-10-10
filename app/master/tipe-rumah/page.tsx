@@ -1,3 +1,5 @@
+import {deleteMaster} from '../delete-actions';
+import KavioConfirmAction from '../../components/KavioConfirmAction';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { createTipeRumah, toggleTipeRumah, updateTipeRumah } from './actions';
@@ -22,7 +24,7 @@ const { data, error } = await supabase.from('master_tipe_rumah').select('id_tipe
     <section className="kavio-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DAFTAR TIPE RUMAH</h2><div className="kavio-panel-note">Referensi tipe rumah untuk Kavling dan SPK.</div></div><span className="kavio-badge">{rows.length} DATA</span></div>
       <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>ID</th><th>NAMA TIPE</th><th>LUAS TANAH</th><th>LUAS BANGUNAN</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody>
-        {rows.map((row) => <tr key={row.id_tipe}><td className="master-highlight">{row.id_tipe}</td><td>{row.nama_tipe}</td><td>{formatNumber(row.luas_tanah_m2)} m²</td><td>{formatNumber(row.luas_bangunan_m2)} m²</td><td><span className={`master-status ${row.status_aktif ? 'active' : 'inactive'}`}>{row.status_aktif ? 'AKTIF' : 'NONAKTIF'}</span></td><td><KavioActionGate action="MASTER_WRITE"><div className="kavio-master-row-actions"><a href={'/master/tipe-rumah?edit='+encodeURIComponent(row.id_tipe)} className="kavio-button secondary">EDIT</a><form action={toggleTipeRumah}><input type="hidden" name="id_tipe" value={row.id_tipe}/><input type="hidden" name="status_aktif" value={String(row.status_aktif)}/><button type="submit" className="kavio-button secondary">{row.status_aktif ? 'NONAKTIFKAN' : 'AKTIFKAN'}</button></form></div></KavioActionGate></td></tr>)}
+        {rows.map((row) => <tr key={row.id_tipe}><td className="master-highlight">{row.id_tipe}</td><td>{row.nama_tipe}</td><td>{formatNumber(row.luas_tanah_m2)} m²</td><td>{formatNumber(row.luas_bangunan_m2)} m²</td><td><span className={`master-status ${row.status_aktif ? 'active' : 'inactive'}`}>{row.status_aktif ? 'AKTIF' : 'NONAKTIF'}</span></td><td><KavioActionGate action="MASTER_WRITE"><div className="kavio-master-row-actions"><a href={'/master/tipe-rumah?edit='+encodeURIComponent(row.id_tipe)} className="kavio-button secondary">EDIT</a><form action={toggleTipeRumah}><input type="hidden" name="id_tipe" value={row.id_tipe}/><input type="hidden" name="status_aktif" value={String(row.status_aktif)}/><button type="submit" className="kavio-button secondary">{row.status_aktif ? 'NONAKTIFKAN' : 'AKTIFKAN'}</button></form><KavioConfirmAction action={deleteMaster} label="HAPUS" confirmMessage="Hapus data master ini? Data yang digunakan tidak dapat dihapus." hidden={{master:'tipe-rumah',id_tipe:row.id_tipe}}/></div></KavioActionGate></td></tr>)}
         {!rows.length && <tr><td colSpan={6} className="kavio-empty">BELUM ADA DATA TIPE RUMAH.</td></tr>}
       </tbody></table></div>
     </section>

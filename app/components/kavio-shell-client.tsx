@@ -14,7 +14,7 @@ const sections = [
   { title: 'UTAMA', items: [['Beranda', '/dashboard']] },
   { title: 'MASTER DATA', items: [['Master Data', '/master']] },
   { title: 'KAVLING', items: [['Siteplan', '/siteplan'], ['Kavling', '/master/kavling']] },
-  { title: 'OPERASIONAL', items: [['Sales', '/master/sales'], ['Penerimaan', '/penerimaan'], ['SPK / Pekerjaan', '/master/spk'], ['Progress', '/progress'], ['Gudang & Material', '/material']] },
+  { title: 'OPERASIONAL', items: [['Sales', '/master/sales'], ['Piutang', '/penerimaan'], ['SPK / Pekerjaan', '/master/spk'], ['Progress', '/progress'], ['Gudang & Material', '/material']] },
   { title: 'LAPORAN', items: [['Laporan', '/laporan']] },
   { title: 'PENGATURAN', items: [['Manajemen User', '/manajemen-user']] },
 ] as const;
@@ -38,7 +38,7 @@ const pageHeader = (pathname: string) => {
   if (pathname.startsWith('/master/kavling')) return ['Master Kavling', 'Kelola inventory kavling dan lifecycle pembangunan.'];
   if (pathname.startsWith('/master/kantor-pelaksana')) return ['Master Kantor Pelaksana', 'Kelola kantor atau pelaksana pekerjaan proyek.'];
   if (pathname.startsWith('/master/mandor')) return ['Master Mandor', 'Kelola mandor dan relasinya dengan kantor pelaksana.'];
-  if (pathname.startsWith('/master/bank')) return ['Master Bank', 'Kelola bank untuk proses pembiayaan KPR Sales.'];
+  if (pathname.startsWith('/master/bank')) return ['Master Bank / Kas', 'Kelola bank untuk proses pembiayaan KPR Sales.'];
   if (pathname.startsWith('/master/notaris')) return ['Master Notaris', 'Kelola notaris untuk proses akad Sales.'];
   if (pathname.startsWith('/master')) return ['Master Data', 'Pusat referensi data utama proyek KAVIO.'];
   return ['Dashboard Monitoring', 'Kesehatan proyek, risiko, dan tindakan prioritas.'];

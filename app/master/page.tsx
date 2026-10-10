@@ -10,7 +10,7 @@ const masterLinks = [
   { href: '/master/kantor-pelaksana', title: 'Kantor Pelaksana', desc: 'Kelola kantor/pelaksana yang menangani pekerjaan.', icon: '▥' },
   { href: '/master/mandor', title: 'Mandor', desc: 'Kelola mandor dan relasinya dengan kantor pelaksana.', icon: '♙' },
   { href: '/master/template-progress', title: 'Template Progress', desc: 'Kelola bobot progress standar berdasarkan tipe rumah.', icon: '◔' },
-  { href: '/master/bank', title: 'Bank', desc: 'Kelola bank untuk pembiayaan KPR Sales.', icon: '▤' },
+  { href: '/master/bank', title: 'Bank / Kas', desc: 'Kelola akun penerimaan dan penanda bank pembiayaan KPR.', icon: '▤' },
   { href: '/master/notaris', title: 'Notaris', desc: 'Kelola notaris untuk proses akad Sales.', icon: '✎' },
 ];
 

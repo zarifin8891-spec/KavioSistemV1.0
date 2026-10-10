@@ -39,3 +39,12 @@ export async function toggleSupplier(form: FormData) {
   revalidatePath('/master/pemasok'); revalidatePath('/material');
   redirect('/master/pemasok?success=Status+pemasok+diperbarui');
 }
+
+export async function deleteSupplier(form:FormData){
+ const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user)redirect('/login');
+ await requireKavioAction('MATERIAL_WAREHOUSE_WRITE','/master/pemasok?error=akses+ditolak');
+ const id=String(form.get('id_pemasok')??'');
+ const {error}=await supabase.from('master_pemasok').delete().eq('id_pemasok',id).select('id_pemasok').single();
+ if(error)redirectKavioFormError('/master/pemasok',error.code==='23503'?'Data sudah digunakan dan tidak dapat dihapus. Gunakan Nonaktifkan.':error.message);
+ revalidatePath('/master/pemasok'); revalidatePath('/penerimaan'); redirect('/master/pemasok?success=Data+dihapus');
+}

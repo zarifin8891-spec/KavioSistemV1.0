@@ -49,7 +49,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Search
   const [kavlingRes, tipeRes, bankRes, notarisRes, pageRes, kpiRes, lockRes] = await Promise.all([
     supabase.from('master_kavling').select('id_kavling,id_tipe,status_kavling,status_aktif,harga_jual').eq('status_aktif',true).order('id_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe,nama_tipe').eq('status_aktif',true).order('nama_tipe'),
-    supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).order('nama_bank'),
+    supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).eq('is_kpr',true).order('nama_bank'),
     supabase.from('master_notaris').select('id_notaris,nama_notaris').eq('status_aktif',true).order('nama_notaris'),
     supabase.rpc('kavio_sales_list_page', {
       p_status: filterStatus || null,

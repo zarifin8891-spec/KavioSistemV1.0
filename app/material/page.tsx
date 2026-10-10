@@ -20,7 +20,7 @@ export default async function MaterialPage({ searchParams }: { searchParams: Sea
     supabase.from('v_material_stock_location').select('id_lokasi,kode_lokasi,nama_lokasi,nama_material,kategori,satuan,jenis_item,jumlah,harga_rata_rata,nilai_persediaan').gt('jumlah', 0).order('nama_material').limit(300),
     supabase.from('v_material_stock_spk').select('id_spk,id_material,jenis_spk,id_kavling,nama_objek,nama_material,satuan,jumlah,harga_rata_rata,nilai_stok').gt('jumlah', 0).order('nama_material').limit(300),
     supabase.from('material_transaction').select('id_transaksi,no_transaksi,jenis_transaksi,tanggal,id_spk,nama_pemasok,no_nota,keterangan').order('created_at', { ascending: false }).limit(20),
-    supabase.from('master_material').select('id_material,kode_referensi,nama_material,kategori,satuan,jenis_item').eq('status_aktif', true).order('nama_material'),
+    supabase.from('master_material').select('id_material,kode_referensi,nama_material,kategori,satuan,jenis_item').eq('status_aktif', true).neq('jenis_item', 'UPAH').order('nama_material'),
     supabase.from('material_location').select('id_lokasi,kode_lokasi,nama_lokasi').eq('status_aktif', true).eq('jenis_lokasi', 'GUDANG').order('nama_lokasi'),
     supabase.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek').eq('is_active', true).eq('status_spk', 'AKTIF').order('tgl_target_selesai'),
     supabase.from('material_request').select('id_permintaan,no_permintaan,id_spk,status').in('status', ['DIAJUKAN','SEBAGIAN_DIPENUHI']).order('created_at', { ascending: false }),

@@ -33,3 +33,6 @@
 @media (max-width:1150px) { .kavio-dashboard .kavio-dashboard-kpi-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media (max-width:850px) { .kavio-dashboard .kavio-dashboard-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:600px) { .kavio-dashboard .kavio-dashboard-kpi-grid { grid-template-columns:1fr; } .kavio-module-tab { flex:1 1 auto; text-align:center; } }
+
+.receipt-canceled { border: 3px solid #b42318; padding:16px; color:#b42318; font-weight:800; text-align:center; margin-bottom:20px; }
+.collection-form > p.collection-wide { grid-column:1/-1; margin:0; }

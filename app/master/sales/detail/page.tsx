@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import SalesPaymentFields from '../SalesPaymentFields';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../../lib/supabase/server';
 import { updateSalesInfo } from '../actions';
@@ -17,12 +18,13 @@ const STAGES=[['KELENGKAPAN_DATA','KELENGKAPAN DATA'],['SURVEY_BANK','SURVEY BAN
 export default async function SalesDetailPage({searchParams}:{searchParams:SearchParams}){
  const p=await searchParams; const id=p.id; if(!id) redirect('/master/sales');
  const supabase=await createClient();
-const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data:costs}] = await Promise.all([
+const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data:costs},{data:terms}] = await Promise.all([
    supabase.from('sales').select('id_sales,id_kavling,nama_konsumen,alamat_konsumen,hp_konsumen,status_sales,jenis_pembayaran,id_bank,id_notaris,harga_jual,tgl_booking,target_akad,tgl_akad,status_aktif').eq('id_sales',id).maybeSingle(),
-   supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).order('nama_bank'),
+   supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).eq('is_kpr',true).order('nama_bank'),
    supabase.from('master_notaris').select('id_notaris,nama_notaris').eq('status_aktif',true).order('nama_notaris'),
    supabase.from('sales_kpr_progress').select('id_progress,tahap,tanggal_update,keterangan').eq('id_sales',id).order('tanggal_update'),
    supabase.from('sales_biaya_tambahan').select('jenis_biaya,nominal').eq('id_sales',id).eq('status_aktif',true).order('jenis_biaya'),
+   supabase.from('sales_cash_installment_terms').select('tenor_bulan,pola_pelunasan').eq('id_sales',id).maybeSingle(),
  ]);
  if(!sale) return <main className="master-simple-page"><div className="kavio-alert error">{p.error??saleError?.message??'DATA SALES TIDAK DITEMUKAN'}</div><Link className="kavio-button secondary" href="/master/sales">KEMBALI KE SALES</Link></main>;
  const s=sale as Sale; const br=(banks??[]) as Bank[]; const nr=(notaries??[]) as Notaris[]; const kr=(kpr??[]) as Kpr[]; const cr=(costs??[]) as SalesCost[]; const kprMap=new Map(kr.map(x=>[x.tahap,x]));
@@ -39,8 +41,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
              <label className="kavio-field"><span>HP KONSUMEN</span><input name="hp_konsumen" type="tel" inputMode="tel" defaultValue={s.hp_konsumen??''}/></label>
              <label className="kavio-field sales-span-2"><span>ALAMAT KONSUMEN</span><input name="alamat_konsumen" defaultValue={s.alamat_konsumen??''}/></label>
              <label className="kavio-field"><span>STATUS SALES</span><select name="status_sales" defaultValue={s.status_sales}><option value="BOOKING">BOOKING</option><option value="DP">UANG MUKA</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select></label>
-             <label className="kavio-field"><span>JENIS PEMBAYARAN</span><select name="jenis_pembayaran" defaultValue={s.jenis_pembayaran??''}><option>KPR</option><option>CASH</option><option>CASH_BERTAHAP</option></select></label>
-             <label className="kavio-field"><span>BANK KPR</span><select name="id_bank" defaultValue={s.id_bank??''}><option value="">PILIH BANK</option>{br.map(x=><option key={x.id_bank} value={x.id_bank}>{x.nama_bank}</option>)}</select></label>
+             <SalesPaymentFields payment={s.jenis_pembayaran} bank={s.id_bank} banks={br} tenor={terms?.tenor_bulan??6} pattern={terms?.pola_pelunasan??'CICILAN_FLEKSIBEL'} />
              <label className="kavio-field"><span>HARGA JUAL</span><input className="kavio-money" value={formatKavioMoney(s.harga_jual)} readOnly /></label>
              <label className="kavio-field"><span>TANGGAL BOOKING</span><input value={s.tgl_booking ? formatKavioDate(s.tgl_booking) : ''} readOnly /></label>
              <label className="kavio-field"><span>TARGET AKAD</span><input type="date" name="target_akad" defaultValue={s.target_akad??''}/></label>
@@ -56,6 +57,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
        <div><span>HP</span><strong>{s.hp_konsumen??'—'}</strong></div>
        <div><span>STATUS</span><strong>{s.status_sales}</strong></div>
        <div><span>PEMBAYARAN</span><strong>{s.jenis_pembayaran}</strong></div>
+       {s.jenis_pembayaran==='CASH_BERTAHAP'&&<div><span>TENOR</span><strong>{terms?.tenor_bulan??'—'} BULAN · {terms?.pola_pelunasan?.replaceAll('_',' ')}</strong></div>}
        <div><span>BANK</span><strong>{br.find(x=>x.id_bank===s.id_bank)?.nama_bank??'—'}</strong></div>
        <div><span>HARGA JUAL</span><strong className="kavio-money">{formatKavioMoney(s.harga_jual)}</strong></div>
        <div><span>BOOKING</span><strong>{s.tgl_booking?formatKavioDate(s.tgl_booking):'—'}</strong></div>

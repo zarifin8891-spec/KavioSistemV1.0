@@ -49,10 +49,12 @@ export default function SalesCreatePanel({
             <label className="kavio-field"><span>HP KONSUMEN</span><input name="hp_konsumen" type="tel" inputMode="tel" placeholder="08XXXXXXXXXX" /></label>
             <label className="kavio-field"><span>JENIS PEMBAYARAN</span><select name="jenis_pembayaran" value={payment} onChange={(event) => setPayment(event.target.value)} required><option value="KPR">KPR</option><option value="CASH">CASH</option><option value="CASH_BERTAHAP">CASH BERTAHAP</option></select></label>
 
-            <label className="kavio-field"><span>BANK KPR {isKpr ? <em className="sales-required">*</em> : null}</span><select name="id_bank" required={isKpr} defaultValue=""><option value="">{isKpr ? 'PILIH BANK KPR' : 'TIDAK DIISI UNTUK CASH'}</option>{banks.map((row) => <option key={row.id_bank} value={row.id_bank}>{row.nama_bank}</option>)}</select></label>
+            <label className="kavio-field"><span>BANK KPR {isKpr ? <em className="sales-required">*</em> : null}</span><select name="id_bank" disabled={!isKpr} required={isKpr} defaultValue=""><option value="">{isKpr ? 'PILIH BANK KPR' : 'TIDAK DIISI UNTUK CASH'}</option>{banks.map((row) => <option key={row.id_bank} value={row.id_bank}>{row.nama_bank}</option>)}</select></label>
             <label className="kavio-field"><span>HARGA JUAL DASAR</span><input className="kavio-money" value={selected ? formatKavioMoney(selected.harga_jual) : 'PILIH KAVLING'} readOnly /></label>
             <label className="kavio-field"><span>TARGET AKAD</span><input name="target_akad" type="date" /></label>
 
+            {payment === 'CASH_BERTAHAP' && <><label className="kavio-field"><span>TENOR CASH BERTAHAP</span><select name="tenor_bulan" defaultValue="6">{Array.from({length:12},(_,i)=>i+1).map(n=><option key={n} value={n}>{n} BULAN</option>)}</select></label>
+<label className="kavio-field"><span>POLA PEMBAYARAN</span><select name="pola_pelunasan" defaultValue="CICILAN_FLEKSIBEL"><option value="CICILAN_FLEKSIBEL">CICILAN FLEKSIBEL</option><option value="LUNAS_DI_AKHIR">LUNAS DI AKHIR</option></select></label></>}
             <div className="sales-costs-block">
               <div className="sales-costs-title">BIAYA TAMBAHAN</div>
               <div className="sales-costs-grid">

@@ -1,3 +1,5 @@
+import {deleteMaster} from '../delete-actions';
+import KavioConfirmAction from '../../components/KavioConfirmAction';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { createKategoriPekerjaan, toggleKategoriPekerjaan, updateKategoriPekerjaan } from './actions';
@@ -21,7 +23,7 @@ const { data, error } = await supabase.from('master_kategori_pekerjaan').select(
     <section className="kavio-panel">
       <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DAFTAR KATEGORI PEKERJAAN</h2><div className="kavio-panel-note">Referensi kategori dan urutan yang menjadi dasar bobot progress SPK.</div></div><span className="kavio-badge">{rows.length} DATA</span></div>
       <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>URUTAN</th><th>ID</th><th>NAMA KATEGORI</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody>
-        {rows.map((row) => <tr key={row.id_kategori}><td>{row.urutan}</td><td className="master-highlight">{row.id_kategori}</td><td>{row.nama_kategori}</td><td><span className={`master-status ${row.status_aktif?'active':'inactive'}`}>{row.status_aktif?'AKTIF':'NONAKTIF'}</span></td><td><KavioActionGate action="MASTER_WRITE"><div className="kavio-master-row-actions"><a href={'/master/kategori-pekerjaan?edit='+encodeURIComponent(row.id_kategori)} className="kavio-button secondary">EDIT</a><form action={toggleKategoriPekerjaan}><input type="hidden" name="id_kategori" value={row.id_kategori}/><input type="hidden" name="status_aktif" value={String(row.status_aktif)}/><button type="submit" className="kavio-button secondary">{row.status_aktif?'NONAKTIFKAN':'AKTIFKAN'}</button></form></div></KavioActionGate></td></tr>)}
+        {rows.map((row) => <tr key={row.id_kategori}><td>{row.urutan}</td><td className="master-highlight">{row.id_kategori}</td><td>{row.nama_kategori}</td><td><span className={`master-status ${row.status_aktif?'active':'inactive'}`}>{row.status_aktif?'AKTIF':'NONAKTIF'}</span></td><td><KavioActionGate action="MASTER_WRITE"><div className="kavio-master-row-actions"><a href={'/master/kategori-pekerjaan?edit='+encodeURIComponent(row.id_kategori)} className="kavio-button secondary">EDIT</a><form action={toggleKategoriPekerjaan}><input type="hidden" name="id_kategori" value={row.id_kategori}/><input type="hidden" name="status_aktif" value={String(row.status_aktif)}/><button type="submit" className="kavio-button secondary">{row.status_aktif?'NONAKTIFKAN':'AKTIFKAN'}</button></form><KavioConfirmAction action={deleteMaster} label="HAPUS" confirmMessage="Hapus data master ini? Data yang digunakan tidak dapat dihapus." hidden={{master:'kategori-pekerjaan',id_kategori:row.id_kategori}}/></div></KavioActionGate></td></tr>)}
         {!rows.length && <tr><td colSpan={5} className="kavio-empty">BELUM ADA DATA KATEGORI PEKERJAAN.</td></tr>}
       </tbody></table></div>
     </section>
