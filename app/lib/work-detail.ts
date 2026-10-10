@@ -3,9 +3,11 @@ export type WorkDetail = {group_id:string;urutan:number;nama_pekerjaan:string;vo
 export type WorkEditorState = {total_upah:number;mode:string;groups:WorkGroup[];details:WorkDetail[]};
 // Weights use six decimal places as fractions (four as percentages), like the existing template engine.
 export const weightUnits=(value:number)=>Math.round(value*1_000_000);
+// Round the final percentage total, not each item; keep six-decimal source weights.
+export const workTotalPercent=(groups:WorkGroup[])=>Math.floor((groups.reduce((sum,g)=>sum+weightUnits(g.bobot),0)+50)/100)/100;
 export function workWeightIssues(groups:WorkGroup[],details:WorkDetail[]) {
  const issues:string[]=[];
- if(groups.reduce((sum,g)=>sum+weightUnits(g.bobot),0)!==1_000_000) issues.push('Total bobot kategori harus tepat 100%.');
+ if(workTotalPercent(groups)!==100) issues.push('Total bobot kategori setelah pembulatan dua desimal harus 100,00%.');
  for(const group of groups) {
   const sum=details.filter(d=>d.group_id===group.id_kategori).reduce((n,d)=>n+weightUnits(d.bobot),0);
   if(sum!==weightUnits(group.bobot)) issues.push(`${group.nama_kategori}: bobot item belum sama dengan bobot kategori.`);

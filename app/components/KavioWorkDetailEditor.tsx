@@ -6,7 +6,7 @@ import {useSearchParams} from 'next/navigation';
 import {useFormStatus} from 'react-dom';
 import KavioFormModal from './KavioFormModal';
 import KavioFormActions from './KavioFormActions';
-import {WorkEditorState,WorkDetail,weightUnits,workWeightIssues,workPercent,workItemWage} from '../lib/work-detail';
+import {WorkEditorState,WorkDetail,weightUnits,workTotalPercent,workWeightIssues,workPercent,workItemWage} from '../lib/work-detail';
 import {t36WorkReference} from '../lib/t36-work-reference';
 
 export default function KavioWorkDetailEditor({initial,action,identifier,spk=false,mandors=[],defaultMandor='',reference,autoOpen=false,readOnly=false}:{
@@ -27,12 +27,12 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  const update=(index:number,patch:Partial<WorkDetail>)=>setState(s=>({...s,details:s.details.map((d,i)=>i===index?{...d,...patch}:d)}));
  const detailMode=!spk||state.mode==='PERINCIAN';
  const issues=workWeightIssues(state.groups,state.details);
- const total=state.groups.reduce((n,g)=>n+weightUnits(g.bobot),0)/10000;
- const preset=()=>{setState(s=>({...s,total_upah:15569000,details:t36WorkReference,groups:s.groups.map(g=>({...g,bobot:t36WorkReference.filter(d=>d.group_id===g.id_kategori).reduce((n,d)=>n+weightUnits(d.bobot),0)/1000000}))}));setNotice('Contoh PDF dimuat untuk ditinjau. Bobot sumber berjumlah 99,9964%; sesuaikan selisih pembulatan agar menjadi 100%. Dua satuan kosong perlu diisi. Satuan lain mengikuti PDF, mohon diperiksa sebelum digunakan.');};
+ const total=workTotalPercent(state.groups);
+ const preset=()=>{setState(s=>({...s,total_upah:15569000,details:t36WorkReference,groups:s.groups.map(g=>({...g,bobot:t36WorkReference.filter(d=>d.group_id===g.id_kategori).reduce((n,d)=>n+weightUnits(d.bobot),0)/1000000}))}));setNotice('Contoh PDF dimuat untuk ditinjau. Total bobot sumber 99,9964% dibulatkan menjadi 100,00%. Dua satuan kosong perlu diisi. Satuan lain mengikuti PDF, mohon diperiksa sebelum digunakan.');};
  return <>
  <button className="kavio-button secondary" type="button" onClick={()=>setOpen(true)}>{readOnly?'LIHAT KONFIGURASI':spk?'KONFIGURASI PEKERJAAN':'EDIT PERINCIAN'}</button>
  <KavioFormModal open={open} onClose={()=>setOpen(false)} size={spk?'wide':'standard'} className="work-editor-modal" ariaLabel={spk?'Konfigurasi Pekerjaan SPK':'Master Perincian Pekerjaan'} persistenceKey={`work-detail:${identifier}`} closeOnBackdrop={false}>
- <section className="kavio-panel work-detail-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{spk?'KONFIGURASI PEKERJAAN SPK':'MASTER PERINCIAN PEKERJAAN'}</h2><p className="kavio-panel-note">Bobot item terhadap seluruh SPK. Total upah item dibulatkan ke ratusan rupiah.</p></div><span className="kavio-badge">TOTAL {total.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:total===100?2:4})}%</span></div>
+ <section className="kavio-panel work-detail-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{spk?'KONFIGURASI PEKERJAAN SPK':'MASTER PERINCIAN PEKERJAAN'}</h2><p className="kavio-panel-note">Bobot item terhadap seluruh SPK. Total upah item dibulatkan ke ratusan rupiah.</p></div><span className="kavio-badge">TOTAL {total.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})}%</span></div>
  <form ref={formRef} noValidate action={action} className="kavio-panel-body" onSubmit={event=>{
   if(readOnly)return;
   if(!Number.isFinite(state.total_upah)||state.total_upah<0){event.preventDefault();showSaveError('Total upah borongan harus berupa angka minimal 0.');formRef.current?.querySelector<HTMLInputElement>('[aria-label="Total upah borongan"]')?.focus();return;}
@@ -48,7 +48,7 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
    event.preventDefault();
    const mismatch=state.groups.find(g=>state.details.filter(d=>d.group_id===g.id_kategori).reduce((n,d)=>n+weightUnits(d.bobot),0)!==weightUnits(g.bobot));
    if(mismatch&&detailMode)setActiveId(mismatch.id_kategori);
-   showSaveError(total!==100?`Total bobot sebenarnya ${total.toLocaleString('id-ID',{maximumFractionDigits:4})}%. Total kategori harus tepat 100% sebelum Siap Digunakan. Simpan Draft dapat digunakan sementara.`:issues.join(' '));
+   showSaveError(total!==100?`Total bobot setelah pembulatan ${total.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})}%. Total kategori harus 100,00% sebelum Siap Digunakan. Simpan Draft dapat digunakan sementara.`:issues.join(' '));
   }
  }}>
  {error&&<div className="kavio-alert error" role="alert">{error}</div>}

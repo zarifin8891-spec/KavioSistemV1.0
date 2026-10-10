@@ -85,3 +85,5 @@ validasi gagal, dan penutupan form mempertahankan pilihan tipe tersebut.
 RPC `save_master_category_weight_atomic` menyimpan kategori dan bobot bersamaan.
 Pada tipe dengan perincian siap, bobot tetap harus cocok dengan item dan total
 100%; kegagalan mengembalikan seluruh perubahan termasuk nama dan urutan.
+
+Total bobot kategori divalidasi sebagai `ROUND(SUM(bobot) * 100; 2) = 100,00` pada form dan database, termasuk konfigurasi, aktivasi, serta pemeriksaan bobot saat input progress. Contoh: 99,9964% diterima sebagai 100,00%; 99,9949% ditolak sebagai 99,99%. Bobot sumber tetap disimpan dengan enam desimal pecahan dan jumlah item per kategori tetap harus sama persis dengan bobot kategori.
