@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import KavioNavTabs from '../components/KavioNavTabs';
 import WageReport from './WageReport';
 import ReceivableReport from './ReceivableReport';
 import KavioActionGate from '../components/KavioActionGate';
@@ -355,4 +356,4 @@ const [
   );
 }
 
-function ReportSelector({selected}:{selected:string}) {return <section className="kavio-panel laporan-selector"><div className="laporan-tabs">{REPORTS.map(item=><Link key={item.key} href={`/laporan?jenis=${item.key}`} className={`laporan-tab ${selected===item.key?'is-active':''}`}><span>{item.label}</span><small>{item.note}</small></Link>)}</div></section>;}
+function ReportSelector({selected}:{selected:string}) {return <section className="laporan-selector"><KavioNavTabs label="Jenis laporan" items={REPORTS.map(item=>({label:item.label.replace(/^LAPORAN /,''),href:`/laporan?jenis=${item.key}`,active:selected===item.key}))}/></section>;}

@@ -1996,7 +1996,7 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
  .kavio-split-kpi-part dd {font-size:22px;}
 }
 
-/* Shared KAVIO operational overview and distribution pipeline. */
+/* Shared KAVIO operational overview. */
 .kavio-decision-panel {--decision-accent:#70d6a0;padding:14px 16px !important;}
 .kavio-decision-panel.tone-danger {--decision-accent:#f78e94;}
 .kavio-decision-panel.tone-warning {--decision-accent:var(--kavio-champagne);}
@@ -2015,19 +2015,7 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 .kavio-decision-metrics > div {min-width:0;}
 .kavio-decision-metrics dt {font-size:11px;color:var(--kavio-muted);}
 .kavio-decision-metrics dd {margin:5px 0 0;font-size:14px;font-weight:600;color:var(--kavio-ivory);}
-.kavio-pipeline {border:1px solid var(--kavio-line);border-radius:11px;padding:10px 14px;background:linear-gradient(145deg,var(--kavio-panel-3),var(--kavio-panel));min-width:0;}
-.kavio-pipeline-heading {display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--kavio-champagne);}
-.kavio-pipeline-heading small {font-size:11px;color:var(--kavio-muted);font-weight:400;}
-.kavio-pipeline-track {display:flex;gap:3px;height:7px;margin-top:9px;background:rgba(216,180,90,.08);border-radius:8px;overflow:hidden;}
-.kavio-pipeline-segment {flex-basis:0;min-width:0;}
-.kavio-pipeline .tone-muted {background:#587189;}.kavio-pipeline .tone-gold {background:var(--kavio-gold);}.kavio-pipeline .tone-success {background:#56be92;}
-.kavio-pipeline-stages {display:flex;gap:24px;margin:9px 0 0;}
-.kavio-pipeline-stages > div {display:flex;gap:10px;align-items:center;}
-.kavio-pipeline-stages dt {display:flex;align-items:center;gap:6px;font-size:11px;color:var(--kavio-muted);}
-.kavio-pipeline-stages i {width:7px;height:7px;border-radius:50%;}
-.kavio-pipeline-stages dd {margin:0;color:var(--kavio-ivory);font-size:14px;font-weight:700;}
-.kavio-pipeline-stages small {font-size:10px;color:var(--kavio-muted);font-weight:400;}
-@media(max-width:800px) {.kavio-decision-main {grid-template-columns:1fr;gap:12px;}.kavio-decision-metrics {grid-template-columns:repeat(2,minmax(0,1fr));}.kavio-pipeline-stages {gap:10px;flex-wrap:wrap;}}
+@media(max-width:800px) {.kavio-decision-main {grid-template-columns:1fr;gap:12px;}.kavio-decision-metrics {grid-template-columns:repeat(2,minmax(0,1fr));}}
 
 /* Reusable printable report shell: every detail is retained when printing. */
 .kavio-report-heading {display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--kavio-line);}
@@ -2053,4 +2041,16 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
  .kavio-print-report thead {display:table-header-group;}.kavio-print-report tr {break-inside:avoid;}
  .kavio-print-report .kavio-report-subtext {font-size:8px;}
  .kavio-print-report .kavio-report-heading {padding:0 0 10px;}
+}
+
+/* Compact URL navigation and report pagination are shared Foundation patterns. */
+.kavio-nav-tabs {gap:4px;padding:6px 8px;}
+.kavio-nav-tabs .kavio-module-tab {padding:8px 12px;font-size:12px;line-height:1.2;white-space:nowrap;}
+.kavio-print-only {display:none;}
+.kavio-report-group + .kavio-report-group,.kavio-report-recap {margin-top:12px;}
+@media print {
+ .kavio-print-only {display:flex;}
+ .kavio-print-new-page,.kavio-report-group + .kavio-report-group {break-before:page;page-break-before:always;}
+ .kavio-report-group,.kavio-report-recap {margin:0;overflow:visible;}
+ .kavio-print-report tfoot {display:table-row-group;}
 }

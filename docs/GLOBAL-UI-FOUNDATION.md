@@ -113,6 +113,8 @@ SPK KPI notes show Kavling/Fasum counts for Total, Aktif, Draft and Selesai from
 
 Split KPI cards use `KavioSplitKpi`: total and title on the left, component counts in stacked rows on the right. Monitoring SPK applies the same component to Total, Aktif, Draft and Selesai, keeping the existing full-dataset counts.
 
-Shared operational presentation uses `KavioDecisionPanel` in Progress Monitoring and SPK Control Sheet: health gauge, recommendation and four compact status metrics. `KavioPipeline` renders stage distribution counts/percentages and is used for SPK lifecycle and the shared work-category snapshot on both monitoring pages. Zero records produce an empty track and 0% labels.
+Shared operational presentation uses `KavioDecisionPanel` in Progress Monitoring and SPK Control Sheet: health gauge, recommendation and four compact status metrics.
 
 Progress Monitoring shows progress and mandor assignments only. Wage accrual amounts appear exclusively in Laporan Upah Borongan. The report reads stored period ledger amounts through the RLS-preserving `kavio_wage_report` function, includes all matching details and a mandor recap, and uses the shared `KavioPrintButton` and `.kavio-print-report` print shell. Date ranges are inclusive; accumulated progress ends at the selected final date. Report amounts are accruals, not payment or retention-release records.
+
+Report navigation uses compact URL-based `KavioNavTabs` with Foundation module-tab styles, without description cards. Pipelines added to SPK/Progress/Control Sheet were removed. Wage detail is grouped by mandor with subtotals; each mandor starts a new printed page. The all-mandor recap starts on a separate page using `.kavio-print-new-page`. Shared `KavioReportHeading` supplies company identity and period on each group and recap; table headers repeat but subtotals print once.

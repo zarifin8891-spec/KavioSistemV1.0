@@ -1,7 +1,5 @@
 import Link from 'next/link';
 import KavioDecisionPanel from '../components/KavioDecisionPanel';
-import KavioPipeline from '../components/KavioPipeline';
-import {workPipelineStages} from '../lib/work-pipeline';
 import { createClient } from '../../lib/supabase/server';
 import ProgressCreatePanel from './ProgressCreatePanel';
 import { formatKavioDate } from '../lib/date-format';
@@ -98,7 +96,6 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
           </>
         </section>
 
-        <KavioPipeline label="POSISI KATEGORI / PEKERJAAN" stages={workPipelineStages(currentRows)}/>
         <KavioDecisionPanel decision={decision} gap={gap}/>
 
         <section className="progress-data-grid">

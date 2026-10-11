@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import KavioPipeline from '../../components/KavioPipeline';
 import KavioSplitKpi from '../../components/KavioSplitKpi';
 import { activateSpk, deactivateSpk } from './actions';
 import SpkCreatePanel from './SpkCreatePanel';
@@ -73,7 +72,6 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
         {([{label:'TOTAL SPK',value:totalSpk,key:'total_spk'},{label:'AKTIF',value:aktif,key:'aktif'},{label:'DRAFT',value:draft,key:'draft'},{label:'SELESAI',value:selesai,key:'selesai'}] as const).map(card=><KavioSplitKpi key={card.key} label={card.label} total={card.value} parts={kindParts(card.key)}/>)}
       </div>
 
-      <KavioPipeline label="PIPELINE SPK" stages={[{label:'DRAFT',count:draft,tone:'muted'},{label:'AKTIF',count:aktif,tone:'gold'},{label:'SELESAI',count:selesai,tone:'success'}]}/>
 
       <section className="kavio-panel spk-list-card">
         <div className="kavio-panel-head">
