@@ -107,7 +107,7 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
         <section className="progress-data-grid">
           <div className="kavio-panel-stack">
         <section className="kavio-panel">
-          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{selected.mode_progress==='PERINCIAN'?'REKAP PROGRESS KATEGORI':'PROGRESS PER ITEM PEKERJAAN'}</h2></div>{selected.jenis_spk === 'KAVLING' && <Link href={`/master/spk/detail/${selected.id_spk}?from=progress`} className="kavio-button secondary">CONTROL SHEET</Link>}</div>
+          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{selected.mode_progress==='PERINCIAN'?'REKAP PROGRESS KATEGORI':'PROGRESS PER ITEM PEKERJAAN'}</h2></div><Link href={`/master/spk/detail/${selected.id_spk}?from=progress`} className="kavio-button secondary">CONTROL SHEET</Link></div>
           <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>ITEM PEKERJAAN</th><th>BOBOT</th><th>AKUMULASI</th><th>BERBOBOT</th><th>UPDATE TERAKHIR</th></tr></thead><tbody>{currentRows.map((item) => { const cur = currentRows.find((r) => r.id_item === item.id_item); return <tr key={item.id_item}><td className="progress-category-name">{item.nama_pekerjaan}</td><td>{(Number(item.bobot_final) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_akumulasi ?? 0) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_berbobot ?? 0) * 100).toFixed(2)}%</td><td>{cur?.tanggal_update_terakhir ? formatKavioDate(cur.tanggal_update_terakhir) : 'BELUM ADA'}</td></tr>; })}{!currentRows.length && <tr><td colSpan={5} className="kavio-empty">BELUM ADA ITEM PEKERJAAN SPK.</td></tr>}</tbody></table></div>
         </section>
 

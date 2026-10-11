@@ -108,3 +108,5 @@ Fasum creation uses the shared bounded table-entry modal, compact input table, p
 ### Shared progress monitoring
 
 SPK monitoring KPIs count actual SPK records (Total, Active, Draft, Closed), covering both Kavling and Fasum. Progress monitoring presents the same KPI/Decision Engine and category/history/detail panels for both object types. The engine summary and latest-period contributions use shared SPK work-item weights. `kavio-panel-stack` groups recap and history vertically, independently from the taller detail/claim table, avoiding empty grid rows. Input progress retains its fixed footer and table-only scroll; the redundant explanatory footer note is removed.
+
+SPK KPI notes show Kavling/Fasum counts for Total, Aktif, Draft and Selesai from the full RLS-visible dataset, independent of pagination. Both types open the same Control Sheet from the SPK list and Progress Monitoring. The shared Control Sheet reads item snapshots, names, weights and history from the V2 work-item engine; its curve accumulates the same weighted contributions.

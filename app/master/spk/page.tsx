@@ -17,7 +17,7 @@ type Mandor = { id_mandor: string; nama_mandor: string; id_kantor: string };
 type Kategori = { id_kategori: string; nama_kategori: string; urutan: number };
 type Template = { id_tipe: string; id_kategori: string; bobot_standar: number | string };
 type Spk = { id_spk: string; id_kavling: string | null; jenis_spk: 'KAVLING' | 'FASUM'; nama_objek: string | null; tgl_spk: string; id_tipe: string | null; jenis_bobot: string; id_kantor: string; id_mandor: string; status_spk: string; tgl_target_selesai: string; is_active: boolean; configured_at:string|null };
-type SpkKpi = { total_spk:number|string; aktif:number|string; draft:number|string; selesai:number|string };
+type SpkKpi = { jenis_spk: 'KAVLING' | 'FASUM'; total_spk:number|string; aktif:number|string; draft:number|string; selesai:number|string };
 
 export default async function MasterSpkPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
@@ -34,7 +34,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
     supabase.from('master_kategori_pekerjaan').select('id_kategori, nama_kategori, urutan').eq('status_aktif', true).order('urutan'),
     supabase.from('template_progress_tipe').select('id_tipe, id_kategori, bobot_standar').order('id_tipe').order('id_kategori'),
     supabase.from('spk').select('id_spk, id_kavling, jenis_spk, nama_objek, tgl_spk, id_tipe, jenis_bobot, id_kantor, id_mandor, status_spk, tgl_target_selesai, is_active, configured_at', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + PAGE_SIZE - 1),
-    supabase.rpc('kavio_spk_kpi'),
+    supabase.rpc('kavio_spk_kpi_by_kind'),
   ]);
 
   const kavlingRows = (kavlingRes.data ?? []) as Kavling[];
@@ -44,7 +44,10 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
   const kategoriRows = (kategoriRes.data ?? []) as Kategori[];
   const templateRows = (templateRes.data ?? []) as Template[];
   const spkRows = (spkRes.data ?? []) as Spk[];
-  const kpi = (kpiRes.data?.[0] ?? { total_spk: 0, aktif: 0, draft: 0, selesai: 0 }) as SpkKpi;
+  const kpiRows = (kpiRes.data ?? []) as SpkKpi[];
+  const kpi = { total_spk:0, aktif:0, draft:0, selesai:0 };
+  for (const row of kpiRows) for (const key of Object.keys(kpi) as (keyof typeof kpi)[]) kpi[key] += Number(row[key]);
+  const kindNote = (key: keyof typeof kpi) => `Kavling ${Number(kpiRows.find(row=>row.jenis_spk==='KAVLING')?.[key] ?? 0)} · Fasum ${Number(kpiRows.find(row=>row.jenis_spk==='FASUM')?.[key] ?? 0)}`;
   const totalSpk = spkRes.count ?? Number(kpi.total_spk);
   const totalPages = Math.max(1, Math.ceil(totalSpk / PAGE_SIZE));
   const hasPrev = currentPage > 1;
@@ -65,7 +68,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
       {params.success && <div className="kavio-alert success">{params.success}</div>}
 
       <div className="spk-stats">
-        {[['TOTAL SPK',totalSpk,'Kavling dan Fasum'],['AKTIF',aktif,'Pekerjaan berjalan'],['DRAFT',draft,'Menunggu konfigurasi / aktivasi'],['SELESAI',selesai,'Pekerjaan ditutup']].map(([label,value,note])=><div className="kavio-kpi spk-stat" key={label}><span className="kavio-kpi-label">{label}</span><strong className="kavio-kpi-value">{value}</strong><small className="kavio-kpi-note">{note}</small></div>)}
+        {[['TOTAL SPK',totalSpk,kindNote('total_spk')],['AKTIF',aktif,kindNote('aktif')],['DRAFT',draft,kindNote('draft')],['SELESAI',selesai,kindNote('selesai')]].map(([label,value,note])=><div className="kavio-kpi spk-stat" key={label}><span className="kavio-kpi-label">{label}</span><strong className="kavio-kpi-value">{value}</strong><small className="kavio-kpi-note">{note}</small></div>)}
       </div>
 
       <section className="kavio-panel spk-list-card">
@@ -81,7 +84,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
             <thead><tr><th>OBJEK SPK</th><th>TANGGAL</th><th>TIPE</th><th>PELAKSANA</th><th>MANDOR</th><th>BOBOT</th><th>TARGET</th><th>STATUS</th><th>AKSI</th></tr></thead>
             <tbody>
               {spkRows.map((row) => <tr key={row.id_spk}>
-                <td><Link href={row.jenis_spk === 'FASUM' ? `/progress?spk=${row.id_spk}` : `/master/spk/detail/${row.id_spk}`} prefetch={false} className="spk-kavling">{row.jenis_spk === 'FASUM' ? `FASUM · ${row.nama_objek}` : row.id_kavling}</Link></td>
+                <td><Link href={`/master/spk/detail/${row.id_spk}`} prefetch={false} className="spk-kavling">{row.jenis_spk === 'FASUM' ? `FASUM · ${row.nama_objek}` : row.id_kavling}</Link></td>
                 <td>{formatKavioDate(row.tgl_spk)}</td>
                 <td>{row.id_tipe ? tipeMap.get(row.id_tipe) ?? row.id_tipe : '—'}</td>
                 <td>{kantorMap.get(row.id_kantor) ?? row.id_kantor}</td>
@@ -90,7 +93,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
                 <td>{formatKavioDate(row.tgl_target_selesai)}</td>
                 <td><span className={`spk-badge ${row.status_spk.toLowerCase()}`}>{row.status_spk}</span></td>
                 <td><div className="spk-actions">
-                  <Link href={row.jenis_spk === 'FASUM' ? `/progress?spk=${row.id_spk}` : `/master/spk/detail/${row.id_spk}`} prefetch={false} className="kavio-button secondary">DETAIL</Link>
+                  <Link href={`/master/spk/detail/${row.id_spk}`} prefetch={false} className="kavio-button secondary">CONTROL SHEET</Link>
                   <Link href={`/master/spk/konfigurasi?id=${row.id_spk}`} className="kavio-button secondary">KONFIGURASI</Link>
                   <KavioActionGate action="SPK_WRITE">
                     {row.status_spk === 'DRAFT' && !row.is_active ? <form action={activateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="kavio-button" disabled={!row.configured_at} title={!row.configured_at?'Simpan konfigurasi sebelum aktivasi':undefined}>AKTIFKAN</button></form> : null}
