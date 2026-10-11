@@ -10,10 +10,10 @@ import KavioFormActions from './KavioFormActions';
 import {WorkEditorState,WorkDetail,weightUnits,workTotalPercent,workWeightIssues,workPercent,workItemWage} from '../lib/work-detail';
 import {t36WorkReference} from '../lib/t36-work-reference';
 
-export default function KavioWorkDetailEditor({initial,action,identifier,spk=false,mandors=[],defaultMandor='',reference,autoOpen=false,readOnly=false,closeHref}:{
+export default function KavioWorkDetailEditor({initial,action,identifier,spk=false,mandors=[],defaultMandor='',reference,autoOpen=false,readOnly=false,closeHref,wageBasis}:{
  initial:WorkEditorState;action:(form:FormData)=>Promise<void>;identifier:string;spk?:boolean;
  mandors?:{id_mandor:string;nama_mandor:string}[];defaultMandor?:string;
- reference?:WorkDetail[];autoOpen?:boolean;readOnly?:boolean;closeHref?:string;
+ reference?:WorkDetail[];autoOpen?:boolean;readOnly?:boolean;closeHref?:string;wageBasis?:{group_id:string;nama:string;volume:number;satuan:string;rate:number;keterangan:string}[];
 }) {
  const router=useRouter();
  const close=()=>{setOpen(false);if(closeHref)router.replace(closeHref);};
@@ -57,9 +57,10 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  {error&&<div className="kavio-alert error" role="alert">{error}</div>}
  <input type="hidden" name={spk?'id_spk':'id_tipe'} value={identifier}/>
  <fieldset disabled={readOnly} className="work-detail-fields">
- <div className="kavio-form work-detail-settings"><label className="kavio-field work-wage-field"><span>TOTAL UPAH BORONGAN (RP)</span><KavioMoneyInput label="Total upah borongan" value={state.total_upah} onChange={value=>setState(s=>({...s,total_upah:value}))}/></label>
+ <div className="kavio-form work-detail-settings"><label className="kavio-field work-wage-field"><span>TOTAL UPAH BORONGAN (RP)</span><KavioMoneyInput label="Total upah borongan" readOnly={Boolean(wageBasis)} value={state.total_upah} onChange={value=>setState(s=>({...s,total_upah:value}))}/></label>
  {spk&&<label className="kavio-field"><span>CARA INPUT PROGRESS</span><select value={state.mode} aria-label="Cara input progress" onChange={e=>setState(s=>({...s,mode:e.target.value}))}><option value="KATEGORI">Per Kategori</option><option value="PERINCIAN">Dengan Perincian</option></select></label>}
  <div className="work-detail-tools">{!spk&&identifier==='T36'&&<button type="button" className="kavio-button secondary" onClick={preset}>MUAT CONTOH T36</button>}{spk&&reference&&reference.length>0&&detailMode&&<button className="kavio-button secondary" type="button" onClick={()=>{setState(s=>({...s,details:reference.map(d=>({...d,id_mandor:defaultMandor}))}));setNotice('Perincian master disalin. Periksa bobot custom dan penugasan mandor sebelum menyimpan.');}}>SALIN PERINCIAN MASTER</button>}</div><output className={`kavio-form-total ${total===100?'is-valid':'is-pending'}`} aria-label="Total bobot kategori">TOTAL <strong>{total.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})}%</strong></output></div>
+ {wageBasis&&<p className="kavio-panel-note">Total upah berasal dari volume × harga satuan upah pada rincian Fasum.</p>}
  {notice&&<div className="kavio-alert" role="alert">{notice}</div>}
  {spk&&detailMode&&<p className="kavio-panel-note">Simpan konfigurasi dan penugasan mandor sebelum mengaktifkan SPK. Progress item menjadi dasar perhitungan upah borongan.</p>}
  </fieldset>
@@ -72,6 +73,7 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  const sum=lines.reduce((n,d)=>n+weightUnits(d.bobot),0);
  const valid=sum===weightUnits(group.bobot),delta=Math.abs(sum-weightUnits(group.bobot))/1000000;
  return <div key={group.id_kategori} className="work-detail-fields work-selected-category" role="group" aria-label={group.nama_kategori}>
+ {wageBasis?.find(b=>b.group_id===group.id_kategori)&&<p className="kavio-panel-note">{(()=>{const b=wageBasis.find(b=>b.group_id===group.id_kategori)!;return `${b.volume.toLocaleString('id-ID')} ${b.satuan} × ${b.rate.toLocaleString('id-ID')} per ${b.satuan}${b.keterangan?' · '+b.keterangan:''}`;})()}</p>}
  {detailMode&&<><div className={`work-weight-summary ${valid?'is-valid':'is-pending'}`} role="status"><span>TOTAL BOBOT ITEM <strong>{workPercent(sum/1000000)}%</strong></span><span>BOBOT KATEGORI <strong>{workPercent(group.bobot)}%</strong></span><span>{valid?'Bobot sesuai':`Selisih ${workPercent(delta)}%`}</span>{!valid&&!readOnly&&<button type="button" className="kavio-button secondary" disabled={sum<=0||sum>1000000} onClick={()=>{setState(s=>({...s,groups:s.groups.map(g=>g.id_kategori===group.id_kategori?{...g,bobot:sum/1000000}:g)}));setNotice('Bobot kategori disamakan dengan total item. Periksa total seluruh kategori sebelum menyimpan.');}}>SAMAKAN BOBOT KATEGORI DENGAN TOTAL ITEM</button>}</div>
  <div className="work-input-table"><table className={`kavio-table kavio-input-table ${spk?'has-mandor':''}`}><thead><tr><th>NAMA PEKERJAAN</th><th>VOLUME</th><th>SATUAN</th><th>BOBOT (%)</th><th>RETENSI</th>{spk&&<th>MANDOR</th>}<th className="work-detail-money">TOTAL UPAH</th><th className="work-detail-money">HARGA SATUAN</th><th>AKSI</th></tr></thead><tbody>{lines.map((d,index)=><tr key={d.key} data-work-line-index={d.key}>
  <td><label className="kavio-field"><input disabled={readOnly} aria-label="Nama pekerjaan" value={d.nama_pekerjaan} maxLength={200} placeholder="Nama item pekerjaan" onChange={e=>update(d.key,{nama_pekerjaan:e.target.value})} required/></label></td>
@@ -88,7 +90,7 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  </div>;
  })}
  </div></div>
- <input type="hidden" name="editor_state" data-kavio-persist-hidden={!readOnly?'true':undefined} value={JSON.stringify({...state,details:state.details.map(d=>({...d,id_mandor:d.id_mandor??defaultMandor}))})} onInput={e=>{if(readOnly)return;try{const saved=JSON.parse(e.currentTarget.value);if(Array.isArray(saved.groups)&&Array.isArray(saved.details)&&saved.groups.length===initial.groups.length&&saved.groups.every((g:{id_kategori:string})=>initial.groups.some(i=>i.id_kategori===g.id_kategori))&&Number.isFinite(saved.total_upah))setState(saved);}catch{/* Keep current input. */}}}/>
+ <input type="hidden" name="editor_state" data-kavio-persist-hidden={!readOnly?'true':undefined} value={JSON.stringify({...state,details:state.details.map(d=>({...d,id_mandor:d.id_mandor??defaultMandor}))})} onInput={e=>{if(readOnly)return;try{const saved=JSON.parse(e.currentTarget.value);if(Array.isArray(saved.groups)&&Array.isArray(saved.details)&&saved.groups.length===initial.groups.length&&saved.groups.every((g:{id_kategori:string})=>initial.groups.some(i=>i.id_kategori===g.id_kategori))&&Number.isFinite(saved.total_upah))setState(wageBasis?{...saved,total_upah:initial.total_upah}:saved);}catch{/* Keep current input. */}}}/>
  <EditorFooter spk={spk} readOnly={readOnly}/>
  </form></section></KavioFormModal></>;
 }

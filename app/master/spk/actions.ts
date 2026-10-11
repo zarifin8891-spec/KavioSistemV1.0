@@ -151,13 +151,14 @@ export async function createFasumSpk(formData: FormData) {
   const tglTargetSelesai = text(formData.get('tgl_target_selesai'));
   const idKantor = text(formData.get('id_kantor'));
   const idMandor = text(formData.get('id_mandor'));
-  let items: Array<{ nama_pekerjaan: string; bobot: number }> = [];
+  let items: Array<{nama_pekerjaan:string;bobot:number;volume:number;satuan:string;harga_satuan_upah:number;keterangan:string}> = [];
   try {
     const rawItems = JSON.parse(text(formData.get('items_json')));
     if (!Array.isArray(rawItems)) throw new Error('INVALID_ITEMS');
     items = rawItems.map((item) => ({
       nama_pekerjaan: String(item?.nama_pekerjaan ?? '').trim(),
       bobot: Number(item?.bobot),
+      volume:Number(item?.volume),satuan:String(item?.satuan??'').trim(),harga_satuan_upah:Number(item?.harga_satuan_upah),keterangan:String(item?.keterangan??'').trim(),
     }));
   } catch {
     fasumError('Rincian item pekerjaan Fasum tidak valid');
@@ -174,7 +175,8 @@ export async function createFasumSpk(formData: FormData) {
     fasumError(`Total bobot Fasum setelah pembulatan harus 100,00%. Saat ini ${workTotalPercent(items).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})}%`);
   }
 
-  const { data: idSpk, error } = await supabase.rpc('create_fasum_spk_atomic', {
+  if(items.some(i=>!Number.isFinite(i.volume)||i.volume<=0||i.volume>9999999999||!i.satuan||i.satuan.length>30||!Number.isFinite(i.harga_satuan_upah)||i.harga_satuan_upah<=0||i.harga_satuan_upah>999999999999||i.keterangan.length>500))fasumError('Volume dan harga satuan upah wajib lebih dari nol, satuan wajib diisi, dan keterangan maksimal 500 karakter.');
+  const { data: idSpk, error } = await supabase.rpc('create_fasum_spk_with_wages_atomic', {
     p_nama_objek: namaObjek,
     p_tgl_spk: tglSpk,
     p_tgl_target_selesai: tglTargetSelesai,

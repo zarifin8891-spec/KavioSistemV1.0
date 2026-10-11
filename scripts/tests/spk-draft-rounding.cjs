@@ -9,7 +9,7 @@ const query=table=>{
 Module._load=function(request,parent,isMain){
  if(request==='next/navigation')return {redirect:url=>{throw Object.assign(new Error('redirect'),{url})}};
  if(request==='next/cache')return {revalidatePath:()=>{}};
- if(request.endsWith('/lib/supabase/server'))return {createClient:async()=>({auth:{getUser:async()=>({data:{user:{id:'test'}}})},from:query,rpc:async(name,args)=>{rpcs.push({name,args});return {data:name==='create_fasum_spk_atomic'?'test-id':{id_spk:'test-id',status_spk:'DRAFT'},error:null}}})};
+ if(request.endsWith('/lib/supabase/server'))return {createClient:async()=>({auth:{getUser:async()=>({data:{user:{id:'test'}}})},from:query,rpc:async(name,args)=>{rpcs.push({name,args});return {data:name==='create_fasum_spk_with_wages_atomic'?'test-id':{id_spk:'test-id',status_spk:'DRAFT'},error:null}}})};
  if(request.endsWith('/lib/kavio-permissions-server'))return {requireKavioAction:async()=>{}};
  if(request.endsWith('/lib/kavio-form-feedback'))return {redirectKavioFormError:(url,message)=>{throw Object.assign(new Error(message),{formError:message})}};
  return original.call(this,request,parent,isMain);
@@ -17,7 +17,7 @@ Module._load=function(request,parent,isMain){
 Module._extensions['.ts']=(mod,file)=>mod._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,file);
 const {createSpk,createFasumSpk}=require(repo+'/app/master/spk/actions.ts');
 const {workTotalPercent}=require(repo+'/app/lib/work-detail.ts');
-const form=()=>{const f=new FormData();for(const [k,v] of Object.entries({id_kavling:'A01',jenis_bobot:'STANDAR',tgl_spk:'2026-10-11',tgl_target_selesai:'2026-11-11',id_kantor:'K',id_mandor:'M',nama_objek:'Jalan',items_json:JSON.stringify([{nama_pekerjaan:'Persiapan',bobot:.4},{nama_pekerjaan:'Jalan',bobot:weight}])}))f.set(k,v);return f;};
+const form=()=>{const f=new FormData();for(const [k,v] of Object.entries({id_kavling:'A01',jenis_bobot:'STANDAR',tgl_spk:'2026-10-11',tgl_target_selesai:'2026-11-11',id_kantor:'K',id_mandor:'M',nama_objek:'Jalan',items_json:JSON.stringify([{nama_pekerjaan:'Persiapan',bobot:.4,volume:10,satuan:'m2',harga_satuan_upah:40000},{nama_pekerjaan:'Jalan',bobot:weight,volume:10,satuan:'m2',harga_satuan_upah:60000}])}))f.set(k,v);return f;};
 async function run(action,f){try{await action(f);assert.fail('Action must redirect')}catch(e){return e}}
 (async()=>{
  for(const [n,want] of [[.999964,100],[.99995,100],[.999949,99.99],[1.000049,100],[1.00005,100.01]])assert.equal(workTotalPercent([{bobot:n}]),want);
