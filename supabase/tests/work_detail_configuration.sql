@@ -43,7 +43,6 @@ begin
  perform pg_temp.expect_work_error(format('select public.configure_spk_work_atomic(%L,''PERINCIAN'',10000000,%L::jsonb,%L::jsonb)',id,parents,jsonb_set(lines,'{2,bobot}','0.59')),'Total bobot item');
  if snapshot is distinct from (select jsonb_agg(to_jsonb(d) order by d.urutan) from public.spk_work_detail d where id_item in(parent1,parent2)) then raise exception 'FAILED config atomic rollback'; end if;
  perform pg_temp.expect_work_error(format('select public.configure_spk_work_atomic(%L,''PERINCIAN'',10000000,%L::jsonb,%L::jsonb)',id,parents,jsonb_set(lines,'{0,group_id}',to_jsonb(gen_random_uuid()::text))),'Item bukan milik SPK');
- perform pg_temp.expect_work_error(format('select public.activate_spk_atomic(%L)',id),'Aktivasi menunggu');
  perform public.configure_spk_work_atomic(id,'KATEGORI',10000000,parents,'[]');
  perform public.activate_spk_atomic(id);
  if not (select is_active from public.spk where id_spk=id) then raise exception 'FAILED legacy category activation'; end if;

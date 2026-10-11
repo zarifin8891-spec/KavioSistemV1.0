@@ -6,10 +6,11 @@ import { formatKavioDate } from '../lib/date-format';
 const HISTORY_PAGE_SIZE = 25;
 
 type SearchParams = Promise<{ spk?: string; error?: string; success?: string; hpage?: string; panel?: string; form?: string; focus?: string }>;
-type Spk = { id_spk: string; id_kavling: string | null; id_tipe: string | null; jenis_spk: 'KAVLING' | 'FASUM'; nama_objek: string | null; tgl_spk: string; tgl_target_selesai: string; status_spk: string; is_active: boolean };
+type Spk = { id_spk: string; id_kavling: string | null; id_tipe: string | null; jenis_spk: 'KAVLING' | 'FASUM'; nama_objek: string | null; tgl_spk: string; tgl_target_selesai: string; status_spk: string; is_active: boolean; mode_progress:'KATEGORI'|'PERINCIAN' };
 type WorkItem = { id_item: string; urutan: number; nama_pekerjaan: string; bobot_final: number | string };
 type Category = { id_kategori: string; nama_kategori: string; urutan: number };
 type Current = { id_item: string; urutan: number; nama_pekerjaan: string; progress_akumulasi: number | string; bobot_final: number | string; progress_berbobot: number | string; tanggal_update_terakhir: string | null };
+type DetailCurrent=Current & {nama_kategori:string;nama_mandor:string;volume:number|string;satuan:string;upah_bruto:number|string;upah_retensi:number|string;upah_netto:number|string};
 type History = { id_progress: string; tanggal_update: string; id_item: string | null; id_kategori: string | null; progress_periode: number | string; keterangan: string | null };
 type Decision = { progress_aktual: number | string; progress_seharusnya: number | string; gap_progress: number | string; sisa_hari: number; tanggal_update_terakhir: string | null; progress_periode_terakhir: number | string; status_operasional: string; status_ritme: string; prioritas_tindakan: string; action_rekomendasi: string; hari_sejak_update: number; progress_diperlukan_per_hari: number | string; health_score: number; health_level: string; health_description: string };
 
@@ -17,7 +18,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
   const params = await searchParams;
   const supabase = await createClient();
 const [{ data: spks, error: spkError }, { data: categories, error: categoryError }] = await Promise.all([
-    supabase.from('spk').select('id_spk,id_kavling,id_tipe,jenis_spk,nama_objek,tgl_spk,tgl_target_selesai,status_spk,is_active').eq('is_active', true).order('tgl_target_selesai'),
+    supabase.from('spk').select('id_spk,id_kavling,id_tipe,jenis_spk,nama_objek,tgl_spk,tgl_target_selesai,status_spk,is_active,mode_progress').eq('is_active', true).order('tgl_target_selesai'),
     supabase.from('master_kategori_pekerjaan').select('id_kategori,nama_kategori,urutan').eq('status_aktif', true).order('urutan'),
   ]);
 
@@ -30,6 +31,7 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
 
   let workItems: WorkItem[] = [];
   let currentRows: Current[] = [];
+  let detailRows: DetailCurrent[] = [];
   let historyRows: History[] = [];
   let historyCount = 0;
   let decision: Decision | null = null;
@@ -38,19 +40,20 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
   if (selected) {
     const results = await Promise.all([
       supabase.from('v_spk_work_item_progress_current').select('id_item,urutan,nama_pekerjaan,progress_akumulasi,bobot_final,progress_berbobot,tanggal_update_terakhir').eq('id_spk', selected.id_spk).order('urutan'),
-      supabase
-        .from('progress_update')
-        .select('id_progress,tanggal_update,id_item,id_kategori,progress_periode,keterangan', { count: 'exact' })
-        .eq('id_spk', selected.id_spk)
-        .order('tanggal_update', { ascending: false })
-        .order('id_item')
-        .range(historyOffset, historyOffset + HISTORY_PAGE_SIZE - 1),
+      (selected.mode_progress==='PERINCIAN'
+        ?supabase.from('work_detail_progress').select('id_progress:id_progress_detail,tanggal_update,id_item:id_detail,progress_periode,keterangan,progress_update!inner(id_spk)',{count:'exact'}).eq('progress_update.id_spk',selected.id_spk)
+        :supabase.from('progress_update').select('id_progress,tanggal_update,id_item,id_kategori,progress_periode,keterangan',{count:'exact'}).eq('id_spk',selected.id_spk))
+        .order('tanggal_update',{ascending:false}).order('created_at',{ascending:false}).range(historyOffset,historyOffset+HISTORY_PAGE_SIZE-1),
       selected.jenis_spk === 'KAVLING'
         ? supabase.from('v_decision_engine').select('progress_aktual,progress_seharusnya,gap_progress,sisa_hari,tanggal_update_terakhir,progress_periode_terakhir,status_operasional,status_ritme,prioritas_tindakan,action_rekomendasi,hari_sejak_update,progress_diperlukan_per_hari,health_score,health_level,health_description').eq('id_spk', selected.id_spk).maybeSingle()
         : Promise.resolve({ data: null, error: null }),
+      selected.mode_progress==='PERINCIAN'
+        ?supabase.from('v_spk_work_detail_progress_current').select('id_item,urutan,nama_pekerjaan,nama_kategori,nama_mandor,volume,satuan,bobot_final,progress_akumulasi,progress_berbobot,tanggal_update_terakhir,upah_bruto,upah_retensi,upah_netto').eq('id_spk',selected.id_spk).order('urutan')
+        :Promise.resolve({data:[],error:null}),
     ]);
     currentRows = (results[0].data ?? []) as Current[];
-    workItems = currentRows.map(({ id_item, urutan, nama_pekerjaan, bobot_final }) => ({ id_item, urutan, nama_pekerjaan, bobot_final }));
+    detailRows=(results[3].data??[]) as DetailCurrent[];
+    workItems = (selected.mode_progress==='PERINCIAN'?detailRows:currentRows).map(({ id_item, urutan, nama_pekerjaan, bobot_final }) => ({ id_item, urutan, nama_pekerjaan, bobot_final }));
     historyRows = (results[1].data ?? []) as History[];
     historyCount = results[1].count ?? 0;
     decision = results[2].data as Decision | null;
@@ -104,10 +107,14 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
         </section>}
 
         <section className="progress-data-grid"><section className="kavio-panel">
-          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PER ITEM PEKERJAAN</h2></div>{selected.jenis_spk === 'KAVLING' && <Link href={`/master/spk/detail/${selected.id_spk}?from=progress`} className="kavio-button secondary">CONTROL SHEET</Link>}</div>
-          <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>ITEM PEKERJAAN</th><th>BOBOT</th><th>AKUMULASI</th><th>BERBOBOT</th><th>UPDATE TERAKHIR</th></tr></thead><tbody>{workItems.map((item) => { const cur = currentRows.find((r) => r.id_item === item.id_item); return <tr key={item.id_item}><td className="progress-category-name">{item.nama_pekerjaan}</td><td>{(Number(item.bobot_final) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_akumulasi ?? 0) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_berbobot ?? 0) * 100).toFixed(2)}%</td><td>{cur?.tanggal_update_terakhir ? formatKavioDate(cur.tanggal_update_terakhir) : 'BELUM ADA'}</td></tr>; })}{!workItems.length && <tr><td colSpan={5} className="kavio-empty">BELUM ADA ITEM PEKERJAAN SPK.</td></tr>}</tbody></table></div>
+          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{selected.mode_progress==='PERINCIAN'?'REKAP PROGRESS KATEGORI':'PROGRESS PER ITEM PEKERJAAN'}</h2></div>{selected.jenis_spk === 'KAVLING' && <Link href={`/master/spk/detail/${selected.id_spk}?from=progress`} className="kavio-button secondary">CONTROL SHEET</Link>}</div>
+          <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>ITEM PEKERJAAN</th><th>BOBOT</th><th>AKUMULASI</th><th>BERBOBOT</th><th>UPDATE TERAKHIR</th></tr></thead><tbody>{currentRows.map((item) => { const cur = currentRows.find((r) => r.id_item === item.id_item); return <tr key={item.id_item}><td className="progress-category-name">{item.nama_pekerjaan}</td><td>{(Number(item.bobot_final) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_akumulasi ?? 0) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_berbobot ?? 0) * 100).toFixed(2)}%</td><td>{cur?.tanggal_update_terakhir ? formatKavioDate(cur.tanggal_update_terakhir) : 'BELUM ADA'}</td></tr>; })}{!currentRows.length && <tr><td colSpan={5} className="kavio-empty">BELUM ADA ITEM PEKERJAAN SPK.</td></tr>}</tbody></table></div>
         </section>
 
+        {selected.mode_progress==='PERINCIAN'&&<section className="kavio-panel">
+          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PERINCIAN & DASAR TAGIHAN UPAH</h2><div className="kavio-panel-note">Nilai pekerjaan tercatat per mandor. Retensi dipisahkan dari upah netto.</div></div><Link className="kavio-button secondary" href={`/master/spk/konfigurasi?id=${selected.id_spk}`}>KONFIGURASI</Link></div>
+          <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>PEKERJAAN / KATEGORI</th><th>MANDOR</th><th>BOBOT</th><th>AKUMULASI</th><th>KONTRIBUSI SPK</th><th className="kavio-number">UPAH BRUTO</th><th className="kavio-number">RETENSI</th><th className="kavio-number">UPAH NETTO</th></tr></thead><tbody>{detailRows.map(row=><tr key={row.id_item}><td>{row.nama_pekerjaan}<div className="kavio-panel-note">{row.nama_kategori}</div></td><td>{row.nama_mandor}</td><td>{(Number(row.bobot_final)*100).toFixed(2)}%</td><td>{(Number(row.progress_akumulasi)*100).toFixed(2)}%</td><td>{(Number(row.progress_berbobot)*100).toFixed(2)}%</td><td className="kavio-number">{Number(row.upah_bruto).toLocaleString('id-ID')}</td><td className="kavio-number">{Number(row.upah_retensi).toLocaleString('id-ID')}</td><td className="kavio-number">{Number(row.upah_netto).toLocaleString('id-ID')}</td></tr>)}{!detailRows.length&&<tr><td colSpan={8} className="kavio-empty">Belum ada perincian SPK.</td></tr>}</tbody><tfoot><tr><td colSpan={5}>TOTAL NILAI PEKERJAAN TERCATAT</td>{(['upah_bruto','upah_retensi','upah_netto'] as const).map(key=><td key={key} className="kavio-number">{detailRows.reduce((sum,row)=>sum+Number(row[key]),0).toLocaleString('id-ID')}</td>)}</tr></tfoot></table></div>
+        </section>}
         <section className="kavio-panel">
           <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">HISTORI PROGRESS</h2><div className="kavio-panel-note">Seluruh update periode tetap tersimpan.</div></div><span className="kavio-badge">{historyCount} UPDATE</span></div>
           <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>TANGGAL</th><th>ITEM PEKERJAAN</th><th>PROGRESS PERIODE</th><th>KETERANGAN</th></tr></thead><tbody>{historyRows.map((row) => <tr key={row.id_progress}><td>{formatKavioDate(row.tanggal_update)}</td><td>{workItems.find((item) => item.id_item === row.id_item)?.nama_pekerjaan ?? (row.id_kategori ? categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori : '—')}</td><td className="progress-highlight">{(Number(row.progress_periode) * 100).toFixed(2)}%</td><td>{row.keterangan || '—'}</td></tr>)}{!historyRows.length && <tr><td colSpan={4} className="kavio-empty">BELUM ADA HISTORI PROGRESS.</td></tr>}</tbody></table></div>
@@ -118,7 +125,7 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
             {historyPage < historyTotalPages ? <Link href={historyHref(historyPage + 1)} className="kavio-button secondary">BERIKUTNYA →</Link> : <span />}
           </div>
         </section>
-                <ProgressCreatePanel idSpk={selected.id_spk} tglSpk={selected.tgl_spk} workItems={workItems} currentProgressRows={currentRows.map((row) => ({ id_item: row.id_item, progress_akumulasi: Number(row.progress_akumulasi ?? 0) }))} autoOpen={params.form === 'progress-create' || params.panel === 'progress' || Boolean(params.error)} />
+                <ProgressCreatePanel key={selected.id_spk} detailed={selected.mode_progress==='PERINCIAN'} idSpk={selected.id_spk} tglSpk={selected.tgl_spk} workItems={selected.mode_progress==='PERINCIAN'?detailRows:workItems} currentProgressRows={(selected.mode_progress==='PERINCIAN'?detailRows:currentRows).map((row) => ({ id_item: row.id_item, progress_akumulasi: Number(row.progress_akumulasi ?? 0) }))} autoOpen={params.form === 'progress-create' || params.panel === 'progress' || Boolean(params.error)} />
         </section>
 
       </>}

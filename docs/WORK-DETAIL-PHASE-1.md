@@ -1,7 +1,6 @@
 # KAVIO V2 — Master perincian dan konfigurasi SPK
 
-Tahap 1 menyiapkan master dan snapshot konfigurasi. Input progress perincian,
-tagihan mandor, pembayaran upah, dan pencairan retensi merupakan tahap berikutnya.
+Tahap 1 menyiapkan master dan snapshot konfigurasi. Input progress perincian dan dasar tagihan kini tersedia pada tahap 2; lihat `WORK-DETAIL-PHASE-2.md`. Pembayaran upah dan pencairan retensi menjadi tahap berikutnya.
 
 ## Alur pengguna
 
@@ -19,8 +18,7 @@ tagihan mandor, pembayaran upah, dan pencairan retensi merupakan tahap berikutny
    berjalan tetap terkunci. Perubahan master tidak merambat ke snapshot SPK.
 
 SPK mode KATEGORI tetap dapat diaktifkan melalui perintah Aktivasi.
-SPK mode PERINCIAN dapat dikonfigurasi dan disimpan sebagai DRAFT, tetapi aktivasi
-menunggu implementasi input progress perincian. Perubahan SPK draft melalui form
+SPK mode PERINCIAN dapat dikonfigurasi dan disimpan sebagai DRAFT. Tahap 2 membuka aktivasi setelah konfigurasi dan mandor per item valid. Perubahan SPK draft melalui form
 pembuatan kini tetap DRAFT; aktivasi merupakan perintah terpisah.
 
 ## Kontrak data dan perhitungan

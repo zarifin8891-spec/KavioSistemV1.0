@@ -58,7 +58,7 @@ export default function KavioWorkDetailEditor({initial,action,identifier,spk=fal
  {spk&&<label className="kavio-field"><span>CARA INPUT PROGRESS</span><select value={state.mode} aria-label="Cara input progress" onChange={e=>setState(s=>({...s,mode:e.target.value}))}><option value="KATEGORI">Per Kategori</option><option value="PERINCIAN">Dengan Perincian</option></select></label>}
  <div className="work-detail-tools">{!spk&&identifier==='T36'&&<button type="button" className="kavio-button secondary" onClick={preset}>MUAT CONTOH T36</button>}{spk&&reference&&reference.length>0&&detailMode&&<button className="kavio-button secondary" type="button" onClick={()=>{setState(s=>({...s,details:reference.map(d=>({...d,id_mandor:defaultMandor}))}));setNotice('Perincian master disalin. Periksa bobot custom dan penugasan mandor sebelum menyimpan.');}}>SALIN PERINCIAN MASTER</button>}</div></div>
  {notice&&<div className="kavio-alert" role="alert">{notice}</div>}
- {spk&&detailMode&&<p className="kavio-panel-note">Konfigurasi dapat disimpan sebagai draft. Aktivasi menyusul setelah fitur input progress perincian tersedia.</p>}
+ {spk&&detailMode&&<p className="kavio-panel-note">Simpan konfigurasi dan penugasan mandor sebelum mengaktifkan SPK. Progress item menjadi dasar perhitungan upah borongan.</p>}
  </fieldset>
  <div className="work-editor-layout">
  <nav className="work-category-nav" aria-label="Kategori pekerjaan">

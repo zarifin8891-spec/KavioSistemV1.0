@@ -74,7 +74,8 @@ export async function createProgressBatchUpdate(formData: FormData) {
   let entries: Array<{ id_item: string; progress_percent: number; keterangan?: string | null }> = [];
   try {
     const parsed = JSON.parse(rawEntries);
-    if (!Array.isArray(parsed)) throw new Error('INVALID_BATCH');
+    if (!Array.isArray(parsed)||parsed.length>1000) throw new Error('INVALID_BATCH');
+    if(parsed.some(row=>!row||!String(row.id_item??'').trim()||!Number.isFinite(Number(row.progress_percent))||Number(row.progress_percent)<=0||Number(row.progress_percent)>100))throw new Error('INVALID_ENTRY');
     entries = parsed
       .map((row) => ({
         id_item: String(row?.id_item ?? '').trim(),
@@ -90,7 +91,9 @@ export async function createProgressBatchUpdate(formData: FormData) {
     progressError(idSpk, 'Isi minimal satu item pekerjaan sebelum menyimpan', 'progress_batch_first');
   }
 
-  const { data: inserted, error } = await supabase.rpc('insert_progress_work_item_batch_atomic', {
+  const {data:spk,error:spkError}=await supabase.from('spk').select('mode_progress').eq('id_spk',idSpk).maybeSingle();
+  if(spkError||!spk)progressError(idSpk,spkError?.message??'SPK tidak ditemukan');
+  const { data: inserted, error } = await supabase.rpc(spk.mode_progress==='PERINCIAN'?'insert_work_detail_progress_batch_atomic':'insert_progress_work_item_batch_atomic', {
     p_id_spk: idSpk,
     p_tanggal_update: tanggalUpdate,
     p_entries: entries,
