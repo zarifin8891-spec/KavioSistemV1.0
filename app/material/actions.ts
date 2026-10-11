@@ -68,7 +68,13 @@ function purchaseData(form:FormData) {
  let items: {id_material:string;jumlah:number;harga_satuan:number}[]=[];
  try {items=JSON.parse(value(form,'items'));} catch { /* Validation below produces the form message. */ }
  if(!Array.isArray(items)||!items.length||items.some(i=>!i.id_material||!Number.isFinite(i.jumlah)||i.jumlah<=0||!Number.isFinite(i.harga_satuan)||i.harga_satuan<0)) throw new Error('Material, jumlah dan harga pembelian wajib diisi dengan benar.');
- return {tujuan:value(form,'tujuan'),id_pemasok:value(form,'id_pemasok'),id_lokasi:value(form,'id_lokasi')||null,id_spk:value(form,'id_spk')||null,no_nota:value(form,'no_nota'),keterangan:value(form,'keterangan')||null,items};
+ const tanggal=value(form,'tanggal');
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)||!Number.isFinite(Date.parse(tanggal))||new Date(tanggal).toISOString().slice(0,10)!==tanggal||tanggal>today) throw new Error('Tanggal pembelian wajib valid dan tidak boleh di masa depan.');
+ const destination=value(form,'destination');
+ const [tujuan,holder]=destination.split(':');
+ if(!['GUDANG','SPK'].includes(tujuan)||!holder) throw new Error('Pilih tujuan Gudang atau SPK.');
+ return {tanggal,tujuan,id_pemasok:value(form,'id_pemasok'),id_lokasi:tujuan==='GUDANG'?holder:null,id_spk:tujuan==='SPK'?holder:null,no_nota:value(form,'no_nota'),keterangan:value(form,'keterangan')||null,items};
 }
 export async function saveMaterialPurchase(form:FormData) {
  let data;try {data=purchaseData(form);} catch(error) {redirectKavioFormError('/material',error instanceof Error?error.message:'Data pembelian tidak valid.',{focus:'purchase_entry',params:{tab:'pembelian'}});}

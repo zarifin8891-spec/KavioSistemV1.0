@@ -29,7 +29,7 @@ export function HistoryTable({mode,options,today,revision}:{revision:string;mode
  useEffect(()=>{let ignore=false;async function read(){setBusy(true);setError('');
   const supabase=createClient();
   const view=mode==='purchase'?'v_material_purchase':mode==='card'?'v_material_stock_card':'v_material_usage_transaction';
-  let query=supabase.from(view).select('*',{count:'exact'}).order('tanggal',{ascending:false}).order('no_transaksi',{ascending:false});
+  let query=supabase.from(view).select('*',{count:'exact'}).order('created_at',{ascending:false}).order('no_transaksi',{ascending:false});
   if(mode==='purchase'&&/^purchase_(edit|delete):/.test(failedFocus)) query=query.eq('id_transaksi',failedFocus.split(':')[1]);
   else if(mode==='card') query=query.gte('tanggal',filters.from).lte('tanggal',filters.to);
   if(mode==='card')query=query.order('id_item_transaksi');
@@ -41,7 +41,7 @@ export function HistoryTable({mode,options,today,revision}:{revision:string;mode
   if(ignore)return;setRows((result.data??[]) as (Purchase|Card|Usage)[]);setCount(result.count??0);setError(result.error?.message??'');setBusy(false);
  }read().catch(e=>{if(!ignore){setError(e instanceof Error?e.message:'Data tidak dapat dimuat.');setBusy(false);}});return()=>{ignore=true;};},[filters,page,mode,revision,failedFocus]);
  const title=mode==='purchase'?'DATA PEMBELIAN':mode==='card'?'KARTU STOK':'PEMAKAIAN MATERIAL';
- return <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{title}</h2><p className="kavio-panel-note">{mode==='card'?'Saldo per material dan lokasi mencakup transaksi sebelum periode yang dipilih.':'20 transaksi terakhir. Riwayat lengkap tersedia di Laporan Material.'}</p></div></div>
+ return <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{title}</h2><p className="kavio-panel-note">{mode==='card'?'Saldo mengikuti urutan pencatatan. Tanggal pembelian mengikuti tanggal barang datang.':'20 transaksi terakhir. Riwayat lengkap tersedia di Laporan Material.'}</p></div></div>
  {mode==='card'&&<form onSubmit={e=>{e.preventDefault();if(from>to){setError('Tanggal awal harus sebelum atau sama dengan tanggal akhir.');return;}setFilters({from,to,supplier,material,location});setPage(0);}}>
  <KavioTableControls count={count} page={page} onPage={setPage} busy={busy}><KavioFilterField label="DARI TANGGAL" kind="date"><input type="date" required value={from} onChange={e=>setFrom(e.target.value)}/></KavioFilterField><KavioFilterField label="SAMPAI TANGGAL" kind="date"><input type="date" required value={to} onChange={e=>setTo(e.target.value)}/></KavioFilterField>
 
