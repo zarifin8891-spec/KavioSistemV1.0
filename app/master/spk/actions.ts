@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { requireKavioAction } from '../../../lib/kavio-permissions-server';
 import { redirectKavioFormError } from '../../../lib/kavio-form-feedback';
+import {workTotalPercent} from '../../lib/work-detail';
 
 function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
@@ -102,10 +103,10 @@ export async function createSpk(formData: FormData) {
     createError('Semua bobot custom harus berupa angka 0 sampai 100', `bobot_${config[invalidConfigIndex].id_kategori}`);
   }
 
-  const totalBobot = config.reduce((total, row) => total + row.bobot_final, 0);
-  if (Math.abs(totalBobot - 1) > 0.00001) {
+  const totalBobot = workTotalPercent(config.map(row=>({bobot:row.bobot_final})));
+  if (totalBobot !== 100) {
     createError(
-      `Total bobot harus 100%. Saat ini ${(totalBobot * 100).toFixed(2)}%`,
+      `Total bobot setelah pembulatan harus 100,00%. Saat ini ${totalBobot.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})}%`,
       jenisBobot === 'CUSTOM' && config[0] ? `bobot_${config[0].id_kategori}` : 'jenis_bobot',
     );
   }
@@ -169,8 +170,8 @@ export async function createFasumSpk(formData: FormData) {
   if (items.some((item) => !item.nama_pekerjaan || !Number.isFinite(item.bobot) || item.bobot <= 0 || item.bobot > 1)) {
     fasumError('Nama item wajib diisi dan bobot setiap item harus lebih dari 0 sampai 100%');
   }
-  if (Math.abs(items.reduce((sum, item) => sum + item.bobot, 0) - 1) > 0.00001) {
-    fasumError('Total bobot seluruh item pekerjaan Fasum harus 100%');
+  if (workTotalPercent(items) !== 100) {
+    fasumError(`Total bobot Fasum setelah pembulatan harus 100,00%. Saat ini ${workTotalPercent(items).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})}%`);
   }
 
   const { data: idSpk, error } = await supabase.rpc('create_fasum_spk_atomic', {

@@ -1,5 +1,6 @@
 'use client';
 
+import {workTotalPercent} from '../../lib/work-detail';
 import KavioFormActions from '../../components/KavioFormActions';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -21,7 +22,7 @@ export default function FasumSpkCreatePanel({ kantorRows, mandorRows }: { kantor
   const searchParams = useSearchParams();
   const mandors = useMemo(() => mandorRows.filter((row) => row.id_kantor === selectedKantor), [mandorRows, selectedKantor]);
   const payload = items.map((item) => ({ nama_pekerjaan: item.nama_pekerjaan.trim(), bobot: Number(item.bobot_percent) / 100 }));
-  const total = items.reduce((sum, item) => sum + (Number(item.bobot_percent) || 0), 0);
+  const total = workTotalPercent(payload);
 
   useEffect(() => {
     if (searchParams.get('form') === 'spk-fasum-create') setOpen(true);
@@ -62,11 +63,11 @@ export default function FasumSpkCreatePanel({ kantorRows, mandorRows }: { kantor
               <label className="kavio-field"><span>KANTOR / PELAKSANA</span><select name="id_kantor" required value={selectedKantor} onChange={(event) => setSelectedKantor(event.target.value)}><option value="">PILIH KANTOR</option>{kantorRows.map((row) => <option key={row.id_kantor} value={row.id_kantor}>{row.nama_kantor_pelaksana}</option>)}</select></label>
               <label className="kavio-field"><span>MANDOR</span><select name="id_mandor" required defaultValue=""><option value="">PILIH MANDOR</option>{mandors.map((row) => <option key={row.id_mandor} value={row.id_mandor}>{row.nama_mandor}</option>)}</select></label>
               <input type="hidden" name="items_json" value={JSON.stringify(payload)} />
-              <div className="kavio-panel-head kavio-form-section"><div><h3 className="kavio-panel-title">ITEM PEKERJAAN DAN BOBOT</h3><div className="kavio-panel-note">Total bobot seluruh item wajib 100%.</div></div><span className={`kavio-badge ${Math.abs(total - 100) > 0.001 ? 'kavio-badge-warning' : ''}`}>TOTAL {total.toFixed(2)}%</span></div>
+              <div className="kavio-panel-head kavio-form-section"><div><h3 className="kavio-panel-title">ITEM PEKERJAAN DAN BOBOT</h3><div className="kavio-panel-note">Total bobot seluruh item wajib 100%.</div></div><span className={`kavio-badge ${total !== 100 ? 'kavio-badge-warning' : ''}`}>TOTAL {total.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})}%</span></div>
               <div className="kavio-table-wrap kavio-form-section"><table className="kavio-table"><thead><tr><th>URUTAN</th><th>NAMA PEKERJAAN</th><th className="text-right">BOBOT (%)</th><th>AKSI</th></tr></thead><tbody>
                 {items.map((item, index) => <tr key={index}><td>{index + 1}</td><td><label className="kavio-field"><input aria-label={`Nama pekerjaan ${index + 1}`} value={item.nama_pekerjaan} required onChange={(event) => updateItem(index, 'nama_pekerjaan', event.target.value)} /></label></td><td><label className="kavio-field"><input aria-label={`Bobot pekerjaan ${index + 1}`} type="number" min="0.01" max="100" step="0.01" value={item.bobot_percent} required onChange={(event) => updateItem(index, 'bobot_percent', event.target.value)} /></label></td><td><button type="button" className="kavio-button secondary" disabled={items.length === 1} onClick={() => setItems((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}>HAPUS</button></td></tr>)}
               </tbody></table></div>
-              <div className="kavio-form-section"><button type="button" className="kavio-button secondary" onClick={() => setItems((rows) => [...rows, { nama_pekerjaan: '', bobot_percent: '' }])}>TAMBAH ITEM</button></div><KavioFormActions><button type="submit" className="kavio-button" disabled={!items.length || Math.abs(total - 100) > 0.001 || !kantorRows.length}>SIMPAN SPK FASUM SEBAGAI DRAFT</button></KavioFormActions>
+              <div className="kavio-form-section"><button type="button" className="kavio-button secondary" onClick={() => setItems((rows) => [...rows, { nama_pekerjaan: '', bobot_percent: '' }])}>TAMBAH ITEM</button></div><KavioFormActions><button type="submit" className="kavio-button" disabled={!items.length || total !== 100 || !kantorRows.length}>SIMPAN SPK FASUM SEBAGAI DRAFT</button></KavioFormActions>
             </form>
           </section>
         </KavioFormModal>

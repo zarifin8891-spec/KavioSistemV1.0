@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import {workTotalPercent} from '../../lib/work-detail';
 
 type Kavling = { id_kavling: string; id_tipe: string };
 type Kategori = { id_kategori: string; nama_kategori: string; urutan: number };
@@ -25,7 +26,7 @@ export default function WeightConfigurator({ kavlingRows, kategoriRows, template
     return map;
   }, [selectedType, templateRows]);
 
-  const standardTotal = kategoriRows.reduce((sum, row) => sum + (templateMap.get(row.id_kategori) ?? 0), 0);
+  const standardTotal = workTotalPercent(kategoriRows.map(row=>({bobot:(templateMap.get(row.id_kategori)??0)/100})));
 
   return (
     <>
