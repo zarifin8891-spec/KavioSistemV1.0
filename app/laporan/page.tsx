@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import WageReport from './WageReport';
 import ReceivableReport from './ReceivableReport';
 import KavioActionGate from '../components/KavioActionGate';
 import MaterialReport from './MaterialReport';
@@ -10,6 +11,7 @@ import { formatKavioMoney } from '../lib/number-format';
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const REPORTS = [
+  {key:'upah',label:'UPAH BORONGAN',note:'Dasar tagihan progress per SPK, mandor dan periode.'},
   {key:'piutang',label:'LAPORAN PIUTANG',note:'Posisi piutang konsumen berdasarkan kategori pembayaran.'},
   {key:'jaminan',label:'PIUTANG DANA JAMINAN',note:'Tagihan dana jaminan ke bank KPR berdasarkan jenis item.'},
   {key:'material',label:'LAPORAN MATERIAL',note:'Riwayat pembelian, permintaan, pemakaian dan rekonsiliasi stok.'},
@@ -55,6 +57,8 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
   const selected = REPORTS.some((item) => item.key === textParam(params, 'jenis'))
     ? textParam(params, 'jenis')
     : 'sales';
+
+  if(selected==='upah') return <main className="laporan-page"><ReportSelector selected={selected}/><WageReport params={params}/></main>;
 
   if(selected==='piutang'||selected==='jaminan') {
     const supabase=await createClient();

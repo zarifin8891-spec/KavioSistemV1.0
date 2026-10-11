@@ -1995,3 +1995,62 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
  .kavio-split-kpi-part dt {font-size:10px;}
  .kavio-split-kpi-part dd {font-size:22px;}
 }
+
+/* Shared KAVIO operational overview and distribution pipeline. */
+.kavio-decision-panel {--decision-accent:#70d6a0;padding:14px 16px !important;}
+.kavio-decision-panel.tone-danger {--decision-accent:#f78e94;}
+.kavio-decision-panel.tone-warning {--decision-accent:var(--kavio-champagne);}
+.kavio-decision-main {display:grid;grid-template-columns:minmax(240px,.85fr) minmax(0,2fr);gap:18px;align-items:center;}
+.kavio-decision-health {display:flex;align-items:center;gap:12px;}
+.kavio-health-ring {position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;width:72px;height:72px;flex:none;border-radius:50%;background:conic-gradient(var(--decision-accent) var(--health-progress),rgba(216,180,90,.13) 0);}
+.kavio-health-ring::before {content:"";position:absolute;inset:5px;border-radius:50%;background:var(--kavio-panel);z-index:-1;}
+.kavio-health-ring strong {font-size:var(--kavio-font-kpi-value);color:var(--decision-accent);line-height:1;}
+.kavio-health-ring small {font-size:10px;color:var(--kavio-muted);}
+.kavio-decision-eyebrow {font-size:11px;color:var(--kavio-champagne);letter-spacing:.5px;font-weight:700;}
+.kavio-decision-health h2 {font-size:22px;color:var(--decision-accent);margin:3px 0;font-weight:700;}
+.kavio-decision-health p {font-size:12px;color:var(--kavio-muted);margin:0;}
+.kavio-decision-recommendation {padding:14px 16px;border-left:3px solid var(--kavio-gold);background:linear-gradient(100deg,rgba(216,180,90,.1),rgba(216,180,90,.02));border-radius:0 8px 8px 0;}
+.kavio-decision-recommendation strong {display:block;font-size:16px;line-height:1.35;color:var(--kavio-ivory);margin-top:6px;font-weight:600;}
+.kavio-decision-metrics {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0 0;border-top:1px solid var(--kavio-line);padding-top:12px;}
+.kavio-decision-metrics > div {min-width:0;}
+.kavio-decision-metrics dt {font-size:11px;color:var(--kavio-muted);}
+.kavio-decision-metrics dd {margin:5px 0 0;font-size:14px;font-weight:600;color:var(--kavio-ivory);}
+.kavio-pipeline {border:1px solid var(--kavio-line);border-radius:11px;padding:10px 14px;background:linear-gradient(145deg,var(--kavio-panel-3),var(--kavio-panel));min-width:0;}
+.kavio-pipeline-heading {display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--kavio-champagne);}
+.kavio-pipeline-heading small {font-size:11px;color:var(--kavio-muted);font-weight:400;}
+.kavio-pipeline-track {display:flex;gap:3px;height:7px;margin-top:9px;background:rgba(216,180,90,.08);border-radius:8px;overflow:hidden;}
+.kavio-pipeline-segment {flex-basis:0;min-width:0;}
+.kavio-pipeline .tone-muted {background:#587189;}.kavio-pipeline .tone-gold {background:var(--kavio-gold);}.kavio-pipeline .tone-success {background:#56be92;}
+.kavio-pipeline-stages {display:flex;gap:24px;margin:9px 0 0;}
+.kavio-pipeline-stages > div {display:flex;gap:10px;align-items:center;}
+.kavio-pipeline-stages dt {display:flex;align-items:center;gap:6px;font-size:11px;color:var(--kavio-muted);}
+.kavio-pipeline-stages i {width:7px;height:7px;border-radius:50%;}
+.kavio-pipeline-stages dd {margin:0;color:var(--kavio-ivory);font-size:14px;font-weight:700;}
+.kavio-pipeline-stages small {font-size:10px;color:var(--kavio-muted);font-weight:400;}
+@media(max-width:800px) {.kavio-decision-main {grid-template-columns:1fr;gap:12px;}.kavio-decision-metrics {grid-template-columns:repeat(2,minmax(0,1fr));}.kavio-pipeline-stages {gap:10px;flex-wrap:wrap;}}
+
+/* Reusable printable report shell: every detail is retained when printing. */
+.kavio-report-heading {display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--kavio-line);}
+.kavio-report-heading img {width:64px;height:54px;object-fit:contain;}
+.kavio-report-heading strong {font-size:16px;color:var(--kavio-champagne);}
+.kavio-report-heading h2 {font-size:15px;margin:4px 0;color:var(--kavio-ivory);}
+.kavio-report-heading p,.kavio-report-note {font-size:12px;color:var(--kavio-muted);margin:0;}
+.kavio-report-subtext {display:block;font-size:11px;color:var(--kavio-muted);margin-top:3px;}
+.kavio-report-section-title {font-size:13px;padding:12px 16px;margin:0;}
+.kavio-report-note {padding:12px 16px;}
+.kavio-print-report .kavio-table-wrap {overflow-x:auto;}
+.kavio-wage-table {min-width:1050px;}
+@media print {
+ body:has(.kavio-print-report) {background:white !important;color:black !important;}
+ body:has(.kavio-print-report) .kavio-sidebar,body:has(.kavio-print-report) .kavio-topbar,body:has(.kavio-print-report) .kavio-page-banner,body:has(.kavio-print-report) .laporan-selector,.kavio-no-print {display:none !important;}
+ body:has(.kavio-print-report) .kavio-shell,body:has(.kavio-print-report) .kavio-main {display:block !important;width:100% !important;margin:0 !important;min-height:0 !important;}
+ body:has(.kavio-print-report) .kavio-content,body:has(.kavio-print-report) .laporan-page {padding:0 !important;}
+ .kavio-print-report {border:0 !important;border-radius:0 !important;background:white !important;box-shadow:none !important;overflow:visible !important;}
+ .kavio-print-report * {color:black !important;background:transparent !important;text-shadow:none !important;box-shadow:none !important;}
+ .kavio-print-report .kavio-table-wrap {overflow:visible !important;max-height:none !important;}
+ .kavio-print-report .kavio-table {min-width:0 !important;width:100% !important;table-layout:auto !important;border-collapse:collapse;}
+ .kavio-print-report .kavio-table th,.kavio-print-report .kavio-table td {font-size:9px !important;padding:5px !important;white-space:normal !important;border-bottom:1px solid #ccc !important;}
+ .kavio-print-report thead {display:table-header-group;}.kavio-print-report tr {break-inside:avoid;}
+ .kavio-print-report .kavio-report-subtext {font-size:8px;}
+ .kavio-print-report .kavio-report-heading {padding:0 0 10px;}
+}
