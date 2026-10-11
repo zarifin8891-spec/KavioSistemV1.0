@@ -130,3 +130,5 @@ Purchase header uses `kavio-transaction-header`: Tanggal, No. Nota, Pemasok, and
 Seven Data Master input/edit forms use `kavio-master-form`: paired fields in two equal columns, explicit `kavio-master-field-wide` for long/final fields, compact modal sizing and the existing shared action footer. Material, Pemasok, Tipe Rumah, Kantor Pelaksana, Mandor, Kas/Bank and Notaris use the same contract. On narrow screens fields stack in their original input order.
 
 Supplier forms display the automatically allocated business ID (`PMS-000001`) next to the name. Contact/phone form the second paired row; address and notes span both columns. The visible code is read-only; the existing UUID remains the relational key, so historical purchase references are preserved.
+
+Master catalog filters use `KavioMasterFilters` as a thin wrapper over `KavioFilterBar`, explicit `KavioFilterField` kinds and grouped `KavioFilterActions`. Kategori Pekerjaan, Material and Perincian Pekerjaan reuse the canonical widths, control height, baseline and responsive wrapping; filter commands do not use the transaction-form grid.
