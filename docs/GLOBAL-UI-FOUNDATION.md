@@ -96,3 +96,7 @@ Validation: production build/TypeScript, DOM interactions for purchase line/dest
 ### Compact category configuration
 
 `KavioCategorySelector` is the shared category strip for master work details and SPK configuration. Desktop categories occupy one row with proportional card widths; small screens wrap without a separate scrollbar. SPK category weights are editable within each card, outside its selection button, including category-only progress mode. `kavio-form-total` presents a prominent total at the right of the settings row. The work editor keeps scrolling confined to its item table. SPK configuration routes open this editor immediately; closing returns to the SPK list, saving returns with confirmation, and errors keep the editor open with draft restoration. Activation remains the explicit command in the SPK list after configuration has been saved.
+
+### Weight comparison precision
+
+The shared percentage input defaults to two decimal places for progress entry. Work-weight editors opt into up to four percentage decimals (six fraction decimals), with a minimum of two. This exposes imported source precision rather than displaying a rounded value while saving a different hidden value. Category totals are computed from item integer weight units; comparisons show item total, target category weight, and exact difference. A deliberate “Samakan Bobot Kategori dengan Total Item” action adjusts only the selected category in the unsaved form, without modifying item weights. Exact category/item equality and rounded overall 100% validation remain enforced.

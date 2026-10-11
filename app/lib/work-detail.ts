@@ -10,13 +10,13 @@ export function workWeightIssues(groups:WorkGroup[],details:WorkDetail[]) {
  if(workTotalPercent(groups)!==100) issues.push('Total bobot kategori setelah pembulatan dua desimal harus 100,00%.');
  for(const group of groups) {
   const sum=details.filter(d=>d.group_id===group.id_kategori).reduce((n,d)=>n+weightUnits(d.bobot),0);
-  if(sum!==weightUnits(group.bobot)) issues.push(`${group.nama_kategori}: bobot item belum sama dengan bobot kategori.`);
+  if(sum!==weightUnits(group.bobot)) issues.push(`${group.nama_kategori}: total item ${workPercent(sum/1000000)}%, bobot kategori ${workPercent(group.bobot)}%, selisih ${workPercent(Math.abs(sum-weightUnits(group.bobot))/1000000)}%.`);
  }
  return issues;
 }
 export const workMoney=(value:number)=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(value);
 
-export const workPercent=(fraction:number)=>new Intl.NumberFormat('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}).format(fraction*100);
+export const workPercent=(fraction:number)=>new Intl.NumberFormat('id-ID',{minimumFractionDigits:2,maximumFractionDigits:4}).format(fraction*100);
 
 /** Item wages are rounded to the nearest hundred rupiah (spreadsheet ROUND(value; -2)). */
 export const workItemWage=(bobot:number,totalUpah:number)=>Math.round(bobot*totalUpah/100)*100;
