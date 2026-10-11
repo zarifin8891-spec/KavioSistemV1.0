@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import KavioSplitKpi from '../../components/KavioSplitKpi';
 import { activateSpk, deactivateSpk } from './actions';
 import SpkCreatePanel from './SpkCreatePanel';
 import FasumSpkCreatePanel from './FasumSpkCreatePanel';
@@ -47,7 +48,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
   const kpiRows = (kpiRes.data ?? []) as SpkKpi[];
   const kpi = { total_spk:0, aktif:0, draft:0, selesai:0 };
   for (const row of kpiRows) for (const key of Object.keys(kpi) as (keyof typeof kpi)[]) kpi[key] += Number(row[key]);
-  const kindNote = (key: keyof typeof kpi) => `Kavling ${Number(kpiRows.find(row=>row.jenis_spk==='KAVLING')?.[key] ?? 0)} · Fasum ${Number(kpiRows.find(row=>row.jenis_spk==='FASUM')?.[key] ?? 0)}`;
+  const kindParts = (key: keyof typeof kpi) => (['KAVLING','FASUM'] as const).map(kind=>({label:kind,value:Number(kpiRows.find(row=>row.jenis_spk===kind)?.[key] ?? 0)}));
   const totalSpk = spkRes.count ?? Number(kpi.total_spk);
   const totalPages = Math.max(1, Math.ceil(totalSpk / PAGE_SIZE));
   const hasPrev = currentPage > 1;
@@ -68,7 +69,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
       {params.success && <div className="kavio-alert success">{params.success}</div>}
 
       <div className="spk-stats">
-        {[['TOTAL SPK',totalSpk,kindNote('total_spk')],['AKTIF',aktif,kindNote('aktif')],['DRAFT',draft,kindNote('draft')],['SELESAI',selesai,kindNote('selesai')]].map(([label,value,note])=><div className="kavio-kpi spk-stat" key={label}><span className="kavio-kpi-label">{label}</span><strong className="kavio-kpi-value">{value}</strong><small className="kavio-kpi-note">{note}</small></div>)}
+        {([{label:'TOTAL SPK',value:totalSpk,key:'total_spk'},{label:'AKTIF',value:aktif,key:'aktif'},{label:'DRAFT',value:draft,key:'draft'},{label:'SELESAI',value:selesai,key:'selesai'}] as const).map(card=><KavioSplitKpi key={card.key} label={card.label} total={card.value} parts={kindParts(card.key)}/>)}
       </div>
 
       <section className="kavio-panel spk-list-card">

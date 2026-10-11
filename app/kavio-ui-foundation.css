@@ -1979,3 +1979,19 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 .kavio-panel-stack > .kavio-panel {min-width:0;}
 .kavio-panel-stack > .progress-create-wrap {display:flex;justify-content:flex-end;}
 .kavio-table-entry-modal .kavio-batch-footer:has(> .kavio-form-actions:only-child) {display:block;padding-top:10px;}
+
+/* Shared split KPI: total at left, breakdown rows at right. */
+.kavio-split-kpi {display:grid;grid-template-columns:minmax(0,45fr) minmax(0,55fr);padding:0 !important;}
+.kavio-split-kpi-total {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-width:0;padding:10px 8px;text-align:center;}
+.kavio-split-kpi-parts {display:flex;flex-direction:column;min-width:0;margin:0;border-left:1px solid var(--kavio-line);}
+.kavio-split-kpi-part {display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;min-width:0;padding:7px 12px;}
+.kavio-split-kpi-part + .kavio-split-kpi-part {border-top:1px solid var(--kavio-line);}
+.kavio-split-kpi-part dt {font-size:var(--kavio-font-kpi-note);color:var(--kavio-muted);}
+.kavio-split-kpi-part dd {margin:0;font-size:var(--kavio-font-kpi-value);font-weight:700;line-height:1;color:var(--kavio-ivory);font-variant-numeric:tabular-nums;}
+@media(max-width:650px) {
+ .kavio-split-kpi-total {padding:8px 6px;}
+ .kavio-split-kpi-total .kavio-kpi-label {font-size:11px !important;}
+ .kavio-split-kpi-part {gap:4px;padding:7px;}
+ .kavio-split-kpi-part dt {font-size:10px;}
+ .kavio-split-kpi-part dd {font-size:22px;}
+}
