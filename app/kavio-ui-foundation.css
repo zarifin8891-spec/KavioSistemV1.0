@@ -1009,7 +1009,7 @@ button.kavio-button,
 .kavio-dashboard-kpi-note {
   margin-top:5px;
   color:var(--kavio-champagne);
-  font-size:var(--kavio-font-kpi-note) !important;
+  font-size:var(--kavio-font-kpi-description,12px) !important;
   line-height:1.2;
 }
 .kavio-kpi-note {
@@ -1253,7 +1253,7 @@ button.kavio-button,
 }
 .spk-stat .kavio-kpi-note,
 .spk-stat > small {
-  font-size:var(--kavio-font-kpi-note) !important;
+  font-size:var(--kavio-font-kpi-description,12px) !important;
   line-height:1.2 !important;
 }
 
@@ -1934,7 +1934,7 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 @media(max-width:640px){.kavio-table-pagination{flex-wrap:wrap;}.kavio-table-filters .kavio-field{max-width:none;}}
 /* Multi-material forms: one repeatable-row and draft contract. */
 .kavio-material-lines {grid-column:1/-1;display:grid;gap:12px;min-width:0;}
-.kavio-material-line {display:grid;grid-template-columns:minmax(220px,2fr) minmax(110px,1fr) 110px;gap:10px;align-items:flex-end;}
+.kavio-material-line {display:grid;grid-template-columns:minmax(220px,2fr) minmax(110px,1fr) 110px;gap:10px;align-items:start;}
 .kavio-material-line.has-price {grid-template-columns:minmax(220px,2fr) minmax(110px,1fr) minmax(110px,1fr) 110px;}
 .kavio-material-lines>button {justify-self:start;}
 @media(max-width:760px){.kavio-material-line,.kavio-material-line.has-price{grid-template-columns:1fr;}}
@@ -1986,7 +1986,7 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 .kavio-split-kpi-parts {display:flex;flex-direction:column;min-width:0;margin:0;border-left:1px solid var(--kavio-line);}
 .kavio-split-kpi-part {display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;min-width:0;padding:7px 12px;}
 .kavio-split-kpi-part + .kavio-split-kpi-part {border-top:1px solid var(--kavio-line);}
-.kavio-split-kpi-part dt {font-size:var(--kavio-font-kpi-note);color:var(--kavio-muted);}
+.kavio-split-kpi-part dt {font-size:var(--kavio-font-kpi-description,12px);color:var(--kavio-muted);}
 .kavio-split-kpi-part dd {margin:0;font-size:var(--kavio-font-kpi-value);font-weight:700;line-height:1;color:var(--kavio-ivory);font-variant-numeric:tabular-nums;}
 @media(max-width:650px) {
  .kavio-split-kpi-total {padding:8px 6px;}
@@ -2044,8 +2044,8 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 }
 
 /* Compact URL navigation and report pagination are shared Foundation patterns. */
-.kavio-module-tabs.kavio-nav-tabs {gap:4px;padding:6px 8px;}
-.kavio-nav-tabs .kavio-module-tab {padding:8px 12px;font-size:12px;line-height:1.2;white-space:nowrap;}
+.kavio-module-tabs.kavio-nav-tabs,.kavio-module-tabs.kavio-compact-tabs {gap:4px;padding:6px 8px;}
+.kavio-nav-tabs .kavio-module-tab,.kavio-compact-tabs .kavio-module-tab {padding:8px 12px;font-size:12px;line-height:1.2;white-space:nowrap;}
 .kavio-print-only {display:none;}
 .kavio-report-group + .kavio-report-group,.kavio-report-recap {margin-top:12px;}
 @media print {
@@ -2079,3 +2079,17 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 .kavio-filter-actions {display:flex;align-items:center;gap:var(--kavio-filter-gap);flex:0 0 auto;max-width:100%;}
 .kavio-data-table.kavio-data-table-fit {width:100%;table-layout:fixed;}
 .kavio-data-table.kavio-data-table-fit th,.kavio-data-table.kavio-data-table-fit td {white-space:normal;overflow-wrap:anywhere;padding:7px 8px;}
+
+/* Shared operational page, command toolbar and transaction-form layout. */
+.kavio-page-stack {display:grid;gap:14px;min-width:0;}
+.kavio-kpi-grid.kavio-kpi-grid-three {grid-template-columns:repeat(3,minmax(0,1fr));}
+.kavio-kpi-caption {margin-top:6px;color:var(--kavio-muted);font-size:var(--kavio-font-kpi-description,12px);line-height:1.25;}
+.kavio-action-toolbar {display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 16px;}
+.kavio-action-toolbar > .kavio-command-button {min-height:36px;white-space:normal;text-align:center;}
+.kavio-transaction-form {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;align-items:start;}
+.kavio-transaction-form .kavio-field-wide {grid-column:1/-1;}
+.kavio-transaction-form > .kavio-form-actions {grid-column:1/-1;margin-top:0;}
+.kavio-cell-subtext {display:block;margin-top:3px;color:var(--kavio-muted);font-size:11px;line-height:1.3;}
+@media(max-width:760px) {.kavio-transaction-form {grid-template-columns:1fr;}.kavio-kpi-grid.kavio-kpi-grid-three {grid-template-columns:1fr;}}
+
+.kavio-data-table-fit .kavio-master-row-actions {flex-wrap:wrap;white-space:normal;}

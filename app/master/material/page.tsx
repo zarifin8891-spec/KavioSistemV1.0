@@ -1,5 +1,4 @@
 import { createClient } from '../../../lib/supabase/server';
-import '../../material/material.css';
 import KavioFormModal from '../../components/KavioFormModal';
 import KavioActionGate from '../../components/KavioActionGate';
 import MaterialForm from './MaterialForm';

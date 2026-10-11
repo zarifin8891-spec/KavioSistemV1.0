@@ -25,7 +25,7 @@ export default function KavioModuleTabs({tabs,children}: {
   };
   const panels=Children.toArray(children);
   return <>
-    <nav className="kavio-module-tabs" role="tablist" aria-label="Modul operasional">{tabs.map((tab,index)=><button key={tab.id} ref={node=>{buttons.current[index]=node;}} id={`${id}-tab-${tab.id}`} type="button" role="tab" aria-controls={`${id}-panel-${tab.id}`} aria-selected={active===tab.id} tabIndex={active===tab.id?0:-1} className={`kavio-module-tab ${active===tab.id?'is-active':''}`} onClick={()=>select(tab.id)} onKeyDown={event=>{
+    <nav className="kavio-module-tabs kavio-compact-tabs" role="tablist" aria-label="Modul operasional">{tabs.map((tab,index)=><button key={tab.id} ref={node=>{buttons.current[index]=node;}} id={`${id}-tab-${tab.id}`} type="button" role="tab" aria-controls={`${id}-panel-${tab.id}`} aria-selected={active===tab.id} tabIndex={active===tab.id?0:-1} className={`kavio-module-tab ${active===tab.id?'is-active':''}`} onClick={()=>select(tab.id)} onKeyDown={event=>{
       let next:number;
       if(event.key==='ArrowRight')next=(index+1)%tabs.length;
       else if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;
