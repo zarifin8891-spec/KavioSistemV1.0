@@ -239,10 +239,6 @@ export default function ProgressCreatePanel({
               </div>
 
               <div className="kavio-batch-footer">
-                <div className="kavio-form-note">
-                  <strong>PENTING:</strong> Angka pada INPUT PERIODE adalah tambahan progress, bukan nilai kumulatif.
-                  Sistem tetap memvalidasi batas 100% dan menyimpan seluruh batch secara atomic.
-                </div>
                 <KavioFormActions><ProgressSubmitButton count={entries.length}/></KavioFormActions>
               </div>
             </form>

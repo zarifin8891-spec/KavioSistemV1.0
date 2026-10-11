@@ -44,9 +44,7 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
         ?supabase.from('work_detail_progress').select('id_progress:id_progress_detail,tanggal_update,id_item:id_detail,progress_periode,keterangan,progress_update!inner(id_spk)',{count:'exact'}).eq('progress_update.id_spk',selected.id_spk)
         :supabase.from('progress_update').select('id_progress,tanggal_update,id_item,id_kategori,progress_periode,keterangan',{count:'exact'}).eq('id_spk',selected.id_spk))
         .order('tanggal_update',{ascending:false}).order('created_at',{ascending:false}).range(historyOffset,historyOffset+HISTORY_PAGE_SIZE-1),
-      selected.jenis_spk === 'KAVLING'
-        ? supabase.from('v_decision_engine').select('progress_aktual,progress_seharusnya,gap_progress,sisa_hari,tanggal_update_terakhir,progress_periode_terakhir,status_operasional,status_ritme,prioritas_tindakan,action_rekomendasi,hari_sejak_update,progress_diperlukan_per_hari,health_score,health_level,health_description').eq('id_spk', selected.id_spk).maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
+      supabase.from('v_decision_engine').select('progress_aktual,progress_seharusnya,gap_progress,sisa_hari,tanggal_update_terakhir,progress_periode_terakhir,status_operasional,status_ritme,prioritas_tindakan,action_rekomendasi,hari_sejak_update,progress_diperlukan_per_hari,health_score,health_level,health_description').eq('id_spk', selected.id_spk).maybeSingle(),
       selected.mode_progress==='PERINCIAN'
         ?supabase.from('v_spk_work_detail_progress_current').select('id_item,urutan,nama_pekerjaan,nama_kategori,nama_mandor,volume,satuan,bobot_final,progress_akumulasi,progress_berbobot,tanggal_update_terakhir,upah_bruto,upah_retensi,upah_netto').eq('id_spk',selected.id_spk).order('urutan')
         :Promise.resolve({data:[],error:null}),
@@ -93,39 +91,44 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
       {selected && <>
         <section className="progress-summary">
           <SummaryCard label="PROGRESS AKTUAL" value={`${(actual * 100).toFixed(1)}%`} />
-          {selected.jenis_spk === 'KAVLING' && <>
+          <>
             <SummaryCard label="PROGRESS SEHARUSNYA" value={`${(expected * 100).toFixed(1)}%`} />
             <SummaryCard label="GAP" value={`${gap >= 0 ? '+' : ''}${(gap * 100).toFixed(1)}%`} tone={gap < -0.05 ? 'danger' : gap < 0 ? 'warning' : 'normal'} />
             <SummaryCard label="SISA HARI" value={decision ? (decision.sisa_hari < 0 ? `LEWAT ${Math.abs(decision.sisa_hari)}` : String(decision.sisa_hari)) : '—'} tone={decision && decision.sisa_hari < 0 ? 'danger' : 'normal'} />
             <SummaryCard label="HEALTH SCORE" value={decision ? String(decision.health_score) : '—'} />
-          </>}
+          </>
         </section>
 
-        {selected.jenis_spk === 'KAVLING' && <section className="kavio-panel progress-decision-panel">
+        <section className="kavio-panel progress-decision-panel">
           <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">DECISION ENGINE</h2></div><span className="kavio-badge">{decision?.health_level ?? 'BELUM TERSEDIA'}</span></div>
           <div className="kavio-panel-body"><div className="progress-decision"><div className="progress-decision-label">REKOMENDASI TINDAKAN</div><div className="progress-decision-main">{decision?.action_rekomendasi ?? 'Belum tersedia'}</div><div className="progress-decision-meta">{decision?.status_operasional ?? '—'} · {decision?.status_ritme ?? '—'} · PRIORITAS {decision?.prioritas_tindakan ?? '—'} · {decision?.health_description ?? ''}</div></div></div>
-        </section>}
+        </section>
 
-        <section className="progress-data-grid"><section className="kavio-panel">
+        <section className="progress-data-grid">
+          <div className="kavio-panel-stack">
+        <section className="kavio-panel">
           <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">{selected.mode_progress==='PERINCIAN'?'REKAP PROGRESS KATEGORI':'PROGRESS PER ITEM PEKERJAAN'}</h2></div>{selected.jenis_spk === 'KAVLING' && <Link href={`/master/spk/detail/${selected.id_spk}?from=progress`} className="kavio-button secondary">CONTROL SHEET</Link>}</div>
           <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>ITEM PEKERJAAN</th><th>BOBOT</th><th>AKUMULASI</th><th>BERBOBOT</th><th>UPDATE TERAKHIR</th></tr></thead><tbody>{currentRows.map((item) => { const cur = currentRows.find((r) => r.id_item === item.id_item); return <tr key={item.id_item}><td className="progress-category-name">{item.nama_pekerjaan}</td><td>{(Number(item.bobot_final) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_akumulasi ?? 0) * 100).toFixed(2)}%</td><td>{(Number(cur?.progress_berbobot ?? 0) * 100).toFixed(2)}%</td><td>{cur?.tanggal_update_terakhir ? formatKavioDate(cur.tanggal_update_terakhir) : 'BELUM ADA'}</td></tr>; })}{!currentRows.length && <tr><td colSpan={5} className="kavio-empty">BELUM ADA ITEM PEKERJAAN SPK.</td></tr>}</tbody></table></div>
         </section>
 
-        {selected.mode_progress==='PERINCIAN'&&<section className="kavio-panel">
-          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PERINCIAN & DASAR TAGIHAN UPAH</h2><div className="kavio-panel-note">Nilai pekerjaan tercatat per mandor. Retensi dipisahkan dari upah netto.</div></div><Link className="kavio-button secondary" href={`/master/spk/konfigurasi?id=${selected.id_spk}`}>KONFIGURASI</Link></div>
-          <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>PEKERJAAN / KATEGORI</th><th>MANDOR</th><th>BOBOT</th><th>AKUMULASI</th><th>KONTRIBUSI SPK</th><th className="kavio-number">UPAH BRUTO</th><th className="kavio-number">RETENSI</th><th className="kavio-number">UPAH NETTO</th></tr></thead><tbody>{detailRows.map(row=><tr key={row.id_item}><td>{row.nama_pekerjaan}<div className="kavio-panel-note">{row.nama_kategori}</div></td><td>{row.nama_mandor}</td><td>{(Number(row.bobot_final)*100).toFixed(2)}%</td><td>{(Number(row.progress_akumulasi)*100).toFixed(2)}%</td><td>{(Number(row.progress_berbobot)*100).toFixed(2)}%</td><td className="kavio-number">{Number(row.upah_bruto).toLocaleString('id-ID')}</td><td className="kavio-number">{Number(row.upah_retensi).toLocaleString('id-ID')}</td><td className="kavio-number">{Number(row.upah_netto).toLocaleString('id-ID')}</td></tr>)}{!detailRows.length&&<tr><td colSpan={8} className="kavio-empty">Belum ada perincian SPK.</td></tr>}</tbody><tfoot><tr><td colSpan={5}>TOTAL NILAI PEKERJAAN TERCATAT</td>{(['upah_bruto','upah_retensi','upah_netto'] as const).map(key=><td key={key} className="kavio-number">{detailRows.reduce((sum,row)=>sum+Number(row[key]),0).toLocaleString('id-ID')}</td>)}</tr></tfoot></table></div>
-        </section>}
         <section className="kavio-panel">
           <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">HISTORI PROGRESS</h2><div className="kavio-panel-note">Seluruh update periode tetap tersimpan.</div></div><span className="kavio-badge">{historyCount} UPDATE</span></div>
-          <div className="kavio-table-wrap"><table className="kavio-table progress-table"><thead><tr><th>TANGGAL</th><th>ITEM PEKERJAAN</th><th>PROGRESS PERIODE</th><th>KETERANGAN</th></tr></thead><tbody>{historyRows.map((row) => <tr key={row.id_progress}><td>{formatKavioDate(row.tanggal_update)}</td><td>{workItems.find((item) => item.id_item === row.id_item)?.nama_pekerjaan ?? (row.id_kategori ? categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori : '—')}</td><td className="progress-highlight">{(Number(row.progress_periode) * 100).toFixed(2)}%</td><td>{row.keterangan || '—'}</td></tr>)}{!historyRows.length && <tr><td colSpan={4} className="kavio-empty">BELUM ADA HISTORI PROGRESS.</td></tr>}</tbody></table></div>
-          {selected.jenis_spk === 'KAVLING' && <div className="progress-table-foot">UPDATE TERAKHIR: {decision?.tanggal_update_terakhir ? formatKavioDate(decision.tanggal_update_terakhir) : latestPeriod?.date ? formatKavioDate(latestPeriod.date) : 'BELUM ADA'} · PERIODE TERAKHIR: {decision ? `${(Number(decision.progress_periode_terakhir) * 100).toFixed(2)}%` : '—'} · KEBUTUHAN / HARI: {decision ? `${(Number(decision.progress_diperlukan_per_hari) * 100).toFixed(2)}%` : '—'}</div>}
+          <div className="kavio-table-wrap"><table className="kavio-table progress-table progress-history-table"><thead><tr><th>TANGGAL</th><th>ITEM PEKERJAAN</th><th>PROGRESS PERIODE</th><th>KETERANGAN</th></tr></thead><tbody>{historyRows.map((row) => <tr key={row.id_progress}><td>{formatKavioDate(row.tanggal_update)}</td><td>{workItems.find((item) => item.id_item === row.id_item)?.nama_pekerjaan ?? (row.id_kategori ? categoryMap.get(row.id_kategori)?.nama_kategori ?? row.id_kategori : '—')}</td><td className="progress-highlight">{(Number(row.progress_periode) * 100).toFixed(2)}%</td><td>{row.keterangan || '—'}</td></tr>)}{!historyRows.length && <tr><td colSpan={4} className="kavio-empty">BELUM ADA HISTORI PROGRESS.</td></tr>}</tbody></table></div>
+          <div className="progress-table-foot">UPDATE TERAKHIR: {decision?.tanggal_update_terakhir ? formatKavioDate(decision.tanggal_update_terakhir) : latestPeriod?.date ? formatKavioDate(latestPeriod.date) : 'BELUM ADA'} · PERIODE TERAKHIR: {decision ? `${(Number(decision.progress_periode_terakhir) * 100).toFixed(2)}%` : '—'} · KEBUTUHAN / HARI: {decision ? `${(Number(decision.progress_diperlukan_per_hari) * 100).toFixed(2)}%` : '—'}</div>
           <div className="kavio-pagination kavio-pagination-foot" aria-label="Navigasi histori progress">
             {historyPage > 1 ? <Link href={historyHref(historyPage - 1)} className="kavio-button secondary">← SEBELUMNYA</Link> : <span />}
             <span>HALAMAN {historyPage} / {historyTotalPages} · MENAMPILKAN {historyRows.length} DARI {historyCount} UPDATE</span>
             {historyPage < historyTotalPages ? <Link href={historyHref(historyPage + 1)} className="kavio-button secondary">BERIKUTNYA →</Link> : <span />}
           </div>
         </section>
+          </div>
+          <div className="kavio-panel-stack">
+        {selected.mode_progress==='PERINCIAN'&&<section className="kavio-panel">
+          <div className="kavio-panel-head"><div><h2 className="kavio-panel-title">PROGRESS PERINCIAN & DASAR TAGIHAN UPAH</h2><div className="kavio-panel-note">Nilai pekerjaan tercatat per mandor. Retensi dipisahkan dari upah netto.</div></div><Link className="kavio-button secondary" href={`/master/spk/konfigurasi?id=${selected.id_spk}`}>KONFIGURASI</Link></div>
+          <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>PEKERJAAN / KATEGORI</th><th>MANDOR</th><th>BOBOT</th><th>AKUMULASI</th><th>KONTRIBUSI SPK</th><th className="kavio-number">UPAH BRUTO</th><th className="kavio-number">RETENSI</th><th className="kavio-number">UPAH NETTO</th></tr></thead><tbody>{detailRows.map(row=><tr key={row.id_item}><td>{row.nama_pekerjaan}<div className="kavio-panel-note">{row.nama_kategori}</div></td><td>{row.nama_mandor}</td><td>{(Number(row.bobot_final)*100).toFixed(2)}%</td><td>{(Number(row.progress_akumulasi)*100).toFixed(2)}%</td><td>{(Number(row.progress_berbobot)*100).toFixed(2)}%</td><td className="kavio-number">{Number(row.upah_bruto).toLocaleString('id-ID')}</td><td className="kavio-number">{Number(row.upah_retensi).toLocaleString('id-ID')}</td><td className="kavio-number">{Number(row.upah_netto).toLocaleString('id-ID')}</td></tr>)}{!detailRows.length&&<tr><td colSpan={8} className="kavio-empty">Belum ada perincian SPK.</td></tr>}</tbody><tfoot><tr><td colSpan={5}>TOTAL NILAI PEKERJAAN TERCATAT</td>{(['upah_bruto','upah_retensi','upah_netto'] as const).map(key=><td key={key} className="kavio-number">{detailRows.reduce((sum,row)=>sum+Number(row[key]),0).toLocaleString('id-ID')}</td>)}</tr></tfoot></table></div>
+        </section>}
                 <ProgressCreatePanel key={selected.id_spk} detailed={selected.mode_progress==='PERINCIAN'} idSpk={selected.id_spk} tglSpk={selected.tgl_spk} workItems={selected.mode_progress==='PERINCIAN'?detailRows:workItems} currentProgressRows={(selected.mode_progress==='PERINCIAN'?detailRows:currentRows).map((row) => ({ id_item: row.id_item, progress_akumulasi: Number(row.progress_akumulasi ?? 0) }))} autoOpen={params.form === 'progress-create' || params.panel === 'progress' || Boolean(params.error)} />
+          </div>
         </section>
 
       </>}

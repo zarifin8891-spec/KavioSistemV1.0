@@ -24,7 +24,7 @@ const pageHeader = (pathname: string) => {
   if (pathname.startsWith('/master/sales/detail')) return ['Sales Detail', 'Detail konsumen, akad, bank KPR, dan histori proses KPR.'];
   if (pathname.startsWith('/master/sales')) return ['Sales Management', 'Kelola data konsumen, status penjualan, dan status pembayaran.'];
   if (pathname.startsWith('/master/spk/detail/')) return ['SPK Control Sheet', 'Kontrol pekerjaan, progress, target penyelesaian, dan Curva-S.'];
-  if (pathname.startsWith('/master/spk')) return ['Monitoring SPK', 'Kelola SPK, tim pelaksana, target penyelesaian, dan siklus pembangunan kavling.'];
+  if (pathname.startsWith('/master/spk')) return ['Monitoring SPK', 'Kelola SPK Kavling dan Fasum, tim pelaksana, serta target penyelesaian.'];
   if (pathname.startsWith('/progress')) return ['Progress Monitoring', 'Pantau progress pembangunan berdasarkan SPK aktif.'];
   if (pathname.startsWith('/material')) return ['Gudang & Material', 'Pantau stok, permintaan, pemakaian, dan rekonsiliasi material per SPK.'];
   if (pathname.startsWith('/penerimaan')) return ['Piutang & Penerimaan', 'Catat penerimaan, kelola saldo piutang, dan terbitkan kuitansi.'];

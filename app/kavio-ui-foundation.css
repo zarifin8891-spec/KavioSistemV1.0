@@ -312,7 +312,7 @@ body { margin: 0; }
 .progress-selector-field { grid-column:auto !important; max-width:760px; }
 .progress-selector-button { align-self:end; min-width:104px; margin-bottom:0; }
 .progress-data-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; margin-top:0; }
-.progress-data-grid > .kavio-panel { min-width:0; }
+.progress-data-grid > .kavio-panel-stack { min-width:0; }
 .progress-data-grid .kavio-panel-head { min-height:60px; }
 @media (max-width:900px) {
   .progress-data-grid { grid-template-columns:1fr; }
@@ -340,7 +340,7 @@ body { margin: 0; }
   gap:12px;
   align-items:start;
 }
-.progress-data-grid > .kavio-panel { min-width:0; }
+.progress-data-grid > .kavio-panel-stack { min-width:0; }
 .progress-data-grid .kavio-panel-head { padding:10px 12px; gap:8px; }
 
 .progress-data-grid .progress-table {
@@ -373,13 +373,6 @@ body { margin: 0; }
   white-space:normal;
   overflow-wrap:anywhere;
 }
-.progress-data-grid > .progress-create-wrap {
-  grid-column:2;
-  grid-row:2;
-  width:100%;
-  margin-top:0;
-}
-.progress-data-grid > .progress-create-wrap > .kavio-command-button { justify-self:start; }
 .progress-data-grid .kavio-table-wrap { overflow-x:hidden; }
 
 /* Column widths only — preserve the two-column fit. */
@@ -394,18 +387,17 @@ body { margin: 0; }
 .progress-data-grid .progress-table th:nth-child(5),
 .progress-data-grid .progress-table td:nth-child(5) { width:19%; }
 
-.progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(1),
-.progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(1) { width:22%; }
-.progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(2),
-.progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(2) { width:32%; }
-.progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(3),
-.progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(3) { width:20%; }
-.progress-data-grid > .kavio-panel:nth-child(2) .progress-table th:nth-child(4),
-.progress-data-grid > .kavio-panel:nth-child(2) .progress-table td:nth-child(4) { width:26%; }
+.progress-data-grid .progress-history-table th:nth-child(1),
+.progress-data-grid .progress-history-table td:nth-child(1) { width:22%; }
+.progress-data-grid .progress-history-table th:nth-child(2),
+.progress-data-grid .progress-history-table td:nth-child(2) { width:32%; }
+.progress-data-grid .progress-history-table th:nth-child(3),
+.progress-data-grid .progress-history-table td:nth-child(3) { width:20%; }
+.progress-data-grid .progress-history-table th:nth-child(4),
+.progress-data-grid .progress-history-table td:nth-child(4) { width:26%; }
 
 @media (max-width:900px) {
   .progress-data-grid { grid-template-columns:1fr; }
-  .progress-data-grid > .progress-create-wrap { grid-column:1; grid-row:auto; }
 }
 @media (max-width:650px) {
   .progress-selector-form { grid-template-columns:1fr !important; padding:8px 12px 10px !important; }
@@ -441,7 +433,7 @@ select option:hover {
 }
 
 /* Command under the right-hand History panel. */
-.progress-data-grid > .progress-create-wrap > .kavio-command-button {
+.progress-data-grid .progress-create-wrap > .kavio-command-button {
   display:flex;
   width:max-content;
   margin-left:auto;
@@ -1981,3 +1973,9 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 @media(max-height:600px){.kavio-table-entry-modal {height:auto;overflow:auto}.kavio-table-entry-modal .kavio-table-wrap {max-height:220px;flex:none}}
 
 .kavio-text-left {text-align:left !important}
+
+/* Global Foundation: independent panel stacks prevent tall neighbors from creating empty rows. */
+.kavio-panel-stack {display:flex;flex-direction:column;gap:12px;min-width:0;}
+.kavio-panel-stack > .kavio-panel {min-width:0;}
+.kavio-panel-stack > .progress-create-wrap {display:flex;justify-content:flex-end;}
+.kavio-table-entry-modal .kavio-batch-footer:has(> .kavio-form-actions:only-child) {display:block;padding-top:10px;}

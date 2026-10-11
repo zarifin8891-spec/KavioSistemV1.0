@@ -65,10 +65,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
       {params.success && <div className="kavio-alert success">{params.success}</div>}
 
       <div className="spk-stats">
-        <div className="kavio-kpi spk-stat"><span className="kavio-kpi-label">SPK AKTIF</span><strong className="kavio-kpi-value">{aktif}</strong><small className="kavio-kpi-note">Pekerjaan berjalan</small></div>
-        <div className="spk-stat"><span className="kavio-kpi-label">DRAFT</span><strong className="kavio-kpi-value">{draft}</strong><small className="kavio-kpi-note">Menunggu aktivasi</small></div>
-        <div className="spk-stat"><span className="kavio-kpi-label">SELESAI</span><strong className="kavio-kpi-value">{selesai}</strong><small className="kavio-kpi-note">Riwayat pekerjaan</small></div>
-        <div className="spk-stat"><span className="kavio-kpi-label">SIAP SPK</span><strong className="kavio-kpi-value">{kavlingRows.length}</strong><small className="kavio-kpi-note">Kavling tersedia</small></div>
+        {[['TOTAL SPK',totalSpk,'Kavling dan Fasum'],['AKTIF',aktif,'Pekerjaan berjalan'],['DRAFT',draft,'Menunggu konfigurasi / aktivasi'],['SELESAI',selesai,'Pekerjaan ditutup']].map(([label,value,note])=><div className="kavio-kpi spk-stat" key={label}><span className="kavio-kpi-label">{label}</span><strong className="kavio-kpi-value">{value}</strong><small className="kavio-kpi-note">{note}</small></div>)}
       </div>
 
       <section className="kavio-panel spk-list-card">
