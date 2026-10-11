@@ -15,5 +15,5 @@ export async function saveSpkWorkConfig(form:FormData) {
  const {error}=await supabase.rpc('configure_spk_work_atomic',{p_id_spk:id,p_mode:state!.mode,p_total_upah:state!.total_upah,p_parents:state!.groups.map(g=>({id_kategori:g.id_kategori,bobot:g.bobot})),p_details:state!.details.map((d,i)=>({...d,urutan:i+1}))});
  if(error)fail(error.message);
  revalidatePath('/master/spk');revalidatePath('/master/spk/konfigurasi');revalidatePath('/progress');
- redirect(`/master/spk/konfigurasi?id=${encodeURIComponent(id)}&success=Konfigurasi+SPK+berhasil+disimpan`);
+ redirect('/master/spk?success=Konfigurasi+SPK+berhasil+disimpan');
 }

@@ -92,3 +92,7 @@ Validation: production build/TypeScript, DOM interactions for purchase line/dest
 - Laporan Piutang Dana Jaminan memfilter bank pemberi KPR dan jenis IMB/SERTIFIKAT/AIR & LISTRIK/BESTEK/GLOBAL. Menampilkan tagihan, sudah dicairkan, saldo bank, status, kavling, dan konsumen. Bank bukan rekening penerima. Termasuk item lunas untuk rekonsiliasi.
 - Posisi laporan adalah saldo terkini, bukan saldo historis per tanggal. Filter dilakukan di database sebelum pagination 50 baris, tanpa batas riwayat 20 transaksi. Subtotal halaman diberi label jelas; bukan total seluruh hasil filter.
 - View security invoker memakai engine piutang bank bersama. Hak akses Keuangan dan RLS dipertahankan.
+
+### Compact category configuration
+
+`KavioCategorySelector` is the shared category strip for master work details and SPK configuration. Desktop categories occupy one row with proportional card widths; small screens wrap without a separate scrollbar. SPK category weights are editable within each card, outside its selection button, including category-only progress mode. `kavio-form-total` presents a prominent total at the right of the settings row. The work editor keeps scrolling confined to its item table. SPK configuration routes open this editor immediately; closing returns to the SPK list, saving returns with confirmation, and errors keep the editor open with draft restoration. Activation remains the explicit command in the SPK list after configuration has been saved.
