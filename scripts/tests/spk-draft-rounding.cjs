@@ -23,7 +23,7 @@ async function run(action,f){try{await action(f);assert.fail('Action must redire
  for(const [n,want] of [[.999964,100],[.99995,100],[.999949,99.99],[1.000049,100],[1.00005,100.01]])assert.equal(workTotalPercent([{bobot:n}]),want);
  let result=await run(createSpk,form());assert(result.url?.includes('/konfigurasi'));assert.equal(rpcs.at(-1).args.p_config[1].bobot_final,.599964,'preserve template precision');
  let f=form();f.set('jenis_bobot','CUSTOM');f.set('bobot_KP01','40');f.set('bobot_KP02','59.9964');result=await run(createSpk,f);assert(result.url?.includes('/konfigurasi'));assert.equal(rpcs.at(-1).args.p_config[1].bobot_final,.599964);
- result=await run(createFasumSpk,form());assert(result.url?.includes('/konfigurasi'));assert.equal(rpcs.at(-1).args.p_items[1].bobot,.599964);
- weight=.599949;const before=rpcs.length;for(const action of [createSpk,createFasumSpk]){result=await run(action,form());assert(result.formError?.includes('99,99%'))}assert.equal(rpcs.length,before,'invalid totals must not write');
- console.log('PASS: actual Kavling standard/custom and Fasum draft actions accept 99.9964%, preserve source, reject 99.9949%, and round boundaries consistently');
+ result=await run(createFasumSpk,form());assert(result.url?.includes('/konfigurasi'));assert.equal(rpcs.at(-1).args.p_items[1].bobot,.6,'Fasum weights derive from wage amounts');
+ weight=.599949;const before=rpcs.length;for(const action of [createSpk]){result=await run(action,form());assert(result.formError?.includes('99,99%'))}assert.equal(rpcs.length,before,'invalid totals must not write');
+ console.log('PASS: Kavling draft actions preserve source/round boundaries and Fasum recomputes automatic wage weights');
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>{Module._load=original});

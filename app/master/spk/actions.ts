@@ -6,6 +6,7 @@ import { createClient } from '../../../lib/supabase/server';
 import { requireKavioAction } from '../../../lib/kavio-permissions-server';
 import { redirectKavioFormError } from '../../../lib/kavio-form-feedback';
 import {workTotalPercent} from '../../lib/work-detail';
+import {fasumAutoWeights} from '../../lib/fasum-wages';
 
 function text(value: FormDataEntryValue | null) {
   return String(value ?? '').trim();
@@ -168,14 +169,11 @@ export async function createFasumSpk(formData: FormData) {
     fasumError('Nama objek, tanggal, kantor, mandor, dan item pekerjaan wajib diisi');
   }
   if (tglTargetSelesai < tglSpk) fasumError('Tanggal target selesai tidak boleh sebelum tanggal SPK', 'tgl_target_selesai');
-  if (items.some((item) => !item.nama_pekerjaan || !Number.isFinite(item.bobot) || item.bobot <= 0 || item.bobot > 1)) {
-    fasumError('Nama item wajib diisi dan bobot setiap item harus lebih dari 0 sampai 100%');
-  }
-  if (workTotalPercent(items) !== 100) {
-    fasumError(`Total bobot Fasum setelah pembulatan harus 100,00%. Saat ini ${workTotalPercent(items).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})}%`);
-  }
+  if(items.some(i=>!i.nama_pekerjaan||!Number.isFinite(i.volume)||i.volume<=0||i.volume>9999999999||Math.abs(i.volume*100-Math.round(i.volume*100))>0.000001||!i.satuan||i.satuan.length>30||!Number.isFinite(i.harga_satuan_upah)||i.harga_satuan_upah<=0||i.harga_satuan_upah>999999999999||i.keterangan.length>500))fasumError('Isi nama, volume positif dengan maksimal dua desimal, satuan, dan harga satuan upah yang valid.');
+  const weights=fasumAutoWeights(items);
+  items=items.map((item,index)=>({...item,bobot:weights[index]}));
+  if(items.some(i=>i.bobot<=0)||workTotalPercent(items)!==100)fasumError('Nilai upah setiap item harus cukup untuk menghasilkan bobot positif dengan total 100%.');
 
-  if(items.some(i=>!Number.isFinite(i.volume)||i.volume<=0||i.volume>9999999999||!i.satuan||i.satuan.length>30||!Number.isFinite(i.harga_satuan_upah)||i.harga_satuan_upah<=0||i.harga_satuan_upah>999999999999||i.keterangan.length>500))fasumError('Volume dan harga satuan upah wajib lebih dari nol, satuan wajib diisi, dan keterangan maksimal 500 karakter.');
   const { data: idSpk, error } = await supabase.rpc('create_fasum_spk_with_wages_atomic', {
     p_nama_objek: namaObjek,
     p_tgl_spk: tglSpk,
