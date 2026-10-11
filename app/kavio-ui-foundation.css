@@ -2055,30 +2055,22 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
  .kavio-print-report tfoot {display:table-row-group;}
 }
 
-/* All reports share bounded filters instead of positional grid columns. */
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) {
- display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;padding:16px 18px;
- border-top:1px solid var(--kavio-line);border-bottom:1px solid var(--kavio-line);background:rgba(4,24,47,.14);
+/* Canonical filter widths. Consumers choose a field kind, never a positional column. */
+:root {
+ --kavio-filter-date-width:150px;
+ --kavio-filter-search-width:240px;
+ --kavio-filter-select-width:190px;
+ --kavio-filter-control-height:38px;
+ --kavio-filter-gap:12px;
 }
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) > label {
- display:flex;flex-direction:column;gap:6px;flex:0 1 190px;min-width:0;max-width:100%;margin:0;
-}
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) > label:has(input[type="date"]) {flex-basis:155px;}
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) > label > span {font-size:var(--kavio-font-form-label);line-height:1.2;color:var(--kavio-muted);}
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) > input:not([type="hidden"]) {flex:0 1 240px;max-width:100%;}
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) > select {flex:0 1 190px;max-width:100%;}
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) :is(input:not([type="hidden"]),select) {
- min-width:0;width:100%;height:38px !important;min-height:38px !important;box-sizing:border-box;padding:7px 10px;
- border:1px solid var(--kavio-line);border-radius:8px;background:linear-gradient(180deg,var(--kavio-panel-3),var(--kavio-panel-2));
- color:var(--kavio-ivory);font-family:var(--kavio-font);font-size:var(--kavio-font-input);outline:none;
-}
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) input::placeholder {color:var(--kavio-muted);opacity:.9;}
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) :is(input,select):focus-visible {outline:2px solid var(--kavio-champagne);outline-offset:2px;}
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) > .kavio-button {
- flex:0 0 auto;width:auto !important;height:38px !important;min-height:38px !important;min-width:96px;padding:7px 14px;white-space:nowrap;
-}
-.laporan-page :is(.laporan-filterbar,.kavio-table-filters) > .kavio-button.secondary {min-width:72px;}
-@media(max-width:560px) {
- .laporan-page :is(.laporan-filterbar,.kavio-table-filters) {padding:12px;gap:10px;}
- .laporan-page :is(.laporan-filterbar,.kavio-table-filters) > input:not([type="hidden"]) {flex-basis:100%;}
-}
+.kavio-filter-bar {display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--kavio-filter-gap);padding:16px 18px;border-top:1px solid var(--kavio-line);border-bottom:1px solid var(--kavio-line);background:rgba(4,24,47,.14);}
+.kavio-filter-bar > .kavio-field.kavio-filter-field {--filter-width:var(--kavio-filter-select-width);display:flex;flex-direction:column;gap:6px;flex:0 0 var(--filter-width);width:var(--filter-width);min-width:0;max-width:100%;margin:0;}
+.kavio-filter-bar > .kavio-field.kavio-filter-date {--filter-width:var(--kavio-filter-date-width);}
+.kavio-filter-bar > .kavio-field.kavio-filter-search {--filter-width:var(--kavio-filter-search-width);}
+.kavio-filter-field > span {font-size:var(--kavio-font-form-label);line-height:1.2;color:var(--kavio-muted);}
+.kavio-filter-bar .kavio-filter-field :is(input,select) {min-width:0;width:100%;height:var(--kavio-filter-control-height) !important;min-height:var(--kavio-filter-control-height) !important;box-sizing:border-box;padding:7px 10px;border:1px solid var(--kavio-line);border-radius:8px;background:linear-gradient(180deg,var(--kavio-panel-3),var(--kavio-panel-2));color:var(--kavio-ivory);font-family:var(--kavio-font);font-size:var(--kavio-font-input);outline:none;}
+.kavio-filter-field input::placeholder {color:var(--kavio-muted);opacity:.9;}
+.kavio-filter-field :is(input,select):focus-visible {outline:2px solid var(--kavio-champagne);outline-offset:2px;}
+.kavio-filter-bar > .kavio-button {flex:0 0 auto;width:auto !important;height:var(--kavio-filter-control-height) !important;min-height:var(--kavio-filter-control-height) !important;min-width:96px;padding:7px 14px;white-space:nowrap;}
+.kavio-filter-bar > .kavio-button.secondary {min-width:72px;}
+@media(max-width:560px) {.kavio-filter-bar {padding:12px;gap:10px;}.kavio-filter-bar > .kavio-field.kavio-filter-search {flex-basis:100%;width:100%;}}

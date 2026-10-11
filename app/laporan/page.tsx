@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import KavioFilterBar,{KavioFilterField} from '../components/KavioFilterBar';
 import KavioNavTabs from '../components/KavioNavTabs';
 import WageReport from './WageReport';
 import ReceivableReport from './ReceivableReport';
@@ -250,12 +251,12 @@ const [
   };
 
   const FilterBar = ({ children }: { children: React.ReactNode }) => (
-    <form method="get" className="laporan-filterbar">
+    <form method="get"><KavioFilterBar>
       <input type="hidden" name="jenis" value={selected} />
       {children}
       <button type="submit" className="kavio-button">TAMPILKAN</button>
       <Link href={`/laporan?jenis=${selected}`} className="kavio-button secondary">RESET</Link>
-    </form>
+    </KavioFilterBar></form>
   );
 
   return (
@@ -272,11 +273,11 @@ const [
             <span className="kavio-badge">{filteredSales.length} DATA</span>
           </div>
           <FilterBar>
-            <input className="laporan-filter-search" name="q" defaultValue={q} placeholder="CARI ID SALES / KAVLING / KONSUMEN..." />
-            <select name="status" defaultValue={status}><option value="">SEMUA STATUS</option>{salesStatuses.map((item) => <option key={item} value={item}>{item}</option>)}</select>
-            <select name="payment" defaultValue={payment}><option value="">SEMUA PEMBAYARAN</option>{payments.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
-            <label className="laporan-date-filter"><span>DARI TANGGAL</span><input type="date" name="date_from" defaultValue={dateFrom} /></label>
-            <label className="laporan-date-filter"><span>SAMPAI TANGGAL</span><input type="date" name="date_to" defaultValue={dateTo} /></label>
+            <KavioFilterField label="PENCARIAN" kind="search"><input type="search" name="q" defaultValue={q} placeholder="CARI ID SALES / KAVLING / KONSUMEN..." /></KavioFilterField>
+            <KavioFilterField label="STATUS SALES"><select name="status" defaultValue={status}><option value="">SEMUA STATUS</option>{salesStatuses.map((item) => <option key={item} value={item}>{item}</option>)}</select></KavioFilterField>
+            <KavioFilterField label="PEMBAYARAN"><select name="payment" defaultValue={payment}><option value="">SEMUA PEMBAYARAN</option>{payments.map((item) => <option key={item} value={item!}>{item}</option>)}</select></KavioFilterField>
+            <KavioFilterField label="DARI TANGGAL" kind="date"><input type="date" name="date_from" defaultValue={dateFrom} /></KavioFilterField>
+            <KavioFilterField label="SAMPAI TANGGAL" kind="date"><input type="date" name="date_to" defaultValue={dateTo} /></KavioFilterField>
           </FilterBar>
           <div className="kavio-table-wrap">
             <table className="kavio-table">
@@ -297,11 +298,11 @@ const [
             <span className="kavio-badge">{filteredProgress.length} DATA</span>
           </div>
           <FilterBar>
-            <input className="laporan-filter-search" name="q" defaultValue={q} placeholder="CARI ID SPK / KAVLING / TIPE..." />
-            <select name="spk" defaultValue={spkStatus}><option value="">SEMUA STATUS SPK</option>{spkStatuses.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
-            <select name="tipe" defaultValue={tipe}><option value="">SEMUA TIPE</option>{tipeOptions.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
-            <select name="kantor" defaultValue={kantor}><option value="">SEMUA KANTOR</option>{kantorOptions.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
-            <select name="mandor" defaultValue={mandor}><option value="">SEMUA MANDOR</option>{mandorOptions.map((item) => <option key={item} value={item!}>{item}</option>)}</select>
+            <KavioFilterField label="PENCARIAN" kind="search"><input type="search" name="q" defaultValue={q} placeholder="CARI ID SPK / KAVLING / TIPE..." /></KavioFilterField>
+            <KavioFilterField label="STATUS SPK"><select name="spk" defaultValue={spkStatus}><option value="">SEMUA STATUS SPK</option>{spkStatuses.map((item) => <option key={item} value={item!}>{item}</option>)}</select></KavioFilterField>
+            <KavioFilterField label="TIPE"><select name="tipe" defaultValue={tipe}><option value="">SEMUA TIPE</option>{tipeOptions.map((item) => <option key={item} value={item!}>{item}</option>)}</select></KavioFilterField>
+            <KavioFilterField label="PELAKSANA"><select name="kantor" defaultValue={kantor}><option value="">SEMUA KANTOR</option>{kantorOptions.map((item) => <option key={item} value={item!}>{item}</option>)}</select></KavioFilterField>
+            <KavioFilterField label="MANDOR"><select name="mandor" defaultValue={mandor}><option value="">SEMUA MANDOR</option>{mandorOptions.map((item) => <option key={item} value={item!}>{item}</option>)}</select></KavioFilterField>
           </FilterBar>
           <div className="kavio-table-wrap">
             <table className="kavio-table">
@@ -322,9 +323,9 @@ const [
             <span className="kavio-badge">{filteredDecision.length} DATA</span>
           </div>
           <FilterBar>
-            <input className="laporan-filter-search" name="q" defaultValue={q} placeholder="CARI ID SPK / KAVLING / HEALTH..." />
-            <select name="health" defaultValue={health}><option value="">SEMUA HEALTH</option>{healthOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select>
-            <select name="priority" defaultValue={priority}><option value="">SEMUA PRIORITAS</option>{priorityOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select>
+            <KavioFilterField label="PENCARIAN" kind="search"><input type="search" name="q" defaultValue={q} placeholder="CARI ID SPK / KAVLING / HEALTH..." /></KavioFilterField>
+            <KavioFilterField label="HEALTH"><select name="health" defaultValue={health}><option value="">SEMUA HEALTH</option>{healthOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select></KavioFilterField>
+            <KavioFilterField label="PRIORITAS"><select name="priority" defaultValue={priority}><option value="">SEMUA PRIORITAS</option>{priorityOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select></KavioFilterField>
           </FilterBar>
           <div className="kavio-table-wrap">
             <table className="kavio-table laporan-decision-table">
