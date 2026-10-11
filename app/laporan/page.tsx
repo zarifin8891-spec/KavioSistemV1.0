@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import KavioFilterBar,{KavioFilterField} from '../components/KavioFilterBar';
+import KavioFilterBar,{KavioFilterField,KavioFilterActions} from '../components/KavioFilterBar';
 import KavioNavTabs from '../components/KavioNavTabs';
 import WageReport from './WageReport';
 import ReceivableReport from './ReceivableReport';
@@ -254,8 +254,8 @@ const [
     <form method="get"><KavioFilterBar>
       <input type="hidden" name="jenis" value={selected} />
       {children}
-      <button type="submit" className="kavio-button">TAMPILKAN</button>
-      <Link href={`/laporan?jenis=${selected}`} className="kavio-button secondary">RESET</Link>
+      <KavioFilterActions><button type="submit" className="kavio-button">TAMPILKAN</button>
+      <Link href={`/laporan?jenis=${selected}`} className="kavio-button secondary">RESET</Link></KavioFilterActions>
     </KavioFilterBar></form>
   );
 

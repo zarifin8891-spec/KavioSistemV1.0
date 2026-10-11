@@ -6,3 +6,7 @@ export default function KavioFilterBar({children,className=''}:{children:ReactNo
 export function KavioFilterField({label,kind='select',children}:{label:string;kind?:'date'|'search'|'select';children:ReactNode}) {
  return <label className={`kavio-field kavio-filter-field kavio-filter-${kind}`}><span>{label}</span>{children}</label>;
 }
+
+export function KavioFilterActions({children}:{children:ReactNode}) {
+ return <div className="kavio-filter-actions">{children}</div>;
+}
