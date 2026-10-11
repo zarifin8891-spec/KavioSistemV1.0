@@ -24,3 +24,5 @@ Penutupan SPK PERINCIAN memerlukan seluruh item tepat 100%, termasuk total bobot
 - Regresi konfigurasi tahap 1 tetap lolos.
 - Uji komponen React: item selesai tersembunyi, mandor tampil, filter mempertahankan input batch, Message Box untuk kelebihan progress, modal tetap terbuka saat error, serta submit valid.
 - Build Next.js lolos. Visual pada sesi login pengguna perlu dikonfirmasi melalui preview V2.
+
+Tanggal form serta validasi semua RPC progress menggunakan `Asia/Jakarta`. Uji `supabase/tests/progress_date_jakarta.sql` mencakup pergantian hari, pencatatan kategori pada hari proyek, dan penolakan tanggal masa depan.
