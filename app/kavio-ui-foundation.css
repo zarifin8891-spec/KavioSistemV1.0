@@ -2044,7 +2044,7 @@ body.kavio-messagebox-open .kavio-content > main > .kavio-alert {
 }
 
 /* Compact URL navigation and report pagination are shared Foundation patterns. */
-.kavio-nav-tabs {gap:4px;padding:6px 8px;}
+.kavio-module-tabs.kavio-nav-tabs {gap:4px;padding:6px 8px;}
 .kavio-nav-tabs .kavio-module-tab {padding:8px 12px;font-size:12px;line-height:1.2;white-space:nowrap;}
 .kavio-print-only {display:none;}
 .kavio-report-group + .kavio-report-group,.kavio-report-recap {margin-top:12px;}
