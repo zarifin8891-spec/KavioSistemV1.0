@@ -140,3 +140,5 @@ Master Gudang edits existing material_location records (GUDANG only) through exi
 Reports order dated records oldest first. Material report removes the category filter and its lookup query. Stock card UI and its database running sum share tanggal, incoming-first mutation rank, posting timestamp, document number and row ID. Running sums cover full history before period filtering; posting valuation remains unchanged. Wage details retain mandor groups and order grouped items by earliest progress date in the selected period.
 
 Kartu Stok is removed from the Gudang & Material navigation and rendered panels. The module has three tabs: Saldo Gudang, Pembelian, and Pemakaian & Rekonsiliasi. Transaction history remains in Laporan Material; stored transactions and stock balances are preserved.
+
+StockTable accepts an actions slot in its shared panel header. Opening stock entry sits next to the item count; the redundant Input Transaksi panel on Saldo Gudang is removed. The existing transaction modal, permission gate and posting action are reused.

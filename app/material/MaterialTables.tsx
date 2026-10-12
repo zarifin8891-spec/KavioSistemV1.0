@@ -10,11 +10,11 @@ import {formatKavioDate} from '../lib/date-format';
 import {PurchaseActions,type Purchase,type PurchaseOptions} from './PurchaseForm';
 const quantity=new Intl.NumberFormat('id-ID',{maximumFractionDigits:3});
 export type Stock={key:string;kind:string;holder:string;location:string;material:string;unit:string;qty:number;average:number;value:number};
-export function StockTable({stocks}:{stocks:Stock[]}) {
+export function StockTable({stocks,actions}:{stocks:Stock[];actions?:React.ReactNode}) {
  const [kind,setKind]=useState(''),[holder,setHolder]=useState('');
  const rows=stocks.filter(s=>(!kind||s.kind===kind)&&(!holder||s.holder===holder));
  const locations=Array.from(new Map(stocks.filter(s=>!kind||s.kind===kind).map(s=>[s.holder,s.location])).entries());
- return <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">SALDO GUDANG / SPK</h2><p className="kavio-panel-note">Nilai persediaan dihitung dengan harga rata-rata tertimbang.</p></div><span className="kavio-badge">{rows.length} ITEM</span></div>
+ return <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">SALDO GUDANG / SPK</h2><p className="kavio-panel-note">Nilai persediaan dihitung dengan harga rata-rata tertimbang.</p></div><div className="kavio-actions">{actions}<span className="kavio-badge">{rows.length} ITEM</span></div></div>
  <KavioFilterBar><KavioFilterField label="JENIS LOKASI" kind="select"><select value={kind} onChange={e=>{setKind(e.target.value);setHolder('');}}><option value="">SEMUA · GUDANG & SPK</option><option value="GUDANG">GUDANG</option><option value="SPK">SPK</option></select></KavioFilterField><KavioFilterField label="LOKASI / OBJEK" kind="select"><select value={holder} onChange={e=>setHolder(e.target.value)}><option value="">SEMUA LOKASI</option>{locations.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></KavioFilterField></KavioFilterBar>
  <KavioDataTable label="Saldo Gudang dan SPK" fit columns={[{key:'location',label:'LOKASI',width:'24%'},{key:'material',label:'MATERIAL',width:'28%'},{key:'qty',label:'STOK',align:'right',width:'14%'},{key:'avg',label:'HARGA RATA-RATA',align:'right',width:'17%'},{key:'value',label:'NILAI',align:'right',width:'17%'}]}>{rows.map(s=><tr key={s.key}><td>{s.kind} · {s.location}</td><td>{s.material}</td><td className="kavio-number">{quantity.format(s.qty)} {s.unit}</td><td className="kavio-number">{formatKavioMoney(s.average)}</td><td className="kavio-number">{formatKavioMoney(s.value)}</td></tr>)}{!rows.length&&<tr><td colSpan={5} className="kavio-empty">BELUM ADA STOK PADA LOKASI YANG DIPILIH.</td></tr>}</KavioDataTable>
  </section>;
