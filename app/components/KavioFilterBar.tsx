@@ -7,6 +7,6 @@ export function KavioFilterField({label,kind='select',children}:{label:string;ki
  return <label className={`kavio-field kavio-filter-field kavio-filter-${kind}`}><span>{label}</span>{children}</label>;
 }
 
-export function KavioFilterActions({children}:{children:ReactNode}) {
- return <div className="kavio-filter-actions">{children}</div>;
+export function KavioFilterActions({children,align='start'}:{children:ReactNode;align?:'start'|'end'}) {
+ return <div className={`kavio-filter-actions${align==='end'?' kavio-filter-actions-end':''}`}>{children}</div>;
 }

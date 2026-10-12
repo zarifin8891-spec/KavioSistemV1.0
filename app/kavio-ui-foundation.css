@@ -2132,3 +2132,9 @@ form.kavio-form.kavio-master-form {display:grid;grid-template-columns:repeat(2,m
 
 /* Table selection controls must not inherit text-input height. */
 .kavio-table input[type=checkbox] {width:16px!important;height:16px!important;min-height:0!important;padding:0!important;margin:0;vertical-align:middle;accent-color:var(--kavio-gold);}
+
+.kavio-filter-actions.kavio-filter-actions-end {margin-left:auto;justify-content:flex-end;}
+@media(max-width:560px) {.kavio-filter-actions.kavio-filter-actions-end {flex-basis:100%;}}
+
+.kavio-filter-actions .kavio-actions {padding-top:0;}
+.kavio-filter-actions :is(.kavio-button,.kavio-command-button) {height:var(--kavio-filter-control-height)!important;min-height:var(--kavio-filter-control-height)!important;white-space:nowrap;}
