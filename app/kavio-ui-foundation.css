@@ -2114,3 +2114,8 @@ form.kavio-form.kavio-master-form {display:grid;grid-template-columns:repeat(2,m
 .kavio-master-form > .kavio-master-field-wide,.kavio-master-form > .kavio-form-actions {grid-column:1/-1;}
 .kavio-master-form .kavio-field :is(input,select,textarea) {width:100%;min-width:0;box-sizing:border-box;}
 @media(max-width:520px) {form.kavio-form.kavio-master-form {grid-template-columns:1fr;gap:12px;}}
+
+.kavio-transaction-header-flex {display:flex;flex-wrap:wrap;gap:12px;align-items:end;}
+.kavio-transaction-header-flex > .kavio-field {flex:1 1 170px;grid-column:auto;min-width:0;}
+.kavio-transaction-header-flex > .kavio-transaction-date {flex:0 0 140px;}
+@media(max-width:460px) {.kavio-transaction-header-flex > .kavio-field {flex-basis:100%;}}

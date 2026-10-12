@@ -8,6 +8,7 @@ import { redirectKavioFormError } from '../../lib/kavio-form-feedback';
 import type { KavioAction } from '../../lib/kavio-permissions';
 
 type MaterialRpc =
+  | 'post_material_document_dated_atomic'
   | 'post_material_purchase_v2_atomic'
   | 'amend_material_purchase_atomic'
   | 'fulfill_material_request_v2_atomic'
@@ -44,24 +45,32 @@ async function post(rpc: MaterialRpc, permission: KavioAction, args: Record<stri
   redirect(`/material?tab=${transactionTab(failureFocus)}&success=${encodeURIComponent('TRANSAKSI MATERIAL BERHASIL DISIMPAN')}`);
 }
 
+async function postDated(kind:string,permission:KavioAction,args:Record<string,unknown>,focus:string,form:FormData) {
+ const tanggal=value(form,'tanggal');
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)||!Number.isFinite(Date.parse(tanggal))||new Date(tanggal).toISOString().slice(0,10)!==tanggal||tanggal>today)
+  redirectKavioFormError('/material','Tanggal wajib valid dan tidak boleh di masa depan.',{focus,params:{tab:transactionTab(focus)}});
+ await post('post_material_document_dated_atomic',permission,{p_kind:kind,p_tanggal:tanggal,p_data:args},focus);
+}
+
 export async function postMaterialReceipt(form:FormData) {
  await post('post_material_receipt_atomic','MATERIAL_WAREHOUSE_WRITE',{p_id_lokasi:value(form,'id_lokasi'),p_items:materialItems(form,'receipt_material',true),p_saldo_awal:true,p_keterangan:value(form,'keterangan')||null},'receipt_material');
 }
 export async function createMaterialRequest(form:FormData) {
- await post('create_material_request_atomic','MATERIAL_REQUEST_WRITE',{p_id_spk:value(form,'id_spk'),p_sumber_laporan:value(form,'sumber_laporan'),p_items:materialItems(form,'request_spk'),p_keterangan:value(form,'keterangan')||null},'request_spk');
+ await postDated('REQUEST','MATERIAL_REQUEST_WRITE',{p_id_spk:value(form,'id_spk'),p_sumber_laporan:value(form,'sumber_laporan'),p_items:materialItems(form,'request_spk'),p_keterangan:value(form,'keterangan')||null},'request_spk',form);
 }
 export async function issueMaterialToSpk(form:FormData) {
- await post('fulfill_material_request_v2_atomic','MATERIAL_WAREHOUSE_WRITE',{p_id_permintaan:value(form,'id_permintaan'),p_id_lokasi:value(form,'id_lokasi'),p_items:materialItems(form,'issue_request'),p_langsung_pakai:value(form,'langsung_pakai')!=='false',p_keterangan:value(form,'keterangan')||null},'issue_request');
+ await postDated('ISSUE','MATERIAL_WAREHOUSE_WRITE',{p_id_permintaan:value(form,'id_permintaan'),p_id_lokasi:value(form,'id_lokasi'),p_items:materialItems(form,'issue_request'),p_langsung_pakai:value(form,'langsung_pakai')!=='false',p_keterangan:value(form,'keterangan')||null},'issue_request',form);
 }
 export async function postDirectMaterialUsage(form:FormData) {
- await post('post_material_direct_usage_atomic','MATERIAL_USE_WRITE',{p_id_spk:value(form,'id_spk'),p_id_lokasi:value(form,'id_lokasi'),p_items:materialItems(form,'direct_spk'),p_keterangan:value(form,'keterangan')||null},'direct_spk');
+ await postDated('DIRECT','MATERIAL_USE_WRITE',{p_id_spk:value(form,'id_spk'),p_id_lokasi:value(form,'id_lokasi'),p_items:materialItems(form,'direct_spk'),p_keterangan:value(form,'keterangan')||null},'direct_spk',form);
 }
 export async function postSpkMaterialUsage(form:FormData) {
- await post('post_spk_material_usage_atomic','MATERIAL_USE_WRITE',{p_id_spk:value(form,'id_spk'),p_items:materialItems(form,'spk_usage_spk'),p_keterangan:value(form,'keterangan')||null},'spk_usage_spk');
+ await postDated('SPK','MATERIAL_USE_WRITE',{p_id_spk:value(form,'id_spk'),p_items:materialItems(form,'spk_usage_spk'),p_keterangan:value(form,'keterangan')||null},'spk_usage_spk',form);
 }
 export async function reconcileSpkMaterial(form:FormData) {
  const items=materialItems(form,'reconcile_spk').map(i=>({...i,tindakan:value(form,'tindakan'),id_spk_tujuan:value(form,'id_spk_tujuan')||null,id_lokasi_tujuan:value(form,'id_lokasi_tujuan')||null,alasan:value(form,'alasan')||null}));
- await post('post_spk_material_reconciliation_atomic','MATERIAL_WAREHOUSE_WRITE',{p_id_spk:value(form,'id_spk'),p_items:items,p_keterangan:value(form,'keterangan')||null},'reconcile_spk');
+ await postDated('RECONCILE','MATERIAL_WAREHOUSE_WRITE',{p_id_spk:value(form,'id_spk'),p_items:items,p_keterangan:value(form,'keterangan')||null},'reconcile_spk',form);
 }
 
 function purchaseData(form:FormData) {

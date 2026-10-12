@@ -28,6 +28,7 @@ const MASTER_DATA_ROUTES = [
   '/master/notaris',
   '/master/material',
   '/master/pemasok',
+  '/master/gudang',
 ] as const;
 
 export const ROLE_MENU_ACCESS: Record<KavioRole, string[]> = {
@@ -35,7 +36,7 @@ export const ROLE_MENU_ACCESS: Record<KavioRole, string[]> = {
   ADMIN: ['/dashboard', '/master', ...MASTER_DATA_ROUTES, '/siteplan', '/master/kavling', '/master/sales', '/penerimaan', '/master/spk', '/progress', '/material', '/laporan', '/manajemen-user', '/pengaturan'],
   MARKETING: ['/dashboard', '/siteplan', '/master/kavling', '/master/sales', '/laporan'],
   PELAKSANA: ['/dashboard', '/siteplan', '/master/kavling', '/master/spk', '/progress', '/material', '/laporan'],
-  GUDANG: ['/master', '/master/material', '/master/pemasok', '/dashboard', '/master/spk', '/progress', '/material'],
+  GUDANG: ['/master/gudang', '/master', '/master/material', '/master/pemasok', '/dashboard', '/master/spk', '/progress', '/material'],
   KEUANGAN: ['/dashboard', '/master/sales', '/penerimaan', '/laporan'],
   USER: ['/dashboard', '/siteplan', '/master/kavling', '/master/sales', '/master/spk', '/progress', '/laporan'],
 };
