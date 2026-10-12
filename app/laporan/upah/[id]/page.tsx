@@ -1,0 +1,14 @@
+import Link from 'next/link';
+import {notFound} from 'next/navigation';
+import {createClient} from '../../../../lib/supabase/server';
+import KavioReportHeading from '../../../components/KavioReportHeading';
+import KavioPrintButton from '../../../components/KavioPrintButton';
+import {formatKavioMoney} from '../../../lib/number-format';
+import {formatKavioDate} from '../../../lib/date-format';
+export default async function WagePaymentProof({params}:{params:Promise<{id:string}>}){
+ const {id}=await params;if(!/^[\da-f-]{36}$/i.test(id))notFound();const db=await createClient();
+ const {data:h,error}=await db.from('wage_payment').select('*').eq('id_pembayaran',id).maybeSingle();if(error)throw new Error(error.message);if(!h)notFound();
+ const [items,mandor,bank,company]=await Promise.all([db.from('v_wage_payment_detail').select('*').eq('id_pembayaran',id).order('tanggal_update').order('id_progress_detail'),db.from('master_mandor').select('nama_mandor').eq('id_mandor',h.id_mandor).maybeSingle(),h.id_bank?db.from('master_bank').select('nama_bank').eq('id_bank',h.id_bank).maybeSingle():Promise.resolve({data:null,error:null}),db.from('company_settings').select('nama_perusahaan,logo_data_url').eq('id',true).maybeSingle()]);
+ if(items.error)throw new Error(items.error.message);
+ return <main className="kavio-page-stack"><section className="kavio-panel kavio-print-report"><div className="kavio-panel-head kavio-no-print"><h2 className="kavio-panel-title">DETAIL UPAH / RETENSI</h2><div className="kavio-actions"><Link href="/laporan?jenis=upah" className="kavio-button secondary">KEMBALI</Link><KavioPrintButton label="CETAK"/></div></div><KavioReportHeading company={company.data} title={h.status==='POSTED'?`BUKTI PEMBAYARAN ${h.jenis}`:`${h.jenis} · ${h.status}`} meta={`${h.nomor} · ${formatKavioDate(h.tanggal)}`}/><div className="kavio-panel-body"><p>Mandor: <strong>{mandor.data?.nama_mandor??h.id_mandor}</strong> · Kas/Bank: <strong>{bank.data?.nama_bank??'—'}</strong></p><p>Status: <strong>{h.status}</strong> · Total: <strong>{formatKavioMoney(h.total,2)}</strong></p>{h.disetujui_pada&&<p>Disetujui Direktur: {formatKavioDate(h.disetujui_pada)}</p>}{h.keterangan&&<p>Keterangan: {h.keterangan}</p>}{h.alasan_batal&&<p>Alasan pembatalan: {h.alasan_batal}</p>}</div><div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>TANGGAL PROGRESS</th><th>SPK / OBJEK</th><th>PEKERJAAN</th><th className="kavio-number">NOMINAL</th></tr></thead><tbody>{(items.data??[]).map(r=><tr key={r.id_progress_detail}><td>{formatKavioDate(r.tanggal_update)}</td><td>{r.jenis_spk} · {r.id_kavling??r.nama_objek}</td><td>{r.nama_pekerjaan}</td><td className="kavio-number">{formatKavioMoney(r.nominal,2)}</td></tr>)}</tbody><tfoot><tr><td colSpan={3}>TOTAL</td><td className="kavio-number">{formatKavioMoney(h.total,2)}</td></tr></tfoot></table></div></section></main>;
+}

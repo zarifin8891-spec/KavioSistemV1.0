@@ -14,6 +14,8 @@ export const KAVIO_ACTIONS = [
   'MATERIAL_USE_WRITE',
   'PAYMENT_PLAN_WRITE',
   'PAYMENT_RECEIPT_WRITE',
+  'WAGE_PAYMENT_WRITE',
+  'RETENTION_APPROVE',
 ] as const;
 export type KavioAction = typeof KAVIO_ACTIONS[number];
 

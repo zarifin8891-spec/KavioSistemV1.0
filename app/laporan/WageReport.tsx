@@ -1,3 +1,4 @@
+import WagePayments from './upah/WagePayments';
 import KavioFilterBar,{KavioFilterField,KavioFilterActions} from '../components/KavioFilterBar';
 import Link from 'next/link';
 import KavioReportHeading from '../components/KavioReportHeading';
@@ -13,12 +14,13 @@ export default async function WageReport({params}:{params:Params}) {
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const from=param(params,'date_from')||today.slice(0,7)+'-01',to=param(params,'date_to')||today,spk=param(params,'spk'),mandor=param(params,'mandor');
  const supabase=await createClient();
- const [spks,mandors,company]=await Promise.all([
+ const [spks,mandors,company,banks]=await Promise.all([
   supabase.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek').eq('mode_progress','PERINCIAN').order('created_at',{ascending:false}),
   supabase.from('master_mandor').select('id_mandor,nama_mandor').order('nama_mandor'),
   supabase.from('company_settings').select('nama_perusahaan,logo_data_url').eq('id',true).maybeSingle(),
+  supabase.from('master_bank').select('id_bank,nama_bank,status_aktif').order('nama_bank'),
  ]);
- let error=spks.error?.message??mandors.error?.message??company.error?.message??'';
+ let error=spks.error?.message??mandors.error?.message??company.error?.message??banks.error?.message??'';
  if(!validDate(from)||!validDate(to)||from>to)error='Periode awal harus valid dan tidak melewati periode akhir.';
  if(spk&&!(spks.data??[]).some(s=>s.id_spk===spk))error='SPK tidak tersedia untuk laporan perincian upah.';
  if(mandor&&!(mandors.data??[]).some(m=>m.id_mandor===mandor))error='Mandor tidak tersedia.';
@@ -42,6 +44,7 @@ export default async function WageReport({params}:{params:Params}) {
   <KavioReportHeading company={company.data} title="REKAP UPAH BORONGAN PER MANDOR" meta={reportMeta}/>
   <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>MANDOR</th><th className="kavio-number">BRUTO</th><th className="kavio-number">RETENSI</th><th className="kavio-number">NETTO</th></tr></thead><tbody>{Array.from(groups.entries()).map(([id,g])=><tr key={id}><td>{g.name}</td><td className="kavio-number">{money(g.bruto)}</td><td className="kavio-number">{money(g.retensi)}</td><td className="kavio-number">{money(g.netto)}</td></tr>)}</tbody><tfoot><tr><td>TOTAL DASAR TAGIHAN PERIODE</td><td className="kavio-number">{money(totals.upah_bruto)}</td><td className="kavio-number">{money(totals.upah_retensi)}</td><td className="kavio-number">{money(totals.upah_netto)}</td></tr></tfoot></table></div>
  </section>}
- <p className="kavio-report-note">Dasar tagihan sesuai progress tercatat. Retensi ditahan terpisah; laporan ini belum mencatat pembayaran upah maupun pencairan retensi.</p>
+ <p className="kavio-report-note">Dasar tagihan sesuai progress tercatat; pembayaran dan retensi dicatat pada panel terpisah di bawah.</p>
+ <WagePayments today={today} banks={banks.data??[]} mandors={mandors.data??[]}/>
  </section>;
 }
