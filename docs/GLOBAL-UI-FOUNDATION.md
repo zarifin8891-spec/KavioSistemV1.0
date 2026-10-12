@@ -132,3 +132,5 @@ Seven Data Master input/edit forms use `kavio-master-form`: paired fields in two
 Supplier forms display the automatically allocated business ID (`PMS-000001`) next to the name. Contact/phone form the second paired row; address and notes span both columns. The visible code is read-only; the existing UUID remains the relational key, so historical purchase references are preserved.
 
 Master catalog filters use `KavioMasterFilters` as a thin wrapper over `KavioFilterBar`, explicit `KavioFilterField` kinds and grouped `KavioFilterActions`. Kategori Pekerjaan, Material and Perincian Pekerjaan reuse the canonical widths, control height, baseline and responsive wrapping; filter commands do not use the transaction-form grid.
+
+Purchase destination entry separates Masuk Ke (Gudang/SPK) from the required destination selector. Switching route clears the previous destination; the inactive location/SPK field is submitted empty. The shared transaction-header-with-route variant keeps five fields aligned on desktop and wraps on narrow screens. The posting engine still receives one destination.

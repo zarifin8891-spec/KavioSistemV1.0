@@ -13,17 +13,19 @@ export type Purchase={id_transaksi:string;no_transaksi:string;tanggal:string;sta
 export type PurchaseOptions={materials:MaterialOptions;suppliers:SupplierOptions;locations:LocationOptions;spks:SpkOptions;today?:string};
 export function PurchaseForm({options,initial}:{options:PurchaseOptions;initial?:Purchase}) {
  const today=options.today??new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
- const [destination,setDestination]=useState(initial?`${initial.tujuan}:${initial.id_lokasi_tujuan??initial.id_spk}`:'');
- const [target,targetId]=destination.split(':');
+ const [target,setTarget]=useState(initial?.tujuan??'GUDANG');
+ const [targetId,setTargetId]=useState(initial?(initial.tujuan==='GUDANG'?initial.id_lokasi_tujuan:initial.id_spk)??'':'');
+ const destination=targetId?`${target}:${targetId}`:'';
  return <form action={initial?amendMaterialPurchase:saveMaterialPurchase} className="kavio-form kavio-transaction-form">
  {initial&&<input type="hidden" name="id_transaksi" value={initial.id_transaksi}/>}
- <div className="kavio-transaction-header">
+ <div className="kavio-transaction-header kavio-transaction-header-with-route">
  <label className="kavio-field"><span>TANGGAL</span><input type="date" name="tanggal" required max={today} defaultValue={initial?.tanggal??today}/></label>
  <label className="kavio-field"><span>NO. NOTA</span><input name="no_nota" required defaultValue={initial?.no_nota}/></label>
  <label className="kavio-field"><span>PEMASOK</span><select name="id_pemasok" required defaultValue={initial?.id_pemasok??''}><option value="" disabled>PILIH PEMASOK</option>{options.suppliers.map(s=><option key={s.id_pemasok} value={s.id_pemasok}>{s.nama_pemasok}</option>)}</select></label>
- <label className="kavio-field"><span>TUJUAN GUDANG / SPK</span><select name="destination" value={destination} required onChange={e=>setDestination(e.target.value)}><option value="" disabled>PILIH TUJUAN</option><optgroup label="GUDANG">{options.locations.map(l=><option key={l.id_lokasi} value={`GUDANG:${l.id_lokasi}`}>GUDANG · {l.nama_lokasi}</option>)}</optgroup><optgroup label="SPK">{options.spks.map(s=><option key={s.id_spk} value={`SPK:${s.id_spk}`}>SPK · {s.jenis_spk} · {s.id_kavling??s.nama_objek}</option>)}</optgroup></select></label>
+ <label className="kavio-field"><span>MASUK KE</span><select name="tujuan" value={target} required onChange={e=>{setTarget(e.target.value);setTargetId('');}}><option value="GUDANG">GUDANG</option><option value="SPK">SPK</option></select></label>
+ <label className="kavio-field"><span>{target==='GUDANG'?'GUDANG TUJUAN':'SPK TUJUAN'}</span><select name={target==='GUDANG'?'id_lokasi':'id_spk'} value={targetId} required onChange={e=>setTargetId(e.target.value)}><option value="" disabled>{target==='GUDANG'?'PILIH GUDANG':'PILIH SPK'}</option>{target==='GUDANG'?options.locations.map(l=><option key={l.id_lokasi} value={l.id_lokasi}>{l.nama_lokasi}</option>):options.spks.map(s=><option key={s.id_spk} value={s.id_spk}>{s.jenis_spk} · {s.id_kavling??s.nama_objek} · {s.id_spk}</option>)}</select></label>
  </div>
- <input type="hidden" name="tujuan" value={target??''}/><input type="hidden" name="id_lokasi" value={target==='GUDANG'?targetId:''}/><input type="hidden" name="id_spk" value={target==='SPK'?targetId:''}/>
+ <input type="hidden" name="destination" value={destination}/><input type="hidden" name={target==='GUDANG'?'id_spk':'id_lokasi'} value=""/>
  <KavioMaterialLines materials={options.materials} initial={initial?.items} withPrice totalLabel="TOTAL NOTA"/>
  <label className="kavio-field kavio-field-wide"><span>KETERANGAN</span><input name="keterangan" defaultValue={initial?.keterangan??''}/></label>
  {initial&&<label className="kavio-field kavio-field-wide"><span>ALASAN KOREKSI</span><input name="alasan" required/></label>}
