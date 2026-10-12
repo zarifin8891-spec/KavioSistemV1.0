@@ -1,0 +1,91 @@
+begin;
+select set_config('request.jwt.claim.sub','2d50291d-03e3-46a3-b3d8-c4550bc1bce7',true);
+do $test$
+declare dir uuid:='2d50291d-03e3-46a3-b3d8-c4550bc1bce7';finance uuid:=gen_random_uuid();marketing uuid:=gen_random_uuid();admin_user uuid:=gen_random_uuid();u uuid;
+ prefix text:='TEST-APPROVAL-'||substr(gen_random_uuid()::text,1,8);typ text;lot text;bank text;sale uuid;proposal uuid;refund_id uuid;new_refund uuid;payment uuid;dp uuid;
+ price numeric;after_price numeric;data jsonb;payload jsonb;failed boolean;today date:=(now() at time zone 'Asia/Jakarta')::date;
+begin
+ insert into auth.users(id,email) values(finance,'approval-finance-'||finance::text||'@example.invalid'),(marketing,'approval-marketing-'||marketing::text||'@example.invalid'),(admin_user,'approval-admin-'||admin_user::text||'@example.invalid');
+ insert into public.user_profiles(user_id,role,status_aktif,nama) values(finance,'KEUANGAN',true,'TEST FINANCE'),(marketing,'MARKETING',true,'TEST MARKETING'),(admin_user,'ADMIN',true,'TEST ADMIN')
+ on conflict(user_id) do update set role=excluded.role,status_aktif=true;
+ select id_tipe into typ from public.master_tipe_rumah where status_aktif order by id_tipe limit 1;
+ select id_bank into bank from public.master_bank where status_aktif limit 1;
+ lot:=prefix;insert into public.master_kavling(id_kavling,blok,no_kavling,id_tipe,status_kavling,harga_standar) values(lot,prefix,'1',typ,'AVAILABLE',100000000);
+ data:=jsonb_build_object('id_kavling',lot,'nama_konsumen',prefix,'status_sales','BOOKING','jenis_pembayaran','CASH_BERTAHAP','tgl_booking',today,'tenor_bulan',6,'pola_pelunasan','CICILAN_FLEKSIBEL');
+ sale:=public.save_sales_v2_atomic(data);
+ select harga_jual into price from public.sales where id_sales=sale;after_price:=price+10000;
+ -- Simulate a subsequent API transaction: the trusted initial-creation transaction is over.
+ update public.sales_contract_origin set initial_xid=null where id_sales=sale;
+ failed:=false;begin perform public.submit_sales_financial_approval(sale,'PERJANJIAN','{"jenis_pembayaran":null}'::jsonb,'Invalid payment kind');exception when others then if sqlerrm like '%JENIS PEMBAYARAN TIDAK VALID%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Null contract payment kind accepted';end if;
+ perform set_config('request.jwt.claim.sub',marketing::text,true);
+ failed:=false;begin perform public.save_sales_v2_atomic(data||jsonb_build_object('id_sales',sale,'tenor_bulan',12));exception when others then if sqlerrm like '%DISETUJUI DIREKTUR%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Legacy RPC bypassed contract approval';end if;
+ execute 'set local role authenticated';
+ failed:=false;begin update public.sales set harga_jual=1 where id_sales=sale;exception when others then if sqlerrm like '%DISETUJUI DIREKTUR%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Direct price write bypassed approval';end if;
+ failed:=false;begin update public.sales_biaya_tambahan set nominal=1 where id_sales=sale;exception when others then if sqlerrm like '%DISETUJUI DIREKTUR%' then failed:=true;else raise;end if;end;
+ -- There may be no zero-cost rows, so test direct insertion as well.
+ failed:=false;begin insert into public.sales_biaya_tambahan(id_sales,jenis_biaya,nominal,status_aktif) values(sale,'NOTARIS',1,true);exception when others then if sqlerrm like '%DISETUJUI DIREKTUR%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Direct cost write bypassed approval';end if;
+ execute 'reset role';
+ -- Normal consumer/lifecycle edits with unchanged financial fields still succeed.
+ perform public.save_sales_v2_atomic(data||jsonb_build_object('id_sales',sale,'nama_konsumen',prefix||' updated'));
+ proposal:=public.submit_sales_financial_approval(sale,'PERJANJIAN',jsonb_build_object('tenor_bulan',12,'harga_jual',after_price,'biaya_notaris',1000),'Revisi perjanjian');
+ if (select tenor_bulan from public.sales_cash_installment_terms where id_sales=sale)<>6 or (select harga_jual from public.sales where id_sales=sale)<>price then raise exception 'Proposal changed active terms';end if;
+ perform set_config('kavio.financial_apply',proposal::text,true);
+ failed:=false;begin update public.sales set harga_jual=after_price where id_sales=sale;exception when others then if sqlerrm like '%DISETUJUI DIREKTUR%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Forged apply token accepted';end if;
+ perform set_config('kavio.financial_apply','',true);
+ foreach u in array array[finance,marketing,admin_user] loop
+  perform set_config('request.jwt.claim.sub',u::text,true);failed:=false;
+  begin perform public.transition_sales_financial_approval(proposal,'SETUJUI');exception when others then if sqlerrm like '%HANYA DIREKTUR%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Non-director approved';end if;
+ end loop;
+ perform set_config('request.jwt.claim.sub',dir::text,true);perform public.transition_sales_financial_approval(proposal,'SETUJUI');
+ if (select tenor_bulan from public.sales_cash_installment_terms where id_sales=sale)<>12 or (select harga_jual from public.sales where id_sales=sale)<>after_price or (select nominal from public.sales_biaya_tambahan where id_sales=sale and jenis_biaya='NOTARIS')<>1000 then raise exception 'Approved terms not applied atomically';end if;
+ if (select (sebelum->>'tenor_bulan')::int from public.sales_financial_approval where id_pengajuan=proposal)<>6 or (select diputuskan_oleh from public.sales_financial_approval where id_pengajuan=proposal)<>dir then raise exception 'Missing version/actor evidence';end if;
+ failed:=false;begin perform public.transition_sales_financial_approval(proposal,'SETUJUI');exception when others then if sqlerrm like '%SUDAH BERUBAH%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Repeated approval accepted';end if;
+ proposal:=public.submit_sales_financial_approval(sale,'PERJANJIAN',jsonb_build_object('tenor_bulan',11),'Stale proposal');
+ perform public.save_sales_v2_atomic(data||jsonb_build_object('id_sales',sale,'nama_konsumen',prefix,'tenor_bulan',12,'status_sales','DP'));
+ failed:=false;begin perform public.transition_sales_financial_approval(proposal,'SETUJUI');exception when others then if sqlerrm like '%DATA DASAR BERUBAH%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Stale proposal approved';end if;
+ perform public.transition_sales_financial_approval(proposal,'TOLAK','Data berubah');
+ proposal:=public.submit_sales_financial_approval(sale,'PERJANJIAN',jsonb_build_object('tenor_bulan',10),'Withdraw proposal');
+ perform set_config('request.jwt.claim.sub',marketing::text,true);perform public.transition_sales_financial_approval(proposal,'BATAL','Konsumen menarik revisi');
+ if (select dibatalkan_oleh from public.sales_financial_approval where id_pengajuan=proposal)<>marketing or (select tenor_bulan from public.sales_cash_installment_terms where id_sales=sale)<>12 then raise exception 'Withdrawal actor / unchanged terms mismatch';end if;
+ perform set_config('request.jwt.claim.sub',dir::text,true);
+ select id_penerimaan into payment from public.post_sales_receipt_v2_atomic(jsonb_build_object('id_sales',sale,'jenis_penerimaan','BOOKING_FEE','tanggal_penerimaan',today,'nominal',1000000,'metode_penerimaan','TRANSFER','id_bank_penerimaan',bank));
+ select id_penerimaan into dp from public.post_sales_receipt_v2_atomic(jsonb_build_object('id_sales',sale,'jenis_penerimaan','UANG_MUKA','tanggal_penerimaan',today,'nominal',2000000,'metode_penerimaan','TRANSFER','id_bank_penerimaan',bank));
+ failed:=false;begin perform public.submit_sales_financial_approval(sale,'PERJANJIAN',jsonb_build_object('harga_jual',1,'biaya_notaris',0),'Below collected');exception when others then if sqlerrm like '%PELUNASAN KONSUMEN%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Contract reduced below paid value';end if;
+ perform public.close_sales_atomic(sale);
+ perform set_config('request.jwt.claim.sub',finance::text,true);
+ failed:=false;begin perform public.save_sales_cancellation_settlement_atomic(sale,'DIKEMBALIKAN_SEBAGIAN',2000000,1000000,'Bypass paid','SUDAH_DIBAYAR',today);exception when others then if sqlerrm like '%DISETUJUI DIREKTUR%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Legacy paid flag bypass';end if;
+ refund_id:=public.submit_sales_financial_approval(sale,'PEMBATALAN',jsonb_build_object('keputusan','DIKEMBALIKAN_SEBAGIAN','nominal_dikembalikan',2000000,'nominal_ditahan',1000000),'Keputusan kasus');
+ payload:=jsonb_build_object('request_key',gen_random_uuid(),'id_sales',sale,'id_pengajuan',refund_id,'tanggal',today,'id_bank',bank,'nominal',1000000);
+ failed:=false;begin perform public.post_sales_refund_payment_atomic(payload);exception when others then if sqlerrm like '%DISETUJUI DIREKTUR%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Unapproved refund paid';end if;
+ perform set_config('request.jwt.claim.sub',dir::text,true);perform public.transition_sales_financial_approval(refund_id,'SETUJUI');
+ perform set_config('request.jwt.claim.sub',finance::text,true);payment:=public.post_sales_refund_payment_atomic(payload);
+ if public.post_sales_refund_payment_atomic(payload)<>payment or (select nominal_dibayar from public.v_sales_refund_position where id_sales=sale)<>1000000 or (select sisa_refund from public.v_sales_refund_position where id_sales=sale)<>1000000 then raise exception 'Partial refund/idempotency mismatch';end if;
+ failed:=false;begin perform public.post_sales_refund_payment_atomic(payload||jsonb_build_object('nominal',500000));exception when others then if sqlerrm like '%KUNCI REFUND%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Idempotency key reused';end if;
+ failed:=false;begin perform public.post_sales_refund_payment_atomic(payload||jsonb_build_object('request_key',gen_random_uuid(),'nominal',1000001));exception when others then if sqlerrm like '%MELEBIHI SISA%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Over-refund accepted';end if;
+ perform public.post_sales_refund_payment_atomic(payload||jsonb_build_object('request_key',gen_random_uuid()));
+ if (select status_pengembalian from public.sales_cancellation_settlement where id_sales=sale)<>'SUDAH_DIBAYAR' or (select sum(pengeluaran) from public.v_sales_refund_bank_movement where id_sales=sale)<>2000000 then raise exception 'Full refund / cash out mismatch';end if;
+ failed:=false;begin update public.sales_receipt set status='BATAL' where id_penerimaan=dp;set constraints guard_sales_refund_receipt_balance immediate;exception when others then if sqlerrm like '%REFUND YANG SUDAH DIBAYAR%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Funded receipt void accepted';end if;
+ set constraints guard_sales_refund_receipt_balance deferred;
+ new_refund:=public.submit_sales_financial_approval(sale,'PEMBATALAN',jsonb_build_object('keputusan','DIKEMBALIKAN_SEBAGIAN','nominal_dikembalikan',2500000,'nominal_ditahan',500000),'Revisi kasus');
+ perform set_config('request.jwt.claim.sub',dir::text,true);perform public.transition_sales_financial_approval(new_refund,'SETUJUI');
+ perform set_config('request.jwt.claim.sub',finance::text,true);
+ failed:=false;begin perform public.post_sales_refund_payment_atomic(payload||jsonb_build_object('request_key',gen_random_uuid(),'nominal',500000));exception when others then if sqlerrm like '%KEPUTUSAN TERBARU%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Old refund decision reused';end if;
+ perform public.post_sales_refund_payment_atomic(payload||jsonb_build_object('request_key',gen_random_uuid(),'id_pengajuan',new_refund,'nominal',500000));
+ if (select count(*) from public.sales_financial_approval where id_sales=sale and jenis='PEMBATALAN' and status='DISETUJUI')<>2 or (select sum(nominal) from public.sales_refund_payment where id_sales=sale)<>2500000 then raise exception 'Decision history / cumulative refund mismatch';end if;
+ if has_table_privilege('authenticated','public.sales_financial_approval','update') or has_table_privilege('authenticated','public.sales_refund_payment','insert') or has_function_privilege('anon','public.transition_sales_financial_approval(uuid,text,text)','execute') then raise exception 'Privileged direct mutation granted';end if;
+ perform set_config('request.jwt.claim.sub',marketing::text,true);execute 'set local role authenticated';
+ if not exists(select 1 from public.sales_financial_approval where id_sales=sale and jenis='PERJANJIAN') or exists(select 1 from public.sales_financial_approval where id_sales=sale and jenis='PEMBATALAN') or exists(select 1 from public.sales_refund_payment where id_sales=sale) or exists(select 1 from public.v_sales_refund_bank_movement where id_sales=sale) then raise exception 'Marketing read boundaries incorrect';end if;
+ execute 'reset role';
+ perform set_config('request.jwt.claim.sub',finance::text,true);execute 'set local role authenticated';
+ if not exists(select 1 from public.sales_financial_approval where id_sales=sale and jenis='PEMBATALAN') or not exists(select 1 from public.sales_refund_payment where id_sales=sale) then raise exception 'Finance read access lost';end if;
+ execute 'reset role';
+ update public.user_profiles set status_aktif=false where user_id=finance;
+ execute 'set local role authenticated';
+ if exists(select 1 from public.sales_financial_approval where id_sales=sale) or exists(select 1 from public.sales_refund_payment where id_sales=sale) then raise exception 'Inactive finance reader allowed';end if;
+ execute 'reset role';
+ perform set_config('request.jwt.claim.sub',dir::text,true);
+ set constraints all immediate;
+end $test$;
+rollback;
+select 'PASS: create setup, normal edit, legacy/direct/token bypass denied, Director-only approval, before-after history, stale/reject/withdraw, cash floor, approved partial/full refund, duplicate/overpayment protection, cash out, source correction guard, revised refund decision' verification;
+

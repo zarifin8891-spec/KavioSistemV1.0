@@ -120,3 +120,15 @@ Pengujian rollback baru mencakup salinan standar yang tidak berubah saat templat
 
 Status kesiapan operasi tetap menunggu A03–A05, keputusan kebijakan kontrol yang masih terbuka, performa dan UAT. Tahap ini belum mengesahkan hasil visual browser.
 
+## Tindak lanjut perjanjian Sales dan refund — 12 Oktober 2026
+
+Setelah Bapak menyetujui alur persetujuan, A03/A05 ditutup dalam lingkup perubahan harga/biaya, jenis pembayaran/Bank KPR, tenor/pola pembayaran dan keputusan refund. Perubahan menyimpan snapshot sebelum/sesudah, alasan, pengaju, pemutus serta waktu. Direktur dapat menyetujui atau menolak; pengajuan dapat dibatalkan dengan alasan dan pelaku tersimpan. Usulan tidak mengubah nilai aktif sampai persetujuan diterapkan atomik. Data sumber yang berubah membuat pengajuan kedaluwarsa dan memerlukan pengajuan ulang.
+
+Form edit konsumen/lifecycle mempertahankan ketentuan finansial yang berlaku. Pengaturan biaya aktif dialihkan ke pengajuan revisi. Guard database melindungi harga/jenis/Bank KPR, biaya dan tenor dari update langsung maupun endpoint lama. Setup Sales baru tetap diperbolehkan dalam transaksi pembuatan yang sama. Aturan sebelumnya yang melarang pergantian jenis pembayaran setelah ada penerimaan tetap berlaku; Bank KPR tidak dapat dipindahkan setelah pencairan. Total perjanjian tidak boleh turun di bawah pelunasan konsumen yang tercatat.
+
+Refund: Keuangan mengajukan keputusan kumulatif → Direktur menyetujui → Keuangan mencatat pengembalian dengan tanggal/Kas-Bank. Pembayaran boleh bertahap, menggunakan kunci idempotensi dan tidak melebihi sisa disetujui. Revisi keputusan mempertahankan histori dan tidak boleh lebih kecil daripada refund yang telah dibayar. Catatan pembayaran tetap tersimpan; kasus historis sebelum workflow disimpan sebagai histori tanpa memberi persetujuan fiktif. Koreksi penerimaan yang membuat sumber dana kurang dari refund diblokir pada validasi akhir transaksi.
+
+Pengujian rollback mencakup setup dan edit normal, bypass endpoint/tabel/token, hak persetujuan Direktur versus Admin/Marketing/Keuangan, versi sebelum/sesudah, data kedaluwarsa, tolak/batal, batas pembayaran konsumen, refund sebelum persetujuan, bertahap/penuh, pengulangan request, kelebihan bayar, arus Kas/Bank dan revisi keputusan. Batas baca Marketing/Keuangan/akun nonaktif juga diuji. Regresi Piutang/KPR, jaminan multi-item, upah/retensi dan RAB lulus; build berhasil. Rekonsiliasi bertambah menjadi 20 indikator.
+
+Advisor: tabel baru memakai RLS dan policy eksplisit; view memakai security_invoker; FK baru memiliki indeks pendukung. Peringatan SECURITY DEFINER untuk tiga RPC publik yang sengaja dilindungi izin tetap merupakan catatan review, bukan pemberian akses anonim. A04 (persetujuan hilang/rusak), performa dan UAT masih terbuka; V2 belum ditetapkan Operational Ready. Audit visual browser belum dilakukan pada tahap ini.
+

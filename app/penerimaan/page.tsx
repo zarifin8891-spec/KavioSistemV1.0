@@ -12,6 +12,8 @@ import KavioActionGate from '../components/KavioActionGate';
 import {voidSalesReceipt} from './actions';
 import BankGuaranteePanel from './BankGuaranteePanel';
 import CancellationSettlementPanel from './CancellationSettlementPanel';
+import type {RefundPosition,RefundPayment} from './CancellationSettlementPanel';
+import type {FinancialProposal} from '../components/KavioFinancialApprovalHistory';
 
 type SearchParams=Promise<{error?:string;success?:string;edit?:string;hapus?:string}>;
 type FinancialRow={id_sales:string;id_kavling:string;nama_konsumen:string;status_sales:string;status_aktif:boolean;jenis_pembayaran:string;total_tagihan:number|string;total_diterima:number|string;total_pelunasan_konsumen:number|string;saldo_piutang:number|string;persentase_terbayar:number|string};
@@ -23,7 +25,7 @@ type Cancellation={id_sales:string;keputusan:string;nominal_dikembalikan:number|
 export default async function PenerimaanPage({searchParams}:{searchParams:SearchParams}){
   const params=await searchParams;
   const supabase=await createClient();
-  const [{data:financial,error:financialError},{data:receiptData,error:receiptError},{data:guaranteeData,error:guaranteeError},{data:alertData,error:alertError},{data:canceledData,error:canceledError},{data:settlementData,error:settlementError},{data:accounts,error:accountError},{data:guaranteeReceipts,error:guaranteeReceiptError},{data:bankTotals,error:bankTotalError}]=await Promise.all([
+  const [{data:financial,error:financialError},{data:receiptData,error:receiptError},{data:guaranteeData,error:guaranteeError},{data:alertData,error:alertError},{data:canceledData,error:canceledError},{data:settlementData,error:settlementError},{data:accounts,error:accountError},{data:guaranteeReceipts,error:guaranteeReceiptError},{data:bankTotals,error:bankTotalError},approvalRows,refundPosition,refundPayment]=await Promise.all([
     readAllQueryResult(supabase.from('v_sales_financial_position').select('id_sales,id_kavling,nama_konsumen,status_sales,status_aktif,jenis_pembayaran,total_tagihan,total_diterima,total_pelunasan_konsumen,saldo_piutang,persentase_terbayar').eq('status_aktif',true).order('saldo_piutang',{ascending:false}).order('id_sales')),
     supabase.from('sales_receipt').select('id_penerimaan,no_kuitansi,nilai_barcode,id_sales,jenis_penerimaan,tanggal_penerimaan,nominal,metode_penerimaan,status,id_bank_penerimaan,id_jaminan,no_referensi,keterangan,jaminan_snapshot').order('dibuat_pada',{ascending:false}).limit(30),
     readAllQueryResult(supabase.from('v_sales_bank_receivable').select('id_jaminan,id_sales,jenis_item,nominal_tagihan,status,id_bank_kpr').order('dibuat_pada',{ascending:false}).order('id_jaminan')),
@@ -33,6 +35,9 @@ export default async function PenerimaanPage({searchParams}:{searchParams:Search
     readAllQueryResult(supabase.from('master_bank').select('id_bank,nama_bank,jenis_akun').eq('status_aktif',true).order('nama_bank').order('id_bank')),
     readAllQueryResult(supabase.from('sales_receipt').select('id_jaminan,nominal').eq('status','AKTIF').eq('jenis_penerimaan','PENCAIRAN_DANA_JAMINAN').order('id_penerimaan')),
     readAllQueryResult(supabase.from('v_sales_bank_receipt_balance').select('id_bank_penerimaan,total_bruto,total_jaminan,total_uang_masuk').order('id_bank_penerimaan')),
+    readAllQueryResult(supabase.from('sales_financial_approval').select('*').eq('jenis','PEMBATALAN').order('urutan',{ascending:false})),
+    readAllQueryResult(supabase.from('v_sales_refund_position').select('*').order('id_sales')),
+    readAllQueryResult(supabase.from('sales_refund_payment').select('*').order('tanggal').order('id_pembayaran')),
   ]);
   const sales=(financial??[]) as FinancialRow[];
   const receipts=(receiptData??[]) as Receipt[];
@@ -40,7 +45,7 @@ export default async function PenerimaanPage({searchParams}:{searchParams:Search
   const alerts=(alertData??[]) as ProgressAlert[];
   const canceled=(canceledData??[]) as {id_sales:string;id_kavling:string;nama_konsumen:string;jenis_pembayaran:string;total_diterima:number|string}[];
   const settlements=(settlementData??[]) as Cancellation[];
-  const dbError=financialError?.message??receiptError?.message??guaranteeError?.message??alertError?.message??canceledError?.message??settlementError?.message??accountError?.message??guaranteeReceiptError?.message??bankTotalError?.message;
+  const dbError=financialError?.message??receiptError?.message??guaranteeError?.message??alertError?.message??canceledError?.message??settlementError?.message??accountError?.message??guaranteeReceiptError?.message??bankTotalError?.message??approvalRows.error?.message??refundPosition.error?.message??refundPayment.error?.message;
   const guaranteePaid:Record<string,number>={}; for(const r of guaranteeReceipts??[]){if(r.id_jaminan)guaranteePaid[r.id_jaminan]=(guaranteePaid[r.id_jaminan]??0)+Number(r.nominal);}
   const edit=params.edit?receipts.find(r=>r.id_penerimaan===params.edit&&r.status==='AKTIF'):null;
   const remove=params.hapus?receipts.find(r=>r.id_penerimaan===params.hapus&&r.status==='AKTIF'):null;
@@ -79,7 +84,7 @@ export default async function PenerimaanPage({searchParams}:{searchParams:Search
     </section>
       </div>
       <BankGuaranteePanel sales={sales} items={guarantees} accounts={accounts??[]} received={guaranteePaid} />
-      <CancellationSettlementPanel sales={canceled} settlements={settlements} />
+      <CancellationSettlementPanel sales={canceled} settlements={settlements} requests={(approvalRows.data??[]) as FinancialProposal[]} positions={(refundPosition.data??[]) as RefundPosition[]} payments={(refundPayment.data??[]) as RefundPayment[]} accounts={accounts??[]} today={new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}/>
     </KavioModuleTabs>
     {edit&&<KavioActionGate action="PAYMENT_RECEIPT_WRITE"><KavioFormModal open closeHref="/penerimaan?tab=piutang" ariaLabel="Edit penerimaan" persistenceKey={`receipt-edit:${edit.id_penerimaan}`}><section className="kavio-panel"><div className="kavio-panel-head"><h2>EDIT PENERIMAAN — {edit.no_kuitansi}</h2></div><ReceiptForm sales={sales} accounts={accounts??[]} initial={edit}/></section></KavioFormModal></KavioActionGate>}
     {remove&&<KavioActionGate action="PAYMENT_RECEIPT_WRITE"><KavioFormModal open closeHref="/penerimaan?tab=piutang" ariaLabel="Hapus penerimaan" persistenceKey={`receipt-void:${remove.id_penerimaan}`}><section className="kavio-panel"><div className="kavio-panel-head"><h2>HAPUS PENERIMAAN — {remove.no_kuitansi}</h2></div><form action={voidSalesReceipt} className="kavio-form kavio-panel-body"><input type="hidden" name="id_penerimaan" value={remove.id_penerimaan}/><p className="collection-wide">{formatKavioMoney(remove.nominal)} akan dikeluarkan dari penerimaan aktif. Kuitansi tetap tersimpan dengan status BATAL.</p><label className="kavio-field collection-wide"><span>ALASAN HAPUS</span><input id="receipt_void" name="alasan" required/></label><KavioFormActions><button type="submit" className="kavio-button">HAPUS PENERIMAAN</button></KavioFormActions></form></section></KavioFormModal></KavioActionGate>}

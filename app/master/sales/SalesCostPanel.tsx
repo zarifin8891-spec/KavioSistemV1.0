@@ -23,10 +23,12 @@ export default function SalesCostPanel({
   idSales,
   hargaDasar,
   costs,
+  readOnly=false,
 }: {
   idSales: string;
   hargaDasar: number | string | null;
   costs: Cost[];
+  readOnly?:boolean;
 }) {
   const costMap = new Map(costs.map((item) => [item.jenis_biaya, Number(item.nominal) || 0]));
   const [values, setValues] = useState<Record<string, number>>(() =>
@@ -45,7 +47,7 @@ export default function SalesCostPanel({
           <h2 className="kavio-panel-title">BIAYA SALES</h2>
           <div className="kavio-panel-note">Biaya tambahan tersimpan terpisah dari harga jual dasar dan otomatis masuk ke total harga.</div>
         </div>
-        <KavioActionGate action="SALES_WRITE">
+        {!readOnly&&<KavioActionGate action="SALES_WRITE">
           <KavioModalAction
             formKey="sales-cost"
             buttonLabel="UBAH BIAYA"
@@ -82,7 +84,7 @@ export default function SalesCostPanel({
               </KavioFormActions>
             </form>
           </KavioModalAction>
-        </KavioActionGate>
+        </KavioActionGate>}
       </div>
       <div className="sales-cost-summary kavio-panel-body">
         <div><span>HARGA JUAL DASAR</span><strong className="kavio-money">{formatKavioMoney(base)}</strong></div>

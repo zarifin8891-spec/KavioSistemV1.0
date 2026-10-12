@@ -19,6 +19,10 @@ select jsonb_build_object(
  'consumer_negative_balance',(select count(*) from v_sales_financial_position where status_aktif and status_sales<>'BATAL' and saldo_piutang<0),
  'consumer_equation_mismatch',(select count(*) from v_sales_financial_position where saldo_piutang<>case when status_sales='BATAL' then 0 else total_tagihan-total_pelunasan_konsumen end),
  'bank_negative_balance',(select count(*) from v_sales_bank_receivable where saldo_piutang_bank<0),
- 'bank_equation_mismatch',(select count(*) from v_sales_bank_receivable where saldo_piutang_bank<>nominal_tagihan-nominal_diterima)
+ 'bank_equation_mismatch',(select count(*) from v_sales_bank_receivable where saldo_piutang_bank<>nominal_tagihan-nominal_diterima),
+ 'approved_financial_without_decider',(select count(*) from sales_financial_approval where status='DISETUJUI' and (diputuskan_oleh is null or diputuskan_pada is null)),
+ 'stranded_financial_apply',(select count(*) from sales_financial_approval where status='APLICANDO'),
+ 'refund_without_approved_decision',(select count(*) from sales_refund_payment p join sales_financial_approval a using(id_pengajuan) where a.jenis<>'PEMBATALAN' or a.status<>'DISETUJUI' or a.id_sales<>p.id_sales),
+ 'refund_overpayment',(select count(*) from v_sales_refund_position where sisa_refund<0)
 ) reconciliation;
 rollback;
