@@ -1,0 +1,64 @@
+begin;
+select set_config('request.jwt.claim.sub','2d50291d-03e3-46a3-b3d8-c4550bc1bce7',true);
+set local role authenticated;
+do $test$
+declare supplier uuid; warehouse uuid; a uuid; b uuid; work uuid; office text; mandor text; tx uuid; tx2 uuid; replacement uuid; data jsonb; items jsonb; parents jsonb; details jsonb; today date:=(now() at time zone 'Asia/Jakarta')::date; failed boolean; n integer;
+begin
+ insert into master_pemasok(nama_pemasok) values('TEST PURCHASE DATE') returning id_pemasok into supplier;
+ insert into material_location(kode_lokasi,nama_lokasi,jenis_lokasi) values('TEST-DATE-'||substr(gen_random_uuid()::text,1,8),'TEST PURCHASE DATE','GUDANG') returning id_lokasi into warehouse;
+ insert into master_material(nama_material,kategori,satuan,jenis_item) values('TEST DATE A','TEST','PCS','BAHAN') returning id_material into a;
+ insert into master_material(nama_material,kategori,satuan,jenis_item) values('TEST DATE B','TEST','PCS','BAHAN') returning id_material into b;
+ items:=jsonb_build_array(jsonb_build_object('id_material',a,'jumlah',10,'harga_satuan',100),jsonb_build_object('id_material',b,'jumlah',10,'harga_satuan',200));
+ data:=jsonb_build_object('tujuan','GUDANG','id_lokasi',warehouse,'id_pemasok',supplier,'no_nota','TEST DATE','tanggal',today-1,'items',items);
+ tx:=post_material_purchase_v2_atomic(data);
+ if (select tanggal from material_transaction where id_transaksi=tx)<>today-1 or (select (created_at at time zone 'Asia/Jakarta')::date from material_transaction where id_transaksi=tx)<>today or (select total from v_material_purchase where id_transaksi=tx)<>3000 then raise exception 'Purchase date, posting audit or invoice total mismatch'; end if;
+ data:=jsonb_set(data,'{items}',jsonb_build_array(jsonb_build_object('id_material',a,'jumlah',10,'harga_satuan',300)));
+ data:=jsonb_set(data,'{tanggal}',to_jsonb(today-3));
+ tx2:=post_material_purchase_v2_atomic(data);
+ if (select harga_rata_rata from material_stock_location where id_lokasi=warehouse and id_material=a)<>200 then raise exception 'Late entry must preserve posting valuation'; end if;
+ replacement:=amend_material_purchase_atomic(tx2,'TEST CORRECTION',jsonb_set(jsonb_set(data,'{tanggal}',to_jsonb(today-4)),'{items}',jsonb_build_array(jsonb_build_object('id_material',a,'jumlah',10,'harga_satuan',400))));
+ if (select tanggal from material_transaction where id_transaksi=replacement)<>today-4 or (select harga_rata_rata from material_stock_location where id_lokasi=warehouse and id_material=a)<>250 then raise exception 'Correction date or weighted average mismatch'; end if;
+ select count(*) into n from material_transaction;
+ failed:=false;begin perform post_material_purchase_v2_atomic(jsonb_set(data,'{tanggal}',to_jsonb(today+1))); exception when others then if sqlerrm like '%MASA DEPAN%' then failed:=true;else raise;end if;end;
+ if not failed or (select count(*) from material_transaction)<>n then raise exception 'Future date did not reject atomically';end if;
+ failed:=false;begin perform post_material_purchase_v2_atomic(jsonb_set(data,'{tanggal}','"2026-02-30"')); exception when others then if sqlerrm like '%TIDAK VALID%' then failed:=true;else raise;end if;end;
+ if not failed or (select count(*) from material_transaction)<>n then raise exception 'Invalid date did not reject atomically';end if;
+ tx2:=post_material_purchase_v2_atomic(data-'tanggal');
+ if (select tanggal from material_transaction where id_transaksi=tx2)<>today then raise exception 'Legacy caller default date mismatch';end if;
+ select id_kantor,id_mandor into office,mandor from master_mandor where status_aktif order by id_mandor limit 1;
+ work:=create_fasum_spk_with_wages_atomic('TEST PURCHASE DATE SPK',today,today+30,office,mandor,'[{"nama_pekerjaan":"Test","bobot":1,"volume":10,"satuan":"m","harga_satuan_upah":100}]');
+ select jsonb_agg(jsonb_build_object('id_kategori',id_item,'bobot',bobot)) into parents from spk_work_item where id_spk=work;
+ select jsonb_agg(jsonb_build_object('group_id',id_item,'urutan',urutan,'nama_pekerjaan',nama_pekerjaan,'bobot',bobot,'volume',volume,'satuan',satuan,'id_mandor',mandor,'retensi',.05)) into details from spk_work_item where id_spk=work;
+ perform configure_spk_work_atomic(work,'PERINCIAN',1000,parents,details);
+ perform activate_spk_atomic(work);
+ tx2:=post_material_purchase_v2_atomic(jsonb_build_object('tujuan','SPK','id_spk',work,'id_pemasok',supplier,'no_nota','TEST SPK DATE','tanggal',today-2,'items',items));
+ if (select tanggal from material_transaction where id_transaksi=tx2)<>today-2 or (select total from v_material_purchase where id_transaksi=tx2)<>3000 or (select jumlah from material_stock_spk where id_spk=work and id_material=a)<>10 then raise exception 'SPK purchase date, total or stock mismatch';end if;
+
+ items:=jsonb_build_array(jsonb_build_object('id_material',a,'jumlah',1),jsonb_build_object('id_material',b,'jumlah',1));
+ tx:=post_material_document_dated_atomic('REQUEST',today-5,jsonb_build_object('p_id_spk',work,'p_sumber_laporan','GUDANG','p_items',items));
+ if (select tanggal from material_request where id_permintaan=tx)<>today-5 then raise exception 'Request date mismatch';end if;
+ tx2:=post_material_document_dated_atomic('ISSUE',today-4,jsonb_build_object('p_id_permintaan',tx,'p_id_lokasi',warehouse,'p_langsung_pakai',true,'p_items',items));
+ if (select tanggal from material_transaction where id_transaksi=tx2)<>today-4 or not exists(select 1 from material_transaction where id_spk=work and jenis_transaksi='PEMAKAIAN_DARI_SPK' and tanggal=today-4) then raise exception 'Issue and usage date mismatch';end if;
+ tx2:=post_material_document_dated_atomic('DIRECT',today-3,jsonb_build_object('p_id_spk',work,'p_id_lokasi',warehouse,'p_items',items));
+ if (select tanggal from material_transaction where id_transaksi=tx2)<>today-3 then raise exception 'Direct usage date mismatch';end if;
+ tx2:=post_material_document_dated_atomic('SPK',today-2,jsonb_build_object('p_id_spk',work,'p_items',items));
+ if (select tanggal from material_transaction where id_transaksi=tx2)<>today-2 then raise exception 'SPK usage date mismatch';end if;
+ items:=jsonb_build_array(jsonb_build_object('id_material',a,'jumlah',1,'tindakan','KEMBALI_KE_GUDANG','id_lokasi_tujuan',warehouse),jsonb_build_object('id_material',b,'jumlah',1,'tindakan','KEMBALI_KE_GUDANG','id_lokasi_tujuan',warehouse));
+ tx2:=post_material_document_dated_atomic('RECONCILE',today-1,jsonb_build_object('p_id_spk',work,'p_items',items));
+ if (select tanggal from material_spk_reconciliation where id_rekonsiliasi=tx2)<>today-1 or exists(select 1 from material_transaction where id_rekonsiliasi=tx2 and tanggal<>today-1) or (select count(*) from material_transaction where id_rekonsiliasi=tx2)<>2 then raise exception 'Reconciliation dates mismatch';end if;
+ select count(*) into n from material_transaction;
+ failed:=false;begin perform post_material_document_dated_atomic('DIRECT',today+1,jsonb_build_object('p_id_spk',work,'p_id_lokasi',warehouse,'p_items',items));exception when others then if sqlerrm like '%MASA DEPAN%' then failed:=true;else raise;end if;end;
+ if not failed or (select count(*) from material_transaction)<>n then raise exception 'Future date atomic rejection mismatch';end if;
+ if has_function_privilege('anon','public.post_material_document_dated_atomic(text,date,jsonb)','execute') then raise exception 'Anonymous execute';end if;
+
+ -- Receive after usage was entered, on the same business date.
+ tx:=post_material_purchase_v2_atomic(jsonb_build_object('tujuan','GUDANG','id_lokasi',warehouse,'id_pemasok',supplier,'no_nota','SAME DAY LATE RECEIPT','tanggal',today-3,'items',jsonb_build_array(jsonb_build_object('id_material',a,'jumlah',2,'harga_satuan',100))));
+ if exists(select 1 from v_material_stock_card c where c.pemegang=warehouse::text and c.id_material=a and c.tanggal=today-3 and c.masuk>0 and c.urutan_mutasi<>0) then raise exception 'Incoming rank mismatch';end if;
+ if exists(
+  select 1 from (select *,sum(masuk-keluar) over(partition by jenis_lokasi,pemegang,id_material order by tanggal,urutan_mutasi,created_at,no_transaksi,id_item_transaksi rows unbounded preceding) expected from v_material_stock_card where pemegang in (warehouse::text,work::text)) c where saldo<>expected
+ ) then raise exception 'Chronological running balance mismatch';end if;
+ if exists(select 1 from material_stock_location s join lateral(select saldo from v_material_stock_card c where c.jenis_lokasi='GUDANG' and c.pemegang=s.id_lokasi::text and c.id_material=s.id_material order by tanggal desc,urutan_mutasi desc,created_at desc,no_transaksi desc,id_item_transaksi desc limit 1)c on true where s.id_lokasi=warehouse and c.saldo<>s.jumlah) then raise exception 'Final warehouse balance mismatch';end if;
+ if exists(select 1 from material_stock_spk s join lateral(select saldo from v_material_stock_card c where c.jenis_lokasi='SPK' and c.pemegang=s.id_spk::text and c.id_material=s.id_material order by tanggal desc,urutan_mutasi desc,created_at desc,no_transaksi desc,id_item_transaksi desc limit 1)c on true where s.id_spk=work and c.saldo<>s.jumlah) then raise exception 'Final SPK balance mismatch';end if;
+ if not exists(select 1 from pg_class where oid='public.v_material_stock_card'::regclass and reloptions @> array['security_invoker=true']) then raise exception 'RLS view configuration mismatch';end if;
+end $test$;
+rollback;

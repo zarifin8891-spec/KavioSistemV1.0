@@ -74,12 +74,11 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
       supabase.from('master_pemasok').select('id_pemasok,nama_pemasok').order('nama_pemasok'),
       supabase.from('material_location').select('id_lokasi,nama_lokasi').order('nama_lokasi'),
       supabase.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek').order('created_at',{ascending:false}),
-      supabase.from('master_material').select('kategori').neq('jenis_item','UPAH').order('kategori'),
     ]);
     const error=results.find(r=>r.error)?.error;
     const locations=[...(results[1].data??[]).map(l=>({id:l.id_lokasi,name:`GUDANG · ${l.nama_lokasi}`})),...(results[2].data??[]).map(s=>({id:s.id_spk,name:`SPK ${s.jenis_spk} · ${s.id_kavling??s.nama_objek}`}))];
     const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-    return <main className="laporan-page"><ReportSelector selected={selected}/>{error?<div className="kavio-alert error">{error.message}</div>:<MaterialReport suppliers={results[0].data??[]} locations={locations} categories={Array.from(new Set((results[3].data??[]).map(m=>m.kategori)))} today={today}/>}</main>;
+    return <main className="laporan-page"><ReportSelector selected={selected}/>{error?<div className="kavio-alert error">{error.message}</div>:<MaterialReport suppliers={results[0].data??[]} locations={locations} today={today}/>}</main>;
   }
 
   const q = textParam(params, 'q');
@@ -106,15 +105,15 @@ const [
     supabase
       .from('sales')
       .select('id_sales,id_kavling,nama_konsumen,status_sales,jenis_pembayaran,harga_jual,tgl_booking,target_akad,status_aktif,id_bank')
-      .order('tgl_booking', { ascending: false }),
+      .order('tgl_booking', { ascending: true }).order('id_sales'),
     supabase
       .from('v_progress_summary')
       .select('id_spk,id_kavling,id_tipe,id_kantor,id_mandor,tgl_spk,tgl_target_selesai,status_spk,progress_total')
-      .order('id_kavling'),
+      .order('tgl_spk',{ascending:true}).order('id_spk'),
     supabase
       .from('v_decision_engine')
       .select('id_spk,id_kavling,id_tipe,tgl_spk,tgl_target_selesai,status_spk,is_active,progress_aktual,progress_seharusnya,sisa_hari,tanggal_update_terakhir,status_operasional,status_ritme,prioritas_tindakan,action_rekomendasi,health_score,health_level,health_description')
-      .order('id_kavling'),
+      .order('tgl_spk',{ascending:true}).order('id_spk'),
     supabase
       .from('master_bank')
       .select('id_bank,nama_bank')
