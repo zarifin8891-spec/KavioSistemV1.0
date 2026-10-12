@@ -1,0 +1,39 @@
+'use client';
+import {useEffect,useState} from 'react';
+import Link from 'next/link';
+import {createClient} from '../../lib/supabase/client';
+import {readAllReportRows} from '../lib/report-data';
+import KavioDataTable from '../components/KavioDataTable';
+import KavioActionGate from '../components/KavioActionGate';
+import KavioFilterBar,{KavioFilterField,KavioFilterActions} from '../components/KavioFilterBar';
+import KavioTableControls from '../components/KavioTableControls';
+import KavioReportActions from '../components/KavioReportActions';
+import KavioTableTotals from '../components/KavioTableTotals';
+import {formatKavioMoney} from '../lib/number-format';
+export type RabSpk={id_spk:string;jenis_spk:string;id_kavling:string|null;nama_objek:string|null;status_spk:string};
+type Row={status_spk:string;id_spk:string;id_material:string;jenis_spk:string;id_kavling:string|null;nama_objek:string|null;nama_material:string;satuan:string;jenis_item:string;revisi:number|null;volume_rab:number|null;jumlah_pakai:number;jumlah_hilang_rusak:number;stok_spk:number;nilai_rab:number|null;biaya_aktual:number;selisih_nilai:number|null;status_kontrol:string;perlu_perhatian:boolean};
+const qty=(n:number|null)=>n==null?'—':Number(n).toLocaleString('id-ID',{maximumFractionDigits:4});
+const label=(s:RabSpk)=>s.jenis_spk+' · '+(s.id_kavling??s.nama_objek??s.id_spk.slice(0,8));
+export default function MaterialRabReport({spks,initialSpk='',fixed=false,revisionKey=''}:{spks:RabSpk[];initialSpk?:string;fixed?:boolean;revisionKey?:string}) {
+ const [spk,setSpk]=useState(initialSpk),[attention,setAttention]=useState(false),[page,setPage]=useState(0),[rows,setRows]=useState<Row[]>([]),[busy,setBusy]=useState(true),[error,setError]=useState(''),[planned,setPlanned]=useState<string[]>([]);
+ useEffect(()=>{let stale=false;setBusy(true);setError('');const db=createClient();
+ let q=db.from('v_spk_material_rab_control').select('*').order('id_spk').order('nama_material').order('id_material');if(spk)q=q.eq('id_spk',spk);
+ Promise.all([readAllReportRows<Row>(q),readAllReportRows<{id_spk:string}>(db.from('v_spk_material_plan_current').select('id_spk').order('id_spk'))]).then(([data,plans])=>{if(!stale){setRows(data);setPlanned(plans.map(p=>p.id_spk));setBusy(false);}}).catch(e=>{if(!stale){setRows([]);setError(String(e));setBusy(false);}});return()=>{stale=true;};},[spk,revisionKey]);
+ const shown=rows.filter(r=>!attention||r.perlu_perhatian||r.status_kontrol==='BELUM_ADA_RAB'),current=shown.slice(page*50,page*50+50);
+ const totalPlan=shown.reduce((n,r)=>n+Number(r.nilai_rab??0),0),totalActual=shown.reduce((n,r)=>n+Number(r.biaya_aktual),0);
+ const totalDifference=shown.reduce((n,r)=>n+Number(r.selisih_nilai??0),0);
+ const totals=[{label:'RAB MATERIAL',value:totalPlan},{label:'BIAYA AKTUAL',value:totalActual},{label:'SELISIH SPK DENGAN RAB',value:totalDifference}];
+ const missing=spks.filter(s=>(!spk||s.id_spk===spk)&&!planned.includes(s.id_spk));
+ const headers=['SPK / OBJEK','REVISI','MATERIAL','SATUAN','VOLUME RAB','PEMAKAIAN BAHAN','HILANG / RUSAK','STOK SPK','NILAI RAB','BIAYA AKTUAL','SELISIH NILAI','STATUS'];
+ const output=shown.map(r=>[label(r),r.revisi,r.nama_material,r.satuan,r.volume_rab==null?null:Number(r.volume_rab),r.jenis_item==='BAHAN'?Number(r.jumlah_pakai):null,r.jenis_item==='BAHAN'?Number(r.jumlah_hilang_rusak):null,Number(r.stok_spk),r.nilai_rab==null?null:Number(r.nilai_rab),Number(r.biaya_aktual),r.selisih_nilai==null?null:Number(r.selisih_nilai),r.status_kontrol.replaceAll('_',' ')]);
+ const meta=spk?label(spks.find(s=>s.id_spk===spk)??{id_spk:spk,jenis_spk:'SPK',id_kavling:null,nama_objek:null,status_spk:''}):'SEMUA SPK';
+ return <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">RAB MATERIAL VS AKTUAL</h2><p className="kavio-panel-note">Posisi kumulatif saat ini · RAB revisi terbaru · {rows.filter(r=>r.perlu_perhatian).length} item perlu perhatian.</p></div></div>
+ <KavioFilterBar>{!fixed&&<KavioFilterField label="SPK / OBJEK" kind="select"><select value={spk} onChange={e=>{setSpk(e.target.value);setPage(0);}}><option value="">SEMUA SPK</option>{spks.map(s=><option key={s.id_spk} value={s.id_spk}>{label(s)} · {s.status_spk}</option>)}</select></KavioFilterField>}<KavioFilterField label="KONTROL" kind="select"><select value={attention?'1':'0'} onChange={e=>{setAttention(e.target.value==='1');setPage(0);}}><option value="0">SEMUA MATERIAL</option><option value="1">PERLU PERHATIAN</option></select></KavioFilterField><KavioFilterActions align="end"><KavioReportActions title="RAB Material vs Aktual" meta={meta+' · Kumulatif saat ini'} headers={headers} rows={output} totals={totals} totalColumns={[8,9,10]} disabled={busy||!!error}/></KavioFilterActions></KavioFilterBar>
+ {error&&<div className="kavio-alert error" role="alert">{error}</div>}
+ {!busy&&!error&&missing.length>0&&<div className="kavio-alert warning">{missing.length} SPK belum memiliki RAB material. {!fixed&&<KavioActionGate action="SPK_WRITE">{missing.slice(0,3).map(s=><Link key={s.id_spk} href={'/master/spk/rab?id='+s.id_spk} className="kavio-button secondary">{label(s)}</Link>)}</KavioActionGate>}</div>}
+ <KavioTableControls count={shown.length} page={page} onPage={setPage} busy={busy}>{null}</KavioTableControls>
+ <KavioDataTable label="RAB material vs aktual" fit footer={!busy&&!error?<KavioTableTotals columns={9} totals={[{label:'TOTAL RAB MATERIAL',value:totalPlan,column:5},{label:'TOTAL BIAYA AKTUAL',value:totalActual,column:6},{label:'SELISIH SPK DENGAN RAB',value:totalDifference,column:7}]}/>:undefined} columns={[{key:'spk',label:'SPK / OBJEK',width:'13%'},{key:'material',label:'MATERIAL',width:'19%'},{key:'plan',label:'VOLUME RAB',align:'right',width:'9%'},{key:'usage',label:'PAKAI / HILANG',align:'right',width:'11%'},{key:'stock',label:'STOK SPK',align:'right',width:'8%'},{key:'planvalue',label:'NILAI RAB',align:'right',width:'10%'},{key:'actual',label:'BIAYA AKTUAL',align:'right',width:'10%'},{key:'difference',label:'SELISIH NILAI',align:'right',width:'10%'},{key:'status',label:'KONTROL',width:'10%'}]}>{current.map(r=><tr key={r.id_spk+':'+r.id_material}><td><KavioActionGate action="SPK_WRITE" fallback={label(r)}><Link href={'/master/spk/rab?id='+r.id_spk}>{label(r)}</Link></KavioActionGate><small className="kavio-cell-subtext">{r.revisi?'RAB revisi '+r.revisi:'Belum ada RAB'}</small></td><td>{r.nama_material}<small className="kavio-cell-subtext">{r.satuan}{r.jenis_item==='ALAT_PAKAI_ULANG'?' · Alat: kontrol biaya':''}</small></td><td className="kavio-number">{qty(r.volume_rab)}</td><td className="kavio-number">{r.jenis_item==='BAHAN'?qty(r.jumlah_pakai):'—'}{r.jenis_item==='BAHAN'&&Number(r.jumlah_hilang_rusak)>0&&<small className="kavio-cell-subtext">Hilang/rusak: {qty(r.jumlah_hilang_rusak)}</small>}</td><td className="kavio-number">{qty(r.stok_spk)}</td><td className="kavio-number">{r.nilai_rab==null?'—':formatKavioMoney(r.nilai_rab)}</td><td className="kavio-number">{formatKavioMoney(r.biaya_aktual)}</td><td className="kavio-number">{r.selisih_nilai==null?'—':formatKavioMoney(r.selisih_nilai)}</td><td><span className="kavio-badge">{r.status_kontrol.replaceAll('_',' ')}</span></td></tr>)}{!current.length&&<tr><td colSpan={9} className="kavio-empty">{busy?'MEMUAT KONTROL RAB…':error?'DATA TIDAK DAPAT DIBACA.':'TIDAK ADA MATERIAL SESUAI FILTER.'}</td></tr>}</KavioDataTable>
+ <p className="kavio-panel-note">Selisih nilai = biaya aktual − nilai RAB; angka positif berarti kelebihan biaya. Stok SPK dan perpindahan bahan belum menjadi pemakaian. Hilang/rusak bahan mengurangi sisa volume RAB. Alat mengikuti biaya yang dibebankan oleh engine; perpindahan alat tidak dibebankan ulang. SPK tanpa RAB belum dapat dinilai sebagai hemat/melebihi anggaran.</p>
+ </section>;
+}
+

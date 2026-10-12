@@ -8,6 +8,7 @@ import WageReport from './WageReport';
 import ReceivableReport from './ReceivableReport';
 import KavioActionGate from '../components/KavioActionGate';
 import MaterialReport from './MaterialReport';
+import MaterialRabReport from './MaterialRabReport';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { formatKavioDate } from '../lib/date-format';
@@ -20,6 +21,7 @@ const REPORTS = [
   {key:'piutang',label:'LAPORAN PIUTANG',note:'Posisi piutang konsumen berdasarkan kategori pembayaran.'},
   {key:'jaminan',label:'PIUTANG DANA JAMINAN',note:'Tagihan dana jaminan ke bank KPR berdasarkan jenis item.'},
   {key:'material',label:'LAPORAN MATERIAL',note:'Riwayat pembelian, permintaan, pemakaian dan rekonsiliasi stok.'},
+  {key:'rab',label:'KONTROL RAB',note:'Rencana material versus pemakaian dan biaya aktual per SPK.'},
   { key: 'sales', label: 'LAPORAN SALES', note: 'Rekap status penjualan, konsumen, pembayaran, dan target akad.' },
   { key: 'progress', label: 'LAPORAN PROGRESS', note: 'Rekap progress pembangunan per SPK/kavling.' },
   { key: 'decision', label: 'LAPORAN DECISION ENGINE', note: 'Rekap kondisi operasional dan tindakan yang dihasilkan sistem.' },
@@ -82,6 +84,12 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
     const locations=[...(results[1].data??[]).map(l=>({id:l.id_lokasi,name:`GUDANG · ${l.nama_lokasi}`})),...(results[2].data??[]).map(s=>({id:s.id_spk,name:`SPK ${s.jenis_spk} · ${s.id_kavling??s.nama_objek}`}))];
     const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
     return <main className="laporan-page"><ReportSelector selected={selected}/>{error?<div className="kavio-alert error">{error.message}</div>:<MaterialReport suppliers={results[0].data??[]} locations={locations} today={today}/>}</main>;
+  }
+
+  if(selected==='rab') {
+    const db=await createClient();
+    const spks=await readAllReportRows(db.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek,status_spk').order('created_at').order('id_spk'));
+    return <main className="laporan-page"><ReportSelector selected={selected}/><MaterialRabReport spks={spks}/></main>;
   }
 
   const q = textParam(params, 'q');

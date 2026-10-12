@@ -110,3 +110,13 @@ Setelah audit selesai, Bapak mengizinkan kelanjutan implementasi. A01, A06 dan A
 
 Status V2 belum Operational Ready: A02–A05 memerlukan penyelarasan baseline bisnis dan implementasi yang masih berlaku; A08/A09 serta UAT operasional masih terbuka. Tahap ini tidak mengesahkan tampilan browser atau performa produksi. V1/main tidak diubah.
 
+## Tindak lanjut Material Control — 12 Oktober 2026
+
+Bagian inti A02 kini tersedia: snapshot RAB per SPK, revisi beralasan dengan kontrol perubahan bersamaan, RAB standar Kavling/custom Fasum, laporan volume/biaya versus aktual, indikator kelebihan dan material di luar RAB, serta cetak/CSV. Riwayat revisi mempunyai rincian snapshot yang dapat dibuka. SPK Kavling baru mengambil template yang sesuai; SPK lama tetap perlu menetapkan RAB secara eksplisit agar tidak dianggap mempunyai anggaran historis yang belum pernah ditetapkan.
+
+Pemakaian bahan dipisahkan dari stok SPK dan hilang/rusak. Alat pakai ulang mengikuti pembebanan biaya pertama pada ledger yang sudah ada, sehingga transfer tidak dihitung sebagai biaya baru. SPK tanpa RAB ditandai BELUM ADA RAB, bukan dianggap mempunyai anggaran nol. Peringatan tampil dalam kontrol SPK/laporan serta ringkasan Gudang. Tidak ditambahkan persetujuan atau pemblokiran transaksi kelebihan; kebijakan acknowledgement/alasan per transaksi masih perlu ditetapkan jika tetap diperlukan oleh baseline final.
+
+Pengujian rollback baru mencakup salinan standar yang tidak berubah saat template diperbarui, pemisahan upah, volume nol, revisi dan stale edit, stok vs pemakaian, hilang/rusak, pengembalian/transfer, biaya alat sekali, kelebihan volume/nilai, material di luar RAB, SPK tanpa baseline, hak akses dan atomicity. Regresi konfigurasi/aktivasi SPK, upah/retensi serta tanggal transaksi material lulus. Build bersih lulus. Advisor tidak menemukan FK baru tanpa indeks atau view yang melewati RLS; RPC simpan RAB tetap sengaja menggunakan SECURITY DEFINER dengan pemeriksaan SPK_WRITE, tanpa akses anon.
+
+Status kesiapan operasi tetap menunggu A03–A05, keputusan kebijakan kontrol yang masih terbuka, performa dan UAT. Tahap ini belum mengesahkan hasil visual browser.
+

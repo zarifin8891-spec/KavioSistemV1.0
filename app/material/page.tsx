@@ -1,4 +1,5 @@
 import {formatKavioDate} from '../lib/date-format';
+import Link from 'next/link';
 import {createClient} from '../../lib/supabase/server';
 import MaterialActionPanel from './MaterialActionPanel';
 import KavioModuleTabs from '../components/KavioModuleTabs';
@@ -16,7 +17,7 @@ type Supplier=SupplierOptions[number]&{status_aktif:boolean};
 async function allRows<T>(query:{range:(from:number,to:number)=>PromiseLike<{data:unknown[]|null;error:{message:string}|null}>}):Promise<T[]> {let rows:T[]=[];for(let page=0;;page++){const {data,error}=await query.range(page*1000,page*1000+999);if(error)throw new Error(error.message);rows.push(...((data??[]) as T[]));if(!data||data.length<1000)return rows;}}
 export default async function MaterialPage({searchParams}:{searchParams:Promise<{error?:string;success?:string}>}) {
  const params=await searchParams,supabase=await createClient();
- const [warehouse,spkStock,materials,locations,spks,requests,requestItems,suppliers]=await Promise.all([
+ const [warehouse,spkStock,materials,locations,spks,requests,requestItems,suppliers,rabAttention]=await Promise.all([
   allRows<WarehouseStock>(supabase.from('v_material_stock_location').select('*').gt('jumlah',0).order('id_lokasi').order('id_material')),
   allRows<SpkStock>(supabase.from('v_material_stock_spk').select('*').gt('jumlah',0).order('id_spk').order('id_material')),
   allRows<MaterialOptions[number]&{status_aktif:boolean}>(supabase.from('master_material').select('id_material,nama_material,satuan,jenis_item,status_aktif').neq('jenis_item','UPAH').order('id_material')),
@@ -25,6 +26,7 @@ export default async function MaterialPage({searchParams}:{searchParams:Promise<
   allRows<Request>(supabase.from('material_request').select('id_permintaan,no_permintaan,id_spk,status,tanggal').order('created_at',{ascending:false}).order('id_permintaan')),
   allRows<RequestItem>(supabase.from('material_request_item').select('id_permintaan,id_material,jumlah_diminta,jumlah_dipenuhi').order('id_item_permintaan')),
   allRows<Supplier>(supabase.from('master_pemasok').select('id_pemasok,nama_pemasok,status_aktif').order('id_pemasok')),
+  supabase.from('v_spk_material_rab_control').select('id_material',{head:true,count:'exact'}).eq('perlu_perhatian',true),
  ]);
  materials.sort((a,b)=>a.nama_material.localeCompare(b.nama_material,'id'));suppliers.sort((a,b)=>a.nama_pemasok.localeCompare(b.nama_pemasok,'id'));
  const activeSpks=spks.filter(s=>s.is_active&&s.status_spk==='AKTIF');
@@ -37,6 +39,8 @@ export default async function MaterialPage({searchParams}:{searchParams:Promise<
  const historyOptions={materials,suppliers,locations,spks,today};
  const stockRows=[...warehouse.map(s=>({key:`g:${s.id_lokasi}:${s.id_material}`,kind:'GUDANG',holder:s.id_lokasi,location:s.nama_lokasi,material:s.nama_material,unit:s.satuan,qty:Number(s.jumlah),average:Number(s.harga_rata_rata),value:Number(s.nilai_persediaan)})),...spkStock.map(s=>({key:`s:${s.id_spk}:${s.id_material}`,kind:'SPK',holder:s.id_spk,location:s.jenis_spk==='KAVLING'?`Kavling ${s.id_kavling}`:s.nama_objek,material:s.nama_material,unit:s.satuan,qty:Number(s.jumlah),average:Number(s.harga_rata_rata),value:Number(s.nilai_stok)}))];
  return <main className="kavio-page-stack">{params.error&&<div className="kavio-alert error">{params.error}</div>}{params.success&&<div className="kavio-alert success">{params.success}</div>}
+ {rabAttention.error&&<div className="kavio-alert error">Kontrol RAB tidak dapat dibaca: {rabAttention.error.message}</div>}
+ {(rabAttention.count??0)>0&&<div className="kavio-alert warning">Kontrol RAB: {rabAttention.count} item material perlu perhatian. <Link href="/master/spk" className="kavio-button secondary">LIHAT RAB SPK</Link></div>}
  <section className="kavio-kpi-grid kavio-kpi-grid-three"><Summary label="PERMINTAAN TERBUKA" value={String(requests.filter(r=>['DIAJUKAN','SEBAGIAN_DIPENUHI'].includes(r.status)).length)} detail="Kebutuhan material belum selesai"/><Summary label="ITEM DI GUDANG" value={String(warehouse.length)} detail={formatKavioMoney(warehouse.reduce((n,s)=>n+Number(s.nilai_persediaan),0))}/><Summary label="ITEM DI SPK" value={String(spkStock.length)} detail={formatKavioMoney(spkStock.reduce((n,s)=>n+Number(s.nilai_stok),0))}/></section>
  <KavioModuleTabs tabs={[{id:'saldo',label:'Saldo Gudang',focusIds:['receipt_material']},{id:'pembelian',label:'Pembelian',focusIds:['purchase_entry']},{id:'pemakaian',label:'Pemakaian & Rekonsiliasi',focusIds:['request_spk','issue_request','direct_spk','spk_usage_spk','reconcile_spk']}]}>
  <div className="kavio-module-content"><StockTable stocks={stockRows} actions={<MaterialActionPanel {...actionProps} mode="saldo"/>}/></div>
