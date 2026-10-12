@@ -1,4 +1,5 @@
 import KavioDataTable from '../components/KavioDataTable';
+import {readAllQueryResult} from '../lib/report-data';
 import KavioFormActions from '../components/KavioFormActions';
 import Link from 'next/link';
 import KavioModuleTabs from '../components/KavioModuleTabs';
@@ -23,15 +24,15 @@ export default async function PenerimaanPage({searchParams}:{searchParams:Search
   const params=await searchParams;
   const supabase=await createClient();
   const [{data:financial,error:financialError},{data:receiptData,error:receiptError},{data:guaranteeData,error:guaranteeError},{data:alertData,error:alertError},{data:canceledData,error:canceledError},{data:settlementData,error:settlementError},{data:accounts,error:accountError},{data:guaranteeReceipts,error:guaranteeReceiptError},{data:bankTotals,error:bankTotalError}]=await Promise.all([
-    supabase.from('v_sales_financial_position').select('id_sales,id_kavling,nama_konsumen,status_sales,status_aktif,jenis_pembayaran,total_tagihan,total_diterima,total_pelunasan_konsumen,saldo_piutang,persentase_terbayar').eq('status_aktif',true).order('saldo_piutang',{ascending:false}),
+    readAllQueryResult(supabase.from('v_sales_financial_position').select('id_sales,id_kavling,nama_konsumen,status_sales,status_aktif,jenis_pembayaran,total_tagihan,total_diterima,total_pelunasan_konsumen,saldo_piutang,persentase_terbayar').eq('status_aktif',true).order('saldo_piutang',{ascending:false}).order('id_sales')),
     supabase.from('sales_receipt').select('id_penerimaan,no_kuitansi,nilai_barcode,id_sales,jenis_penerimaan,tanggal_penerimaan,nominal,metode_penerimaan,status,id_bank_penerimaan,id_jaminan,no_referensi,keterangan,jaminan_snapshot').order('dibuat_pada',{ascending:false}).limit(30),
-    supabase.from('v_sales_bank_receivable').select('id_jaminan,id_sales,jenis_item,nominal_tagihan,status,id_bank_kpr').order('dibuat_pada',{ascending:false}),
-    supabase.from('v_cash_bertahap_progress_payment_alert').select('id_sales,id_kavling,nama_konsumen,progress_bangunan,persentase_terbayar,nominal_ketertinggal').order('nominal_ketertinggal',{ascending:false}),
-    supabase.from('v_sales_financial_position').select('id_sales,id_kavling,nama_konsumen,jenis_pembayaran,total_diterima').eq('status_sales','BATAL').order('nama_konsumen'),
-    supabase.from('sales_cancellation_settlement').select('id_sales,keputusan,nominal_dikembalikan,nominal_ditahan,alasan,status_pengembalian,tanggal_pengembalian'),
-    supabase.from('master_bank').select('id_bank,nama_bank,jenis_akun').eq('status_aktif',true).order('nama_bank'),
-    supabase.from('sales_receipt').select('id_jaminan,nominal').eq('status','AKTIF').eq('jenis_penerimaan','PENCAIRAN_DANA_JAMINAN'),
-    supabase.from('v_sales_bank_receipt_balance').select('id_bank_penerimaan,total_bruto,total_jaminan,total_uang_masuk'),
+    readAllQueryResult(supabase.from('v_sales_bank_receivable').select('id_jaminan,id_sales,jenis_item,nominal_tagihan,status,id_bank_kpr').order('dibuat_pada',{ascending:false}).order('id_jaminan')),
+    readAllQueryResult(supabase.from('v_cash_bertahap_progress_payment_alert').select('id_sales,id_kavling,nama_konsumen,progress_bangunan,persentase_terbayar,nominal_ketertinggal').order('nominal_ketertinggal',{ascending:false}).order('id_sales')),
+    readAllQueryResult(supabase.from('v_sales_financial_position').select('id_sales,id_kavling,nama_konsumen,jenis_pembayaran,total_diterima').eq('status_sales','BATAL').order('nama_konsumen').order('id_sales')),
+    readAllQueryResult(supabase.from('sales_cancellation_settlement').select('id_sales,keputusan,nominal_dikembalikan,nominal_ditahan,alasan,status_pengembalian,tanggal_pengembalian').order('id_sales')),
+    readAllQueryResult(supabase.from('master_bank').select('id_bank,nama_bank,jenis_akun').eq('status_aktif',true).order('nama_bank').order('id_bank')),
+    readAllQueryResult(supabase.from('sales_receipt').select('id_jaminan,nominal').eq('status','AKTIF').eq('jenis_penerimaan','PENCAIRAN_DANA_JAMINAN').order('id_penerimaan')),
+    readAllQueryResult(supabase.from('v_sales_bank_receipt_balance').select('id_bank_penerimaan,total_bruto,total_jaminan,total_uang_masuk').order('id_bank_penerimaan')),
   ]);
   const sales=(financial??[]) as FinancialRow[];
   const receipts=(receiptData??[]) as Receipt[];

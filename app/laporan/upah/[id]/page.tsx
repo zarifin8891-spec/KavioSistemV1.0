@@ -2,11 +2,13 @@ import KavioReportActions from '../../../components/KavioReportActions';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
 import {createClient} from '../../../../lib/supabase/server';
+import {requireKavioAction} from '../../../../lib/kavio-permissions-server';
 import KavioReportHeading from '../../../components/KavioReportHeading';
 import KavioPrintButton from '../../../components/KavioPrintButton';
 import {formatKavioMoney} from '../../../lib/number-format';
 import {formatKavioDate} from '../../../lib/date-format';
 export default async function WagePaymentProof({params}:{params:Promise<{id:string}>}){
+ await requireKavioAction('WAGE_PAYMENT_READ');
  const {id}=await params;if(!/^[\da-f-]{36}$/i.test(id))notFound();const db=await createClient();
  const {data:h,error}=await db.from('wage_payment').select('*').eq('id_pembayaran',id).maybeSingle();if(error)throw new Error(error.message);if(!h)notFound();
  const [items,mandor,bank,company]=await Promise.all([db.from('v_wage_payment_detail').select('*').eq('id_pembayaran',id).order('tanggal_update').order('id_progress_detail'),db.from('master_mandor').select('nama_mandor').eq('id_mandor',h.id_mandor).maybeSingle(),h.id_bank?db.from('master_bank').select('nama_bank').eq('id_bank',h.id_bank).maybeSingle():Promise.resolve({data:null,error:null}),db.from('company_settings').select('nama_perusahaan,logo_data_url').eq('id',true).maybeSingle()]);

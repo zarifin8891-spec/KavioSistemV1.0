@@ -152,3 +152,11 @@ Report monetary totals are table footer rows aligned with their original money c
 Wage reporting, settlement and history are sibling panels separated by kavio-page-stack spacing. Settlement uses explicit Upah Netto/Retensi mode buttons with Foundation compact module-tab styles. Print/export and entry commands share the panel-header action group. Retention mode explains the existing request/Director approval/Finance payout states; history filters distinguish pending approval, ready to pay, posted and canceled documents.
 
 KavioFilterActions align="end" places reusable commands at the right of the filter row with canonical control height and responsive wrapping. Wage report print/CSV, wage payment entry/print/CSV and history print/CSV use this slot, leaving panel headers for titles and notes.
+
+## V2 audit: complete metrics and financial reads
+
+Dashboard KPI/Project Health use the single-row security-invoker v_dashboard_summary aggregate over all visible project records. The 50-row attention list has a stable tie-breaker and does not feed project metrics. Existing lifecycle/count definitions remain unchanged.
+
+readAllQueryResult reuses readAllReportRows for operational totals and dropdown data. Piutang uses stable, unique ordering while reading every page; a later-page failure returns an error and no partial dataset. The latest-receipt list keeps its intentional 30-row limit. Complete reads are a correctness contract; server paging/aggregate optimization remains a separate performance task.
+
+WAGE_PAYMENT_READ controls payment/retention history, settlement balances and proofs. It is granted to DIREKTUR, ADMIN and KEUANGAN. Shared KavioActionGate hides the payment client panel; proof routes check the capability on the server; database SELECT policies and settlement view enforce it independently. Progress accrual reports keep their existing access. Write and retention-approval capabilities remain separate.

@@ -1,5 +1,6 @@
 import KavioReportActions from '../components/KavioReportActions';
 import WagePayments from './upah/WagePayments';
+import KavioActionGate from '../components/KavioActionGate';
 import KavioFilterBar,{KavioFilterField,KavioFilterActions} from '../components/KavioFilterBar';
 import Link from 'next/link';
 import KavioReportHeading from '../components/KavioReportHeading';
@@ -46,6 +47,6 @@ export default async function WageReport({params}:{params:Params}) {
   <div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>MANDOR</th><th className="kavio-number">BRUTO</th><th className="kavio-number">RETENSI</th><th className="kavio-number">NETTO</th></tr></thead><tbody>{Array.from(groups.entries()).map(([id,g])=><tr key={id}><td>{g.name}</td><td className="kavio-number">{money(g.bruto)}</td><td className="kavio-number">{money(g.retensi)}</td><td className="kavio-number">{money(g.netto)}</td></tr>)}</tbody><tfoot><tr><td>TOTAL DASAR TAGIHAN PERIODE</td><td className="kavio-number">{money(totals.upah_bruto)}</td><td className="kavio-number">{money(totals.upah_retensi)}</td><td className="kavio-number">{money(totals.upah_netto)}</td></tr></tfoot></table></div>
  </section>}
  <p className="kavio-report-note">Dasar tagihan sesuai progress tercatat; pembayaran dan retensi dicatat pada panel terpisah di bawah.</p>
- </section><WagePayments today={today} banks={banks.data??[]} mandors={mandors.data??[]}/>
+ </section><KavioActionGate action="WAGE_PAYMENT_READ"><WagePayments today={today} banks={banks.data??[]} mandors={mandors.data??[]}/></KavioActionGate>
  </div>;
 }

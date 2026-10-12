@@ -97,3 +97,16 @@ Perbaikan audit harus tetap memakai Foundation untuk pola berulang. Jangan membu
 
 ## Kriteria penerimaan
 Role tanpa hak baca upah tidak bisa membaca tabel/view/API terkait; total proyek konsisten di atas batas pagination; nominal KPR/kas/piutang bank tidak terhitung ganda; tidak ada overpayment upah/retensi; persetujuan retensi tidak dapat dilewati; penutupan SPK memeriksa sisa stok; kontrol blueprint yang masih berlaku tersedia dan telah diuji. Batas operasional serta perubahan cakupan harus dicatat sebelum penetapan siap operasi.
+
+## Tindak lanjut tahap pertama — 12 Oktober 2026
+
+Setelah audit selesai, Bapak mengizinkan kelanjutan implementasi. A01, A06 dan A07 telah diperbaiki pada tahap ini; daftar temuan di atas dipertahankan sebagai rekaman kondisi saat audit.
+
+- **A01 ditutup:** WAGE_PAYMENT_READ hanya untuk Direktur/Admin/Keuangan; RLS header/detail diperketat, settlement view tidak menampilkan saldo semu ketika pembayaran disembunyikan, panel pembayaran memakai ActionGate dan halaman bukti memeriksa izin server. Uji tujuh role, akun nonaktif dan anon lulus; direct insert/update/delete tetap ditolak. Laporan dasar tagihan dari progress tidak diberi pembatasan baru.
+- **A06 ditutup untuk batas pembacaan yang diaudit:** KPI Dashboard/Project Health memakai agregat server satu baris. Daftar 50 SPK tetap untuk perhatian/monitoring. Piutang membaca semua halaman dengan urutan stabil melalui helper bersama, termasuk item jaminan dan kuitansi pencairannya. Jika halaman lanjutan gagal, dataset parsial tidak digunakan. Pengujian database dengan 1.050 kavling aktif/Sales dan 60 Fasum membuktikan total penuh serta perbedaan rata-rata seluruh SPK vs 50 terburuk; semua fixture di-rollback.
+- **A07 ditutup:** assertion lama diperbarui. Pencairan jaminan maupun pembatalan kuitansi jaminan hanya mengubah piutang bank; saldo konsumen tetap nol setelah pelunasan bruto KPR. Skrip Piutang lama, KPR multi-item serta pembayaran/retensi lulus ulang.
+- TypeScript/build dan tes helper laporan lulus. Helper lengkap diuji dengan 1.251 baris serta kegagalan pada halaman kedua. Semua 16 indikator rekonsiliasi tetap nol anomali sesudah pengujian.
+- Advisor pascaperubahan tidak menunjukkan kategori keamanan baru. Peringatan fungsi SECURITY DEFINER authenticated yang memang merupakan RPC terlindungi dan pengaturan perlindungan password bocor tetap menjadi catatan audit.
+
+Status V2 belum Operational Ready: A02–A05 memerlukan penyelarasan baseline bisnis dan implementasi yang masih berlaku; A08/A09 serta UAT operasional masih terbuka. Tahap ini tidak mengesahkan tampilan browser atau performa produksi. V1/main tidak diubah.
+

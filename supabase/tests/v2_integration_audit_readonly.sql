@@ -1,3 +1,8 @@
+-- Audit views require an authorized caller, even through an admin SQL connection.
+-- This identity is the existing V2 test director; no fixture/user is committed.
+begin;
+select set_config('request.jwt.claim.sub','2d50291d-03e3-46a3-b3d8-c4550bc1bce7',true);
+do $$ begin if not public.kavio_can_action('WAGE_PAYMENT_READ') then raise exception 'Reconciliation requires an authorized V2 finance reader';end if;end $$;
 select jsonb_build_object(
  'duplicate_active_sales',(select count(*) from(select id_kavling from sales where status_aktif and status_sales<>'BATAL' group by id_kavling having count(*)>1)x),
  'duplicate_kavling_spk',(select count(*) from(select id_kavling from spk where jenis_spk='KAVLING' group by id_kavling having count(*)>1)x),
@@ -16,3 +21,4 @@ select jsonb_build_object(
  'bank_negative_balance',(select count(*) from v_sales_bank_receivable where saldo_piutang_bank<0),
  'bank_equation_mismatch',(select count(*) from v_sales_bank_receivable where saldo_piutang_bank<>nominal_tagihan-nominal_diterima)
 ) reconciliation;
+rollback;

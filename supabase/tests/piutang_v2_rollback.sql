@@ -42,7 +42,8 @@ begin
  if exists(select 1 from public.sales_bank_guarantee_item where id_sales=kpr) then raise exception 'FAILED atomic rollback retention';end if;
  select id_penerimaan into origin from public.post_sales_receipt_v2_atomic(data||jsonb_build_object('jenis_penerimaan','PENCAIRAN_KPR','nominal',bal-4000000,'jaminan',jsonb_build_array(jsonb_build_object('jenis_item','GLOBAL','nominal_tagihan',4000000))));
  select id_jaminan into item from public.sales_bank_guarantee_item where id_sales=kpr;
- if (select saldo_piutang from public.v_sales_financial_position where id_sales=kpr)<>4000000 then raise exception 'FAILED retained counted as received';end if;
+ if (select saldo_piutang from public.v_sales_financial_position where id_sales=kpr)<>0 then raise exception 'FAILED consumer receivable not transferred to bank';end if;
+ if (select saldo_piutang_bank from public.v_sales_bank_receivable where id_jaminan=item)<>4000000 or (select nominal from public.sales_receipt where id_penerimaan=origin)<>bal-4000000 then raise exception 'FAILED initial bank receivable / net cash';end if;
  perform public.submit_sales_bank_guarantee_claim_atomic(item,current_date,null);
  got_error:=false;begin perform public.amend_sales_receipt_atomic(origin,'Invalid delete claimed guarantee');exception when others then if sqlerrm like '%sudah diajukan%' then got_error:=true;else raise;end if;end;
  if not got_error then raise exception 'FAILED origin claimed deleted';end if;
@@ -53,7 +54,7 @@ begin
  perform public.post_sales_receipt_v2_atomic(data||jsonb_build_object('nominal',2000000));
  if (select status from public.sales_bank_guarantee_item where id_jaminan=item)<>'DICAIRKAN' or (select saldo_piutang from public.v_sales_financial_position where id_sales=kpr)<>0 then raise exception 'FAILED final guarantee';end if;
  perform public.amend_sales_receipt_atomic(replacement,'Void partial');
- if (select status from public.sales_bank_guarantee_item where id_jaminan=item)<>'DIAJUKAN_KE_BANK' or (select saldo_piutang from public.v_sales_financial_position where id_sales=kpr)<>2000000 then raise exception 'FAILED reopen guarantee';end if;
+ if (select status from public.sales_bank_guarantee_item where id_jaminan=item)<>'DIAJUKAN_KE_BANK' or (select saldo_piutang_bank from public.v_sales_bank_receivable where id_jaminan=item)<>2000000 or (select saldo_piutang from public.v_sales_financial_position where id_sales=kpr)<>0 then raise exception 'FAILED void reopens bank receivable only';end if;
  raise exception using errcode='ZX001',message='ROLLBACK_ALL_SUCCESS';
  exception when sqlstate 'ZX001' then null;
  end;

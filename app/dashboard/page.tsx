@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { formatKavioDate } from '../lib/date-format';
 
@@ -26,64 +25,41 @@ type DecisionRow = {
   health_level: HealthLevel;
   health_description: string;
 };
-type KavlingRow = { id_kavling: string; status_kavling: string; status_aktif: boolean };
-type SalesRow = { id_kavling: string; status_sales: string; status_aktif: boolean };
+type DashboardSummary = {
+  kavling: { total: number; available: number; booking: number; building: number; ready_stock: number; siap_akad: number; sold: number };
+  sales: { total: number; booking: number; dp: number; proses_kpr: number; akad: number; batal: number; terjual: number };
+  health: { total: number; avg_progress: number; avg_health: number; sehat: number; waspada: number; kritis: number };
+};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
 const [
     { data: decisions, error: decisionError },
-    { data: kavlings, error: kavlingError },
-    { data: sales, error: salesError },
+    { data: summaryData, error: summaryError },
   ] = await Promise.all([
     supabase.from('v_decision_engine')
       .select('id_spk,id_kavling,progress_aktual,progress_seharusnya,gap_progress,sisa_hari,tanggal_update_terakhir,progress_periode_terakhir,status_operasional,status_ritme,prioritas_tindakan,action_rekomendasi,hari_sejak_update,progress_diperlukan_per_hari,health_score,health_level,health_description')
       .neq('status_spk', 'DRAFT')
       .order('health_score', { ascending: true })
+      .order('id_spk')
       .limit(50),
-    supabase.from('master_kavling')
-      .select('id_kavling,status_kavling,status_aktif')
-      .eq('status_aktif', true)
-      .order('id_kavling'),
-    supabase.from('sales')
-      .select('id_kavling,status_sales,status_aktif')
-      .order('created_at', { ascending: false }),
+    supabase.from('v_dashboard_summary').select('kavling,sales,health').single(),
   ]);
 
   const rows = (decisions ?? []) as DecisionRow[];
-  const kavlingRows = (kavlings ?? []) as KavlingRow[];
-  const salesRows = (sales ?? []) as SalesRow[];
-  const activeKavlings = kavlingRows.filter((row) => row.status_aktif);
-  const activeSales = salesRows.filter((row) => row.status_aktif);
-  const countKavling = (status: string) => activeKavlings.filter((row) => row.status_kavling === status).length;
-  const countSales = (status: string) => salesRows.filter((row) => row.status_sales === status).length;
-
-  const totalKavling = activeKavlings.length;
-  // "TERJUAL" counts active Sales plus kavlings that have reached AKAD.
-  // Use distinct kavling IDs so a lifecycle cannot be double-counted.
-  const terjualKavlings = new Set([
-    ...activeSales
-      .filter((row) => row.status_sales !== 'BATAL')
-      .map((row) => row.id_kavling),
-    ...salesRows
-      .filter((row) => row.status_sales === 'AKAD')
-      .map((row) => row.id_kavling),
-  ]);
-  const terjual = terjualKavlings.size;
-  const building = countKavling('BUILDING');
-  const readyStock = countKavling('READY_STOCK');
-  const siapAkad = countKavling('SIAP_AKAD');
-  const tersedia = countKavling('AVAILABLE');
-
-  const avgProgress = rows.length ? rows.reduce((sum, row) => sum + Number(row.progress_aktual ?? 0), 0) / rows.length : 0;
-  const avgHealth = rows.length ? Math.round(rows.reduce((sum, row) => sum + Number(row.health_score ?? 0), 0) / rows.length) : 0;
-  const healthCounts = rows.reduce(
-    (acc, row) => {
-      acc[row.health_level] += 1;
-      return acc;
-    },
-    { SEHAT: 0, WASPADA: 0, KRITIS: 0 } as Record<HealthLevel, number>,
-  );
+  // Project metrics use the complete database aggregate, never the attention list.
+  const summary = summaryData as DashboardSummary | null;
+  const totalKavling = Number(summary?.kavling.total ?? 0);
+  const terjual = Number(summary?.sales.terjual ?? 0);
+  const building = Number(summary?.kavling.building ?? 0);
+  const readyStock = Number(summary?.kavling.ready_stock ?? 0);
+  const siapAkad = Number(summary?.kavling.siap_akad ?? 0);
+  const tersedia = Number(summary?.kavling.available ?? 0);
+  const totalSales = Number(summary?.sales.total ?? 0);
+  const totalMonitored = Number(summary?.health.total ?? 0);
+  const avgProgress = Number(summary?.health.avg_progress ?? 0);
+  const avgHealth = Math.round(Number(summary?.health.avg_health ?? 0));
+  const healthCounts = { SEHAT: Number(summary?.health.sehat ?? 0), WASPADA: Number(summary?.health.waspada ?? 0), KRITIS: Number(summary?.health.kritis ?? 0) };
 
   const concernRows = rows.filter((row) => row.health_level !== 'SEHAT').slice(0, 5);
   const actionRows = rows
@@ -93,22 +69,22 @@ const [
 
   const statusChart = [
     ['AVAILABLE', tersedia],
-    ['BOOKING', countKavling('BOOKING')],
+    ['BOOKING', Number(summary?.kavling.booking ?? 0)],
     ['BUILDING', building],
     ['READY STOCK', readyStock],
     ['SIAP AKAD', siapAkad],
-    ['SOLD', countKavling('SOLD')],
+    ['SOLD', Number(summary?.kavling.sold ?? 0)],
   ] as const;
 
   const salesChart = [
-    ['BOOKING', countSales('BOOKING')],
-    ['UANG MUKA', countSales('DP')],
-    ['PROSES KPR', countSales('PROSES_KPR')],
-    ['AKAD', countSales('AKAD')],
-    ['BATAL', countSales('BATAL')],
+    ['BOOKING', Number(summary?.sales.booking ?? 0)],
+    ['UANG MUKA', Number(summary?.sales.dp ?? 0)],
+    ['PROSES KPR', Number(summary?.sales.proses_kpr ?? 0)],
+    ['AKAD', Number(summary?.sales.akad ?? 0)],
+    ['BATAL', Number(summary?.sales.batal ?? 0)],
   ] as const;
 
-  const error = decisionError?.message ?? kavlingError?.message ?? salesError?.message;
+  const error = decisionError?.message ?? summaryError?.message;
 
   return (
     <main className="kavio-dashboard">
@@ -129,9 +105,9 @@ const [
           <div className="kavio-project-health-title kavio-dashboard-health-title">{healthLabel(avgHealth)}</div>
           <div className="kavio-project-health-meta kavio-dashboard-health-meta">Health Score rata-rata {avgHealth}/100 · Progress aktual rata-rata {(avgProgress * 100).toFixed(1)}%</div>
         </div>
-        <HealthSegment label="SEHAT" value={healthCounts.SEHAT} total={rows.length} />
-        <HealthSegment label="WASPADA" value={healthCounts.WASPADA} total={rows.length} />
-        <HealthSegment label="KRITIS" value={healthCounts.KRITIS} total={rows.length} />
+        <HealthSegment label="SEHAT" value={healthCounts.SEHAT} total={totalMonitored} />
+        <HealthSegment label="WASPADA" value={healthCounts.WASPADA} total={totalMonitored} />
+        <HealthSegment label="KRITIS" value={healthCounts.KRITIS} total={totalMonitored} />
       </section>
 
       <section className="kavio-dashboard-grid-2">
@@ -185,13 +161,13 @@ const [
         <DashboardPanel title="PIPELINE SALES" note="Seluruh data Sales berdasarkan status transaksi.">
           <div className="kavio-dashboard-chart">
             {salesChart.map(([label, value]) => (
-              <ChartRow key={label} label={label} value={value} max={Math.max(1, salesRows.length)} />
+              <ChartRow key={label} label={label} value={value} max={Math.max(1, totalSales)} />
             ))}
           </div>
         </DashboardPanel>
       </section>
 
-      <DashboardPanel title="MONITORING SPK" note="Aktual vs rencana, ritme pekerjaan, dan kebutuhan progress harian.">
+      <DashboardPanel title="MONITORING SPK" note={`Menampilkan ${rows.length} dari ${totalMonitored} SPK, diurutkan menurut Health Score. KPI dihitung dari seluruh SPK terpantau.`}>
         {rows.length ? (
           <div className="kavio-table-wrap">
             <table className="kavio-table kavio-operational-table">
