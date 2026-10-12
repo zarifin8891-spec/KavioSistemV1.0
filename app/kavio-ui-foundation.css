@@ -2129,3 +2129,6 @@ form.kavio-form.kavio-master-form {display:grid;grid-template-columns:repeat(2,m
 @media print {.laporan-page .kavio-table tfoot td,.kavio-print-report .kavio-table tfoot td {font-size:12px!important;}.kavio-report-totals strong {font-size:12px;}}
 
 .kavio-report-subtotal strong {font-size:var(--kavio-report-total-font);font-weight:700;}
+
+/* Table selection controls must not inherit text-input height. */
+.kavio-table input[type=checkbox] {width:16px!important;height:16px!important;min-height:0!important;padding:0!important;margin:0;vertical-align:middle;accent-color:var(--kavio-gold);}
