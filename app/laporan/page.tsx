@@ -1,5 +1,5 @@
 import KavioReportActions from '../components/KavioReportActions';
-import KavioReportTotals from '../components/KavioReportTotals';
+import KavioTableTotals from '../components/KavioTableTotals';
 import {readAllReportRows} from '../lib/report-data';
 import Link from 'next/link';
 import KavioFilterBar,{KavioFilterField,KavioFilterActions} from '../components/KavioFilterBar';
@@ -278,7 +278,7 @@ const [
             </div>
             <span className="kavio-badge">{filteredSales.length} DATA</span>
           </div>
-          <KavioReportActions title="Laporan Sales" headers={['NO','ID SALES','TANGGAL BOOKING','KAVLING','KONSUMEN','PEMBAYARAN','BANK KPR','HARGA JUAL','TARGET AKAD','STATUS']} rows={salesExport} totals={salesTotals}/>
+          <KavioReportActions title="Laporan Sales" headers={['NO','ID SALES','TANGGAL BOOKING','KAVLING','KONSUMEN','PEMBAYARAN','BANK KPR','HARGA JUAL','TARGET AKAD','STATUS']} rows={salesExport} totals={salesTotals} totalColumns={[7]}/>
           <FilterBar>
             <KavioFilterField label="PENCARIAN" kind="search"><input type="search" name="q" defaultValue={q} placeholder="CARI ID SALES / KAVLING / KONSUMEN..." /></KavioFilterField>
             <KavioFilterField label="STATUS SALES"><select name="status" defaultValue={status}><option value="">SEMUA STATUS</option>{salesStatuses.map((item) => <option key={item} value={item}>{item}</option>)}</select></KavioFilterField>
@@ -293,9 +293,9 @@ const [
                 {filteredSales.map((row, index) => <tr key={row.id_sales}><td>{index + 1}</td><td>{row.displayId}</td><td>{formatKavioDate(row.tgl_booking)}</td><td>{row.id_kavling}</td><td>{row.nama_konsumen || '—'}</td><td>{row.jenis_pembayaran || '—'}</td><td>{row.id_bank ? (bankMap.get(String(row.id_bank)) || row.id_bank) : '—'}</td><td className="kavio-money">{formatKavioMoney(row.harga_jual)}</td><td>{formatKavioDate(row.target_akad)}</td><td><span className={`kavio-badge status-${statusClass(displaySalesStatus(row.status_sales))}`}>{displaySalesStatus(row.status_sales)}</span></td></tr>)}
                 {!filteredSales.length && <tr><td colSpan={10} className="kavio-empty">TIDAK ADA DATA YANG SESUAI FILTER.</td></tr>}
               </tbody>
-            </table>
+            <KavioTableTotals columns={10} totals={salesTotals.map(t=>({...t,column:7}))}/></table>
           </div>
-        <KavioReportTotals values={salesTotals}/></section>
+        </section>
       )}
 
       {selected === 'progress' && (
