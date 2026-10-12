@@ -40,7 +40,8 @@ begin
  if r.jumlah_pakai<>3 or r.stok_spk<>8 or r.biaya_aktual<>300 then raise exception 'Stock receipt counted as actual usage';end if;
  if (select biaya_aktual from public.v_spk_material_rab_control where id_spk=k and id_material=tool)<>200 then raise exception 'First tool charge missing';end if;
  perform public.post_spk_material_usage_atomic(k,jsonb_build_array(jsonb_build_object('id_material',a,'jumlah',2)));
- perform public.post_spk_material_reconciliation_atomic(k,jsonb_build_array(jsonb_build_object('id_material',a,'jumlah',1,'tindakan','HILANG_RUSAK','alasan','TEST LOST')));
+ req:=public.submit_material_loss_atomic(gen_random_uuid(),k,current_date,jsonb_build_array(jsonb_build_object('id_material',a,'jumlah',1,'tindakan','HILANG_RUSAK','alasan','TEST LOST')));
+ perform public.decide_material_loss_atomic(req,'SETUJUI','TEST APPROVAL');
  select * into r from public.v_spk_material_rab_control where id_spk=k and id_material=a;
  if r.jumlah_pakai<>5 or r.jumlah_hilang_rusak<>1 or r.biaya_aktual<>600 or r.status_kontrol<>'MELEBIHI_VOLUME' or r.sisa_volume_rab<>-1 then raise exception 'Usage/loss/quantity overrun mismatch';end if;
  perform public.post_spk_material_reconciliation_atomic(k,jsonb_build_array(jsonb_build_object('id_material',a,'jumlah',1,'tindakan','KEMBALI_KE_GUDANG','id_lokasi_tujuan',loc)));

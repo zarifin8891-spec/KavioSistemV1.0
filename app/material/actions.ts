@@ -8,6 +8,8 @@ import { redirectKavioFormError } from '../../lib/kavio-form-feedback';
 import type { KavioAction } from '../../lib/kavio-permissions';
 
 type MaterialRpc =
+  | 'submit_material_loss_atomic'
+  | 'decide_material_loss_atomic'
   | 'post_material_document_dated_atomic'
   | 'post_material_purchase_v2_atomic'
   | 'amend_material_purchase_atomic'
@@ -31,7 +33,7 @@ function materialItems(form:FormData,focus:string,withPrice=false) {
 
 const transactionTab = (focus: string) => focus.startsWith('purchase_') ? 'pembelian' : focus==='receipt_material' ? 'saldo' : 'pemakaian';
 
-async function post(rpc: MaterialRpc, permission: KavioAction, args: Record<string, unknown>, failureFocus: string) {
+async function post(rpc: MaterialRpc, permission: KavioAction, args: Record<string, unknown>, failureFocus: string, success = 'TRANSAKSI MATERIAL BERHASIL DISIMPAN') {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
@@ -42,7 +44,8 @@ async function post(rpc: MaterialRpc, permission: KavioAction, args: Record<stri
   revalidatePath('/master/spk');
   revalidatePath('/progress');
   revalidatePath('/dashboard');
-  redirect(`/material?tab=${transactionTab(failureFocus)}&success=${encodeURIComponent('TRANSAKSI MATERIAL BERHASIL DISIMPAN')}`);
+  revalidatePath('/laporan');
+  redirect(`/material?tab=${transactionTab(failureFocus)}&success=${encodeURIComponent(success)}`);
 }
 
 async function postDated(kind:string,permission:KavioAction,args:Record<string,unknown>,focus:string,form:FormData) {
@@ -50,7 +53,8 @@ async function postDated(kind:string,permission:KavioAction,args:Record<string,u
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  if(!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)||!Number.isFinite(Date.parse(tanggal))||new Date(tanggal).toISOString().slice(0,10)!==tanggal||tanggal>today)
   redirectKavioFormError('/material','Tanggal wajib valid dan tidak boleh di masa depan.',{focus,params:{tab:transactionTab(focus)}});
- await post('post_material_document_dated_atomic',permission,{p_kind:kind,p_tanggal:tanggal,p_data:args},focus);
+ if(kind==='LOSS') await post('submit_material_loss_atomic',permission,{...args,p_tanggal:tanggal},focus,'PENGAJUAN HILANG/RUSAK DISIMPAN. STOK BELUM BERUBAH; MENUNGGU PERSETUJUAN DIREKTUR.');
+ else await post('post_material_document_dated_atomic',permission,{p_kind:kind,p_tanggal:tanggal,p_data:args},focus);
 }
 
 export async function postMaterialReceipt(form:FormData) {
@@ -70,6 +74,10 @@ export async function postSpkMaterialUsage(form:FormData) {
 }
 export async function reconcileSpkMaterial(form:FormData) {
  const items=materialItems(form,'reconcile_spk').map(i=>({...i,tindakan:value(form,'tindakan'),id_spk_tujuan:value(form,'id_spk_tujuan')||null,id_lokasi_tujuan:value(form,'id_lokasi_tujuan')||null,alasan:value(form,'alasan')||null}));
+ if(value(form,'tindakan')==='HILANG_RUSAK') {
+  await postDated('LOSS','MATERIAL_WAREHOUSE_WRITE',{p_request_key:value(form,'request_key'),p_id_spk:value(form,'id_spk'),p_items:items,p_keterangan:value(form,'keterangan')||null},'reconcile_spk',form);
+  return;
+ }
  await postDated('RECONCILE','MATERIAL_WAREHOUSE_WRITE',{p_id_spk:value(form,'id_spk'),p_items:items,p_keterangan:value(form,'keterangan')||null},'reconcile_spk',form);
 }
 
@@ -93,4 +101,11 @@ export async function amendMaterialPurchase(form:FormData) {
  const id=value(form,'id_transaksi'),hapus=value(form,'hapus')==='true',focus=`purchase_${hapus?'delete':'edit'}:${id}`;
  let data=null;if(!hapus) try {data=purchaseData(form);} catch(error) {redirectKavioFormError('/material',error instanceof Error?error.message:'Data pembelian tidak valid.',{focus,params:{tab:'pembelian'}});}
  await post('amend_material_purchase_atomic','MATERIAL_WAREHOUSE_WRITE',{p_id:id,p_alasan:value(form,'alasan'),p_pengganti:data},focus);
+}
+
+export async function decideMaterialLoss(form:FormData) {
+ const action=value(form,'aksi'),id=value(form,'id_pengajuan');
+ await post('decide_material_loss_atomic',action==='BATAL'?'MATERIAL_WAREHOUSE_WRITE':'MATERIAL_LOSS_APPROVE',
+  {p_id_pengajuan:id,p_aksi:action,p_catatan:value(form,'catatan')||null},`material_loss:${action}:${id}`,
+  action==='SETUJUI'?'HILANG/RUSAK DISETUJUI. STOK DAN BIAYA BERHASIL DIBUKUKAN.':action==='TOLAK'?'PENGAJUAN DITOLAK. STOK TETAP.':'PENGAJUAN DIBATALKAN. STOK TETAP.');
 }

@@ -132,3 +132,14 @@ Pengujian rollback mencakup setup dan edit normal, bypass endpoint/tabel/token, 
 
 Advisor: tabel baru memakai RLS dan policy eksplisit; view memakai security_invoker; FK baru memiliki indeks pendukung. Peringatan SECURITY DEFINER untuk tiga RPC publik yang sengaja dilindungi izin tetap merupakan catatan review, bukan pemberian akses anonim. A04 (persetujuan hilang/rusak), performa dan UAT masih terbuka; V2 belum ditetapkan Operational Ready. Audit visual browser belum dilakukan pada tahap ini.
 
+## Tindak lanjut hilang/rusak — 12 Oktober 2026
+
+A04 ditutup dalam lingkup rekonsiliasi stok SPK Kavling/Fasum. Gudang mengajukan multibarang dengan tanggal kejadian, jumlah, alasan serta snapshot harga/biaya; Direktur menyetujui atau menolak. Pengajuan dan pembatalan tidak memesan/mengurangi stok. Persetujuan mengunci SPK/stok, memeriksa harga rata-rata serta ketersediaan terkini dan memakai engine rekonsiliasi yang sama. Harga/satuan/jenis yang berubah atau stok tidak cukup memerlukan pembatalan/pengajuan ulang. Pengajuan tidak dapat disetujui pada SPK yang sudah tidak aktif; aturan penutupan SPK berbasis sisa stok tidak diubah.
+
+Posting loss melalui endpoint lama maupun dispatcher tanggal diblokir di luar persetujuan yang sedang diterapkan atomik. Setting session yang dipalsukan tidak cukup untuk melewati guard. Pemakaian akhir, retur dan transfer tetap memakai alur sebelumnya. Biaya bahan masuk aktual/RAB setelah disetujui, alat pakai ulang tidak dibebankan dua kali. Tanggal kejadian dipertahankan, waktu posting serta pengaju/pemutus/pembatal tercatat. Riwayat loss sebelumnya tetap utuh tanpa persetujuan historis fiktif.
+
+Tab Pemakaian & Rekonsiliasi menampilkan semua pengajuan terbuka dan 20 selesai terakhir, rincian biaya, serta perintah Setujui/Tolak/Batalkan sesuai izin. Modal, tabel, footer total dan tombol Simpan/Tutup memakai Global Foundation. Tidak ditambahkan pipeline atau tab baru.
+
+Uji rollback lulus untuk multibarang, RLS, Gudang/Marketing/Director, bypass endpoint dan setting, idempotensi pengajuan, persetujuan sekali, tanggal historis, biaya alat, RAB, tolak/batal, harga kedaluwarsa, kuantitas tidak valid/duplikat/berlebih dan pencatatan pelaku. Regresi RAB Kavling/Fasum serta tanggal material lulus. Rekonsiliasi menjadi 23 indikator, seluruhnya nol anomali. Build produksi lulus; pemeriksaan visual browser dan UAT pengguna belum dilakukan.
+
+Advisor tidak menemukan FK baru tanpa indeks atau tabel baru tanpa RLS. Dua RPC publik SECURITY DEFINER baru sengaja dibatasi izin, approval juga memeriksa role Direktur aktif. Catatan advisor sebelumnya tetap berlaku. V2 belum ditetapkan Operational Ready: validasi UAT menyeluruh, performa operasional, backup/rollback dan kebijakan kontrol RAB yang masih terbuka tetap perlu diselesaikan.

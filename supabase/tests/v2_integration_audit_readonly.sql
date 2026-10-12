@@ -23,6 +23,9 @@ select jsonb_build_object(
  'approved_financial_without_decider',(select count(*) from sales_financial_approval where status='DISETUJUI' and (diputuskan_oleh is null or diputuskan_pada is null)),
  'stranded_financial_apply',(select count(*) from sales_financial_approval where status='APLICANDO'),
  'refund_without_approved_decision',(select count(*) from sales_refund_payment p join sales_financial_approval a using(id_pengajuan) where a.jenis<>'PEMBATALAN' or a.status<>'DISETUJUI' or a.id_sales<>p.id_sales),
+ 'stranded_material_loss_apply',(select count(*) from material_loss_approval where status='APPLYING'),
+ 'approved_loss_missing_posting',(select count(*) from material_loss_approval a left join material_spk_reconciliation r using(id_rekonsiliasi) where a.status='DISETUJUI' and (r.id_rekonsiliasi is null or r.id_spk<>a.id_spk or a.diputuskan_oleh is null or a.diputuskan_pada is null)),
+ 'pending_loss_has_posting',(select count(*) from material_loss_approval where status<>'DISETUJUI' and id_rekonsiliasi is not null),
  'refund_overpayment',(select count(*) from v_sales_refund_position where sisa_refund<0)
 ) reconciliation;
 rollback;
