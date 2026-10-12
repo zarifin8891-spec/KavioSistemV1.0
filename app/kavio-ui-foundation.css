@@ -2119,3 +2119,13 @@ form.kavio-form.kavio-master-form {display:grid;grid-template-columns:repeat(2,m
 .kavio-transaction-header-flex > .kavio-field {flex:1 1 170px;grid-column:auto;min-width:0;}
 .kavio-transaction-header-flex > .kavio-transaction-date {flex:0 0 140px;}
 @media(max-width:460px) {.kavio-transaction-header-flex > .kavio-field {flex-basis:100%;}}
+
+:root {--kavio-report-total-font:16px;}
+.kavio-table tfoot td,.kavio-print-report .kavio-table tfoot td {font-size:var(--kavio-report-total-font)!important;font-weight:700!important;padding:10px 8px!important;}
+.kavio-report-totals {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border-top:1px solid var(--kavio-gold-dark);}
+.kavio-report-totals > div {display:flex;flex-wrap:wrap;gap:24px;}
+.kavio-report-totals span {display:flex;flex-direction:column;gap:5px;font-size:12px;}
+.kavio-report-totals strong {font-size:var(--kavio-report-total-font);}
+@media print {.kavio-print-report .kavio-table tfoot td {font-size:12px!important;}.kavio-report-totals strong {font-size:12px;}}
+
+.kavio-report-subtotal strong {font-size:var(--kavio-report-total-font);font-weight:700;}

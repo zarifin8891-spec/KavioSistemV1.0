@@ -1,3 +1,6 @@
+import KavioReportActions from '../components/KavioReportActions';
+import KavioReportTotals from '../components/KavioReportTotals';
+import {readAllReportRows} from '../lib/report-data';
 import Link from 'next/link';
 import KavioFilterBar,{KavioFilterField,KavioFilterActions} from '../components/KavioFilterBar';
 import KavioNavTabs from '../components/KavioNavTabs';
@@ -102,18 +105,18 @@ const [
     { data: offices },
     { data: mandors },
   ] = await Promise.all([
-    supabase
+    readAllReportRows(supabase
       .from('sales')
       .select('id_sales,id_kavling,nama_konsumen,status_sales,jenis_pembayaran,harga_jual,tgl_booking,target_akad,status_aktif,id_bank')
-      .order('tgl_booking', { ascending: true }).order('id_sales'),
-    supabase
+      .order('tgl_booking', { ascending: true }).order('id_sales')).then(data=>({data})),
+    readAllReportRows(supabase
       .from('v_progress_summary')
       .select('id_spk,id_kavling,id_tipe,id_kantor,id_mandor,tgl_spk,tgl_target_selesai,status_spk,progress_total')
-      .order('tgl_spk',{ascending:true}).order('id_spk'),
-    supabase
+      .order('tgl_spk',{ascending:true}).order('id_spk')).then(data=>({data})),
+    readAllReportRows(supabase
       .from('v_decision_engine')
       .select('id_spk,id_kavling,id_tipe,tgl_spk,tgl_target_selesai,status_spk,is_active,progress_aktual,progress_seharusnya,sisa_hari,tanggal_update_terakhir,status_operasional,status_ritme,prioritas_tindakan,action_rekomendasi,health_score,health_level,health_description')
-      .order('tgl_spk',{ascending:true}).order('id_spk'),
+      .order('tgl_spk',{ascending:true}).order('id_spk')).then(data=>({data})),
     supabase
       .from('master_bank')
       .select('id_bank,nama_bank')
@@ -258,6 +261,10 @@ const [
     </KavioFilterBar></form>
   );
 
+  const salesTotals=[{label:'HARGA JUAL',value:filteredSales.reduce((sum,r)=>sum+Number(r.harga_jual??0),0)}];
+  const salesExport=filteredSales.map((r,i)=>[i+1,r.displayId,formatKavioDate(r.tgl_booking),r.id_kavling,r.nama_konsumen,r.jenis_pembayaran,r.id_bank?bankMap.get(String(r.id_bank))??r.id_bank:'',Number(r.harga_jual??0),formatKavioDate(r.target_akad),displaySalesStatus(r.status_sales)]);
+  const progressExport=filteredProgress.map((r,i)=>[i+1,r.displayId,r.id_kavling,r.id_tipe,r.id_kantor?officeMap.get(String(r.id_kantor))??r.id_kantor:'',r.id_mandor?mandorMap.get(String(r.id_mandor))??r.id_mandor:'',formatKavioDate(r.tgl_spk),formatKavioDate(r.tgl_target_selesai),pct(r.progress_total),r.status_spk]);
+  const decisionExport=filteredDecision.map((r,i)=>[i+1,r.displayId,r.id_kavling,formatKavioDate(r.tgl_spk),formatKavioDate(r.tgl_target_selesai),formatKavioDate(r.tanggal_update_terakhir),pct(r.progress_aktual),pct(r.progress_seharusnya),r.sisa_hari,r.health_score,r.health_level,r.prioritas_tindakan,r.action_rekomendasi]);
   return (
     <main className="laporan-page">
       <ReportSelector selected={selected}/>
@@ -271,6 +278,7 @@ const [
             </div>
             <span className="kavio-badge">{filteredSales.length} DATA</span>
           </div>
+          <KavioReportActions title="Laporan Sales" headers={['NO','ID SALES','TANGGAL BOOKING','KAVLING','KONSUMEN','PEMBAYARAN','BANK KPR','HARGA JUAL','TARGET AKAD','STATUS']} rows={salesExport} totals={salesTotals}/>
           <FilterBar>
             <KavioFilterField label="PENCARIAN" kind="search"><input type="search" name="q" defaultValue={q} placeholder="CARI ID SALES / KAVLING / KONSUMEN..." /></KavioFilterField>
             <KavioFilterField label="STATUS SALES"><select name="status" defaultValue={status}><option value="">SEMUA STATUS</option>{salesStatuses.map((item) => <option key={item} value={item}>{item}</option>)}</select></KavioFilterField>
@@ -287,7 +295,7 @@ const [
               </tbody>
             </table>
           </div>
-        </section>
+        <KavioReportTotals values={salesTotals}/></section>
       )}
 
       {selected === 'progress' && (
@@ -296,6 +304,7 @@ const [
             <div><h2 className="kavio-panel-title">LAPORAN PROGRESS</h2><div className="kavio-panel-note">Rekap progress total berdasarkan view progress summary.</div></div>
             <span className="kavio-badge">{filteredProgress.length} DATA</span>
           </div>
+          <KavioReportActions title="Laporan Progress" headers={['NO','SPK','KAVLING','TIPE','KANTOR','MANDOR','TANGGAL SPK','TARGET SELESAI','PROGRESS TOTAL','STATUS']} rows={progressExport}/>
           <FilterBar>
             <KavioFilterField label="PENCARIAN" kind="search"><input type="search" name="q" defaultValue={q} placeholder="CARI ID SPK / KAVLING / TIPE..." /></KavioFilterField>
             <KavioFilterField label="STATUS SPK"><select name="spk" defaultValue={spkStatus}><option value="">SEMUA STATUS SPK</option>{spkStatuses.map((item) => <option key={item} value={item!}>{item}</option>)}</select></KavioFilterField>
@@ -321,6 +330,7 @@ const [
             <div><h2 className="kavio-panel-title">LAPORAN DECISION ENGINE</h2><div className="kavio-panel-note">Rekap kondisi operasional dan tindakan yang dihasilkan Decision Engine.</div></div>
             <span className="kavio-badge">{filteredDecision.length} DATA</span>
           </div>
+          <KavioReportActions title="Laporan Decision Engine" headers={['NO','SPK','KAVLING','TANGGAL SPK','TARGET SELESAI','UPDATE TERAKHIR','PROGRESS AKTUAL','TARGET PROGRESS','SISA HARI','HEALTH SCORE','HEALTH','PRIORITAS','TINDAKAN']} rows={decisionExport}/>
           <FilterBar>
             <KavioFilterField label="PENCARIAN" kind="search"><input type="search" name="q" defaultValue={q} placeholder="CARI ID SPK / KAVLING / HEALTH..." /></KavioFilterField>
             <KavioFilterField label="HEALTH"><select name="health" defaultValue={health}><option value="">SEMUA HEALTH</option>{healthOptions.map((item)=><option key={item} value={item!}>{item}</option>)}</select></KavioFilterField>
