@@ -1,14 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '../../lib/supabase/client';
-import { formatKavioDate } from '../lib/date-format';
 import { SITEPLAN_MAP, SITEPLAN_VIEWBOX } from './siteplan-map';
 import { detectLotPolygon } from './siteplan-mapping-engine';
 import KavioActionGate from '../components/KavioActionGate';
-import { formatKavioMoney } from '../lib/number-format';
+import SiteplanLotModal from './SiteplanLotModal';
 
 type Kavling = {
   id_kavling: string;
@@ -53,15 +51,6 @@ type Spk = {
   is_active?: boolean | null;
 };
 
-type ProgressUpdate = {
-  id_progress: string;
-  id_spk: string;
-  tanggal_update?: string | null;
-  id_kategori?: string | null;
-  progress_periode?: number | string | null;
-  keterangan?: string | null;
-};
-
 type SavedMapping = { id_kavling: string; polygon: [number, number][]; label?: [number, number] | null; siteplan_version_id?: string | null };
 
 type ActiveSiteplan = { id: string; nama_siteplan: string; versi: string; file_name: string; file_path?: string | null; image_width?: number | null; image_height?: number | null };
@@ -83,7 +72,7 @@ function statusLabel(status?: string | null) {
   return (status || 'AVAILABLE').replaceAll('_', ' ');
 }
 
-function formatDate(value?: string | null) { return formatKavioDate(value); }
+
 
 
 
@@ -129,6 +118,8 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
   const siteplanHeight = activeSiteplan?.image_height || SITEPLAN_VIEWBOX.height;
   const siteplanAspect = `${siteplanWidth} / ${siteplanHeight}`;
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detailOpen,setDetailOpen]=useState(false);
+  const chooseLot=(id:string)=>{setSelectedId(id);if(!mappingMode)setDetailOpen(true);};
   const [filter, setFilter] = useState<string>('ALL');
   const [mappingMode, setMappingMode] = useState(false);
   const [mappingPoints, setMappingPoints] = useState<[number, number][]>([]);
@@ -159,6 +150,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
 
   useEffect(() => {
     processingImageRef.current = null;
+    setDetailOpen(false);
     setImageReady(false);
     setSales([]);
     setSpks([]);
@@ -182,12 +174,11 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
       supabase
         .from('sales')
         .select('id_sales,id_kavling,nama_konsumen,status_sales,jenis_pembayaran,harga_jual,tgl_booking,target_akad,tgl_akad,id_bank,id_notaris')
-        .in('id_kavling', ids),
+        .in('id_kavling', ids).order('status_aktif').order('created_at'),
       supabase
         .from('spk')
         .select('id_spk,id_kavling,tgl_spk,id_tipe,jenis_bobot,id_kantor,id_mandor,status_spk,tgl_target_selesai,is_active')
-        .in('id_kavling', ids)
-        .eq('is_active', true),
+        .in('id_kavling', ids).order('created_at'),
     ]).then(([salesResult, spkResult]) => {
       if (!mounted) return;
       setSales((salesResult.data ?? []) as Sale[]);
@@ -226,36 +217,6 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
   );
 
   const selected = selectedId ? kavlingsById[selectedId] ?? null : null;
-  const selectedSale = selected ? salesByKavling[selected.id_kavling] ?? null : null;
-  const selectedSpk = selected ? spksByKavling[selected.id_kavling] ?? null : null;
-
-  const [progressBySpk, setProgressBySpk] = useState<Record<string, ProgressUpdate | null>>({});
-  const [progressLoadingSpk, setProgressLoadingSpk] = useState<string | null>(null);
-  const selectedProgress = selectedSpk ? progressBySpk[selectedSpk.id_spk] ?? null : null;
-
-  useEffect(() => {
-    const idSpk = selectedSpk?.id_spk;
-    if (!idSpk || Object.prototype.hasOwnProperty.call(progressBySpk, idSpk)) return;
-
-    let mounted = true;
-    setProgressLoadingSpk(idSpk);
-
-    createClient()
-      .from('progress_update')
-      .select('id_progress,id_spk,tanggal_update,id_kategori,progress_periode,keterangan')
-      .eq('id_spk', idSpk)
-      .order('tanggal_update', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!mounted) return;
-        setProgressBySpk((current) => ({ ...current, [idSpk]: data ?? null }));
-        setProgressLoadingSpk((current) => current === idSpk ? null : current);
-      });
-
-    return () => { mounted = false; };
-  }, [selectedSpk?.id_spk, progressBySpk]);
-
   const visibleRows = useMemo(
     () => rows.filter((row) => filter === 'ALL' || row.status_kavling === filter),
     [rows, filter],
@@ -692,7 +653,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
   const handlePolygonKey = (event: React.KeyboardEvent<SVGGElement>, id: string) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      setSelectedId(id);
+      chooseLot(id);
     }
   };
 
@@ -797,7 +758,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
                       if (mappingMode) {
                         if (selectedId !== row.id_kavling) {
                           event.stopPropagation();
-                          setSelectedId(row.id_kavling);
+                          chooseLot(row.id_kavling);
                           setAutoDetectArmed(false);
                           const current = activeMap[row.id_kavling]?.polygon ?? [];
                           setMappingPoints(current);
@@ -805,7 +766,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
                         }
                         return;
                       }
-                      setSelectedId(row.id_kavling);
+                      chooseLot(row.id_kavling);
                     }}
                     onKeyDown={(event) => handlePolygonKey(event, row.id_kavling)}
                   >
@@ -896,14 +857,6 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
 
 
         <aside className="siteplan-detail kavio-panel">
-          <div className="kavio-panel-head">
-            <div>
-              <h2 className="kavio-panel-title">{selected ? `KAVLING ${selected.no_kavling || selected.id_kavling}` : 'PILIH KAVLING'}</h2>
-              <div className="kavio-panel-note">{selected ? 'Data operasional yang terkait dengan kavling ini.' : 'Klik polygon kavling pada siteplan atau pilih dari daftar.'}</div>
-            </div>
-            {selected && <span className={`siteplan-status status-${statusClass(selected.status_kavling)}`}>{statusLabel(selected.status_kavling)}</span>}
-          </div>
-
           {mappingMode ? (
             <KavioActionGate action="SITEPLAN_MAP">
               <div className="siteplan-mapping-panel">
@@ -926,49 +879,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
               {mappingNotice && <div className="siteplan-mapping-notice">{mappingNotice}</div>}
               </div>
             </KavioActionGate>
-          ) : selected ? (
-            <>
-              <div className="siteplan-selected-content">
-                <div className="siteplan-detail-body">
-                <div className="siteplan-kpi"><span>KAVLING</span><strong>{selected.id_kavling}</strong></div>
-                <div className="siteplan-kpi"><span>BLOK / NO</span><strong>{selected.blok || '—'} / {selected.no_kavling || '—'}</strong></div>
-                <div className="siteplan-kpi"><span>TIPE</span><strong>{selected.id_tipe || '—'}</strong></div>
-                <div className="siteplan-kpi"><span>STATUS</span><strong>{statusLabel(selected.status_kavling)}</strong></div>
-              </div>
-
-              <div className="siteplan-related siteplan-related-sales">
-                <div className="siteplan-related-title">SALES</div>
-                {selectedSale ? (
-                  <div className="siteplan-related-grid">
-                    <div><span>KONSUMEN</span><strong>{selectedSale.nama_konsumen || '—'}</strong></div>
-                    <div><span>PEMBAYARAN</span><strong>{selectedSale.jenis_pembayaran || '—'}</strong></div>
-                    <div><span>HARGA JUAL</span><strong className="kavio-money">{formatKavioMoney(selectedSale.harga_jual)}</strong></div>
-                    <div><span>TARGET AKAD</span><strong>{formatDate(selectedSale.target_akad)}</strong></div>
-                    <div className="siteplan-related-actions"><Link href={`/master/sales/detail?id=${selectedSale.id_sales}`} className="kavio-button secondary">DETAIL SALES</Link></div>
-                  </div>
-                ) : <div className="siteplan-related-empty">Belum ada data Sales untuk kavling ini.</div>}
-              </div>
-
-              <div className="siteplan-related siteplan-related-spk">
-                <div className="siteplan-related-title">SPK & PROGRESS</div>
-                {selectedSpk ? (
-                  <div className="siteplan-related-grid">
-                    <div><span>SPK</span><strong>{selectedSpk.id_spk}</strong></div>
-                    <div><span>STATUS SPK</span><strong>{selectedSpk.status_spk || '—'}</strong></div>
-                    <div><span>TARGET SELESAI</span><strong>{formatDate(selectedSpk.tgl_target_selesai)}</strong></div>
-                    <div><span>PROGRESS TERAKHIR</span><strong>{progressLoadingSpk === selectedSpk.id_spk ? 'MEMUAT…' : selectedProgress?.progress_periode != null ? `${selectedProgress.progress_periode}%` : '—'}</strong></div>
-                    <div className="siteplan-related-actions">
-                      <Link href={`/master/spk/detail/${selectedSpk.id_spk}`} className="kavio-button secondary">DETAIL SPK</Link>
-                      <Link href={`/progress?spk=${selectedSpk.id_spk}`} className="kavio-button secondary">PROGRESS</Link>
-                    </div>
-                  </div>
-                ) : <div className="siteplan-related-empty">Belum ada SPK aktif untuk kavling ini.</div>}
-              </div>
-              </div>
-            </>
-          ) : (
-            <div className="siteplan-empty">Belum ada kavling dipilih.</div>
-          )}
+          ) : null}
 
           <div className="siteplan-list">
             <div className="siteplan-list-head kavio-panel-head">
@@ -1012,7 +923,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
                       <td><span className={`siteplan-status ${row.status_aktif === false ? 'status-inactive-data' : ''}`}>{row.status_aktif === false ? 'NONAKTIF' : 'AKTIF'}</span></td>
                       <td>
                         <button type="button" className="kavio-button secondary siteplan-list-select" onClick={() => {
-                          setSelectedId(row.id_kavling);
+                          chooseLot(row.id_kavling);
                           setAutoDetectArmed(false);
                           if (mappingMode) {
                             const current = activeMap[row.id_kavling]?.polygon ?? [];
@@ -1034,6 +945,7 @@ export default function SiteplanClient({ kavlings, savedMappings, activeSiteplan
           </div>
         </aside>
       </section>
+      <SiteplanLotModal kavling={selected} open={detailOpen&&!mappingMode} onClose={()=>setDetailOpen(false)}/>
     </main>
   );
 }
