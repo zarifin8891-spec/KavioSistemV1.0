@@ -50,7 +50,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
   const activeIds=spkRows.filter(r=>r.is_active).map(r=>r.id_spk);
   const [itemProgress,detailProgress]=activeIds.length?await Promise.all([
     readAllQueryResult(supabase.from('v_spk_work_item_progress_current').select('id_spk,id_item,bobot_final,progress_akumulasi,progress_berbobot').in('id_spk',activeIds).order('id_spk').order('id_item')),
-    readAllQueryResult(supabase.from('v_spk_work_detail_progress_current').select('id_spk,id_detail,progress_akumulasi').in('id_spk',activeIds).order('id_spk').order('id_detail')),
+    readAllQueryResult(supabase.from('v_spk_work_detail_progress_current').select('id_spk,id_item,progress_akumulasi').in('id_spk',activeIds).order('id_spk').order('id_item')),
   ]):[{data:[],error:null},{data:[],error:null}];
   const completionError=itemProgress.error?.message??detailProgress.error?.message;
   const finishMessage=(row:Spk)=>{
