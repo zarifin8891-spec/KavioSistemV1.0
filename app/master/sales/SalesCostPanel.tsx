@@ -1,5 +1,6 @@
 "use client";
 
+import KavioDetailGrid from '../../components/KavioDetailGrid';
 import KavioFormActions from '../../components/KavioFormActions';
 
 import { useState } from 'react';
@@ -39,6 +40,18 @@ export default function SalesCostPanel({
   const separateFees = (values.biaya_notaris ?? 0) + (values.biaya_akad ?? 0) + (values.biaya_lainnya ?? 0);
   const totalHargaJual = base + includedPriceCosts;
   const totalTagihan = totalHargaJual + separateFees;
+
+  if(readOnly)return <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">BIAYA & TOTAL TAGIHAN</h2><p className="kavio-panel-note">Tambahan bangunan, tanah, dan hook masuk harga jual. Notaris, akad, dan biaya lainnya terpisah.</p></div></div><div className="kavio-panel-body"><KavioDetailGrid items={[
+   {label:'HARGA JUAL DASAR',value:formatKavioMoney(base),money:true},
+   {label:'TAMBAHAN BANGUNAN',value:formatKavioMoney(values.biaya_penambahan_bangunan),money:true},
+   {label:'KELEBIHAN TANAH',value:formatKavioMoney(values.biaya_kelebihan_tanah),money:true},
+   {label:'LOKASI HOOK',value:formatKavioMoney(values.biaya_hook),money:true},
+   {label:'HARGA JUAL',value:formatKavioMoney(totalHargaJual),money:true},
+   {label:'TOTAL TAGIHAN',value:formatKavioMoney(totalTagihan),money:true},
+   {label:'NOTARIS',value:formatKavioMoney(values.biaya_notaris),money:true},
+   {label:'BIAYA AKAD',value:formatKavioMoney(values.biaya_akad),money:true},
+   {label:'BIAYA LAINNYA',value:formatKavioMoney(values.biaya_lainnya),money:true},
+  ]}/></div></section>;
 
   return (
     <section className="kavio-panel sales-cost-panel">

@@ -1,3 +1,4 @@
+import KavioDetailGrid,{type KavioDetailItem} from '../../../components/KavioDetailGrid';
 import KavioPaymentHistory from '../../../components/KavioPaymentHistory';
 import KavioFormActions from '../../../components/KavioFormActions';
 import Link from 'next/link';
@@ -37,7 +38,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
  const proposals=await readAllReportRows(supabase.from('sales_financial_approval').select('*').eq('id_sales',id).eq('jenis','PERJANJIAN').order('urutan',{ascending:false}));
  const costValue=(kind:string)=>Number(cr.find(c=>c.jenis_biaya===kind)?.nominal??0);
  const contract={harga_jual:Number(s.harga_jual??0),jenis_pembayaran:s.jenis_pembayaran,id_bank:s.id_bank,tenor_bulan:terms?.tenor_bulan??null,pola_pelunasan:terms?.pola_pelunasan??null,biaya_penambahan_bangunan:costValue('PENAMBAHAN BANGUNAN'),biaya_kelebihan_tanah:costValue('KELEBIHAN TANAH'),biaya_hook:costValue('PEMILIHAN LOKASI HOOK'),biaya_notaris:costValue('NOTARIS'),biaya_akad:costValue('BIAYA AKAD'),biaya_lainnya:costValue('BIAYA LAINNYA')};
- return <main className="master-simple-page sales-detail-page">
+ return <main className="master-simple-page sales-detail-page kavio-detail-stack">
    {p.error&&<div className="kavio-alert error">{p.error}</div>}{p.success&&<div className="kavio-alert success">{p.success}</div>}
    <section className="kavio-panel">
      <div className="kavio-panel-head">
@@ -61,24 +62,22 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
          </KavioModalAction>
        </KavioActionGate></div>
      </div>
-     <div className="kavio-read-grid kavio-panel-body">
-       <div><span>KONSUMEN</span><strong>{s.nama_konsumen}</strong></div>
-       <div><span>HP</span><strong>{s.hp_konsumen??'—'}</strong></div>
-       <div><span>STATUS</span><strong>{s.status_sales}</strong></div>
-       <div><span>PEMBAYARAN</span><strong>{s.jenis_pembayaran}</strong></div>
-       {s.jenis_pembayaran==='CASH_BERTAHAP'&&<div><span>TENOR</span><strong>{terms?.tenor_bulan??'—'} BULAN · {terms?.pola_pelunasan?.replaceAll('_',' ')}</strong></div>}
-       <div><span>BANK</span><strong>{br.find(x=>x.id_bank===s.id_bank)?.nama_bank??'—'}</strong></div>
-       <div><span>HARGA JUAL</span><strong className="kavio-money">{formatKavioMoney(s.harga_jual)}</strong></div>
-       <div><span>BOOKING</span><strong>{s.tgl_booking?formatKavioDate(s.tgl_booking):'—'}</strong></div>
-       <div><span>TARGET AKAD</span><strong>{s.target_akad?formatKavioDate(s.target_akad):'—'}</strong></div>
-       <div><span>TANGGAL AKAD</span><strong>{s.tgl_akad?formatKavioDate(s.tgl_akad):'—'}</strong></div>
-       <div><span>NOTARIS</span><strong>{nr.find(x=>x.id_notaris===s.id_notaris)?.nama_notaris??'—'}</strong></div>
-       <div className="kavio-read-span-2"><span>ALAMAT</span><strong>{s.alamat_konsumen??'—'}</strong></div>
-     </div>
+     <div className="kavio-panel-body"><KavioDetailGrid items={[
+       {label:'KONSUMEN',value:s.nama_konsumen},{label:'HP',value:s.hp_konsumen||'—'},
+       {label:'STATUS',value:s.status_sales},{label:'PEMBAYARAN',value:s.jenis_pembayaran.replaceAll('_',' ')},
+       {label:'BANK KPR',value:br.find(x=>x.id_bank===s.id_bank)?.nama_bank??'—'},
+       {label:'HARGA JUAL DASAR',value:formatKavioMoney(s.harga_jual),money:true},
+       {label:'BOOKING',value:s.tgl_booking?formatKavioDate(s.tgl_booking):'—'},
+       {label:'TARGET AKAD',value:s.target_akad?formatKavioDate(s.target_akad):'—'},
+       {label:'TANGGAL AKAD',value:s.tgl_akad?formatKavioDate(s.tgl_akad):'—'},
+       {label:'NOTARIS',value:nr.find(x=>x.id_notaris===s.id_notaris)?.nama_notaris??'—'},
+       ...(s.jenis_pembayaran==='CASH_BERTAHAP'?[{label:'TENOR',value:`${terms?.tenor_bulan??'—'} BULAN · ${terms?.pola_pelunasan?.replaceAll('_',' ')??'—'}`}]:[]),
+       {label:'ALAMAT',value:s.alamat_konsumen||'—',span:2},
+     ] as KavioDetailItem[]}/></div>
    </section>
 
    <KavioActionGate action="SALES_WRITE">
-       <SalesCostPanel readOnly idSales={s.id_sales} hargaDasar={s.harga_jual} costs={cr} />
+       <SalesCostPanel key={JSON.stringify(cr)+s.harga_jual} readOnly idSales={s.id_sales} hargaDasar={s.harga_jual} costs={cr} />
    </KavioActionGate>
    <SalesContractPanel key={JSON.stringify(contract)+proposals.length} id={s.id_sales} initial={contract} banks={br} requests={proposals as FinancialProposal[]} active={s.status_aktif&&s.status_sales!=='BATAL'}/>
 
@@ -100,7 +99,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
          </KavioActionGate>
        </div>
      </div>
-     <div className="sales-kpr-grid kavio-panel-body">{STAGES.map(([key,label])=>{const row=kprMap.get(key);return <div key={key} className={`sales-kpr-stage ${row?'is-done':''}`}><div className="sales-kpr-stage-title">{label}</div><div className="sales-kpr-stage-date">{row ? formatKavioDate(row.tanggal_update) : 'BELUM UPDATE'}</div><div className="sales-kpr-stage-note">{row?.keterangan??'—'}</div></div>})}</div>
+     <div className="kavio-panel-body"><KavioDetailGrid columns={4} items={STAGES.map(([key,label])=>{const row=kprMap.get(key);return {label,value:<>{row?formatKavioDate(row.tanggal_update):'BELUM UPDATE'}<small>{row?.keterangan||'—'}</small></>};})}/></div>
    </section>}
  </main>;
 }
