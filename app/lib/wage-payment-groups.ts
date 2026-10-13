@@ -3,7 +3,7 @@ export type WageDebtGroup={key:string;date:string;spk:string;mandor:string;mando
 const cents=(n:number)=>{const value=Math.round(n*100);if(!Number.isSafeInteger(value)||Math.abs(value/100-n)>0.000001)throw new Error('Nominal upah harus valid dengan maksimal dua desimal.');return value;};
 export function groupWageDebts(rows:WageDebt[],kind:string):WageDebtGroup[]{
  const groups=new Map<string,WageDebtGroup>();
- for(const r of rows){const key=JSON.stringify([r.id_spk,r.tanggal_update,r.id_mandor]);let group=groups.get(key);if(!group){group={key,date:r.tanggal_update,spk:r.id_spk,mandor:r.id_mandor,mandorName:r.nama_mandor,label:`${r.jenis_spk} · ${r.id_kavling??r.nama_objek}`,amount:0,eligible:true,details:[]};groups.set(key,group);}group.details.push(r);group.amount=(cents(group.amount)+cents(Number(kind==='UPAH'?r.sisa_upah:r.retensi_tersedia)))/100;group.eligible=group.eligible&&(kind==='UPAH'||r.retensi_layak);}
+ for(const r of rows){const key=JSON.stringify([r.id_spk,kind==='RETENSI'?'RETENSI':r.tanggal_update,r.id_mandor]);let group=groups.get(key);if(!group){group={key,date:r.tanggal_update,spk:r.id_spk,mandor:r.id_mandor,mandorName:r.nama_mandor,label:`${r.jenis_spk} · ${r.id_kavling??r.nama_objek}`,amount:0,eligible:true,details:[]};groups.set(key,group);}if(r.tanggal_update>group.date)group.date=r.tanggal_update;group.details.push(r);group.amount=(cents(group.amount)+cents(Number(kind==='UPAH'?r.sisa_upah:r.retensi_tersedia)))/100;group.eligible=group.eligible&&(kind==='UPAH'||r.retensi_layak);}
  return Array.from(groups.values()).sort((a,b)=>a.date.localeCompare(b.date)||a.label.localeCompare(b.label)||a.mandor.localeCompare(b.mandor));
 }
 /** Allocate a recap payment proportionally to its work debts, conserving every cent. */

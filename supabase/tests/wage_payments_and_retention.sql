@@ -57,6 +57,9 @@ begin
  failed:=false;begin perform create_wage_payment_atomic(data);exception when others then if sqlerrm like '%MENUNGGU%' then failed:=true;else raise;end if;end;if not failed then raise exception 'Kavling before akad accepted';end if;
  insert into sales(id_kavling,nama_konsumen,status_sales,jenis_pembayaran,harga_jual,tgl_booking,status_aktif) values(lot,'TEST WAGE AKAD','BOOKING','CASH',0,today,true);
  update sales set status_sales='AKAD',tgl_akad=today,target_akad=today,id_notaris=(select id_notaris from master_notaris where status_aktif limit 1) where id_kavling=lot;
+ failed:=false;begin perform create_wage_payment_atomic(data);exception when others then if sqlerrm like '%MENUNGGU%' then failed:=true;else raise;end if;end;if not failed then raise exception 'AKAD kavling with unfinished SPK accepted';end if;
+ perform deactivate_spk_atomic(work2);
+ if not (select retensi_layak from v_wage_settlement where id_progress_detail=a) then raise exception 'Finished akad Kavling not eligible';end if;
  ret:=create_wage_payment_atomic(data);
  perform transition_wage_payment_atomic(ret,'SETUJUI');
  perform transition_wage_payment_atomic(ret,'CAIRKAN',today,bank);
