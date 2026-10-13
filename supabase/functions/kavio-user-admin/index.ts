@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 
 type Body =
   | { action: "list" }
@@ -9,6 +9,7 @@ type Body =
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -18,7 +19,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-const allowedRoles = new Set(["DIREKTUR", "ADMIN", "MARKETING", "PELAKSANA", "USER"]);
+const allowedRoles = new Set(["DIREKTUR", "ADMIN", "MARKETING", "PELAKSANA", "GUDANG", "KEUANGAN", "USER"]);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });

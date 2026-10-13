@@ -142,3 +142,8 @@
 .kavio-overview-modal .kavio-panel-note {margin:3px 0;font-size:11px;}
 .kavio-overview-modal .kavio-form-actions {margin:0;padding:6px 12px;}
 .kavio-overview-modal .kavio-panel-head .kavio-actions {position:static;background:transparent;padding:0;}
+
+/* Shared equal-width panel composition, responsive to available screen width. */
+.kavio-panel-grid-two {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;}
+.kavio-panel-grid-two > .kavio-panel {min-width:0;margin:0;}
+@media(max-width:800px){.kavio-panel-grid-two{grid-template-columns:1fr;}}
