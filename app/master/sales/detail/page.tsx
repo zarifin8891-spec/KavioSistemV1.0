@@ -25,26 +25,30 @@ const STAGES=[['KELENGKAPAN_DATA','KELENGKAPAN DATA'],['SURVEY_BANK','SURVEY BAN
 export default async function SalesDetailPage({searchParams}:{searchParams:SearchParams}){
  const p=await searchParams; const id=p.id; if(!id) redirect('/master/sales');
  const supabase=await createClient();
-const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data:costs,error:costError},{data:terms,error:termsError}] = await Promise.all([
+const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data:costs,error:costError},{data:terms,error:termsError},{data:financial,error:financialError}] = await Promise.all([
    supabase.from('sales').select('id_sales,id_kavling,nama_konsumen,alamat_konsumen,hp_konsumen,status_sales,jenis_pembayaran,id_bank,id_notaris,harga_jual,tgl_booking,target_akad,tgl_akad,status_aktif').eq('id_sales',id).maybeSingle(),
    supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).eq('is_kpr',true).order('nama_bank'),
    supabase.from('master_notaris').select('id_notaris,nama_notaris,status_aktif').order('nama_notaris'),
    supabase.from('sales_kpr_progress').select('id_progress,tahap,tanggal_update,keterangan').eq('id_sales',id).order('tanggal_update'),
    supabase.from('sales_biaya_tambahan').select('jenis_biaya,nominal').eq('id_sales',id).eq('status_aktif',true).order('jenis_biaya'),
    supabase.from('sales_cash_installment_terms').select('tenor_bulan,pola_pelunasan').eq('id_sales',id).maybeSingle(),
+   supabase.from('v_sales_financial_position').select('total_harga_jual,total_pembayaran_harga_jual').eq('id_sales',id).maybeSingle(),
  ]);
  if(!sale) return <main className="master-simple-page"><div className="kavio-alert error">{p.error??saleError?.message??'DATA SALES TIDAK DITEMUKAN'}</div><Link className="kavio-button secondary" href="/master/sales">KEMBALI KE SALES</Link></main>;
  if(costError||termsError)return <main className="master-simple-page"><div className="kavio-alert error">{costError?.message??termsError?.message}</div><Link href="/master/sales" className="kavio-button secondary">KEMBALI KE SALES</Link></main>;
  const s=sale as Sale; const br=(banks??[]) as Bank[]; const nr=(notaries??[]) as Notaris[]; const kr=(kpr??[]) as Kpr[]; const cr=(costs??[]) as SalesCost[]; const kprMap=new Map(kr.map(x=>[x.tahap,x]));
+ const cashPaid=financial&&!financialError&&Number.isFinite(Number(financial.total_harga_jual))&&Number.isFinite(Number(financial.total_pembayaran_harga_jual))&&Number(financial.total_pembayaran_harga_jual)+0.000001>=Number(financial.total_harga_jual);
+ const canRecordAkad=s.status_aktif&&s.status_sales!=='BATAL'&&s.status_sales!=='AKAD'&&(s.jenis_pembayaran==='KPR'||(['CASH','CASH_BERTAHAP'].includes(s.jenis_pembayaran)&&cashPaid));
  const proposals=await readAllReportRows(supabase.from('sales_financial_approval').select('*').eq('id_sales',id).eq('jenis','PERJANJIAN').order('urutan',{ascending:false}));
  const costValue=(kind:string)=>Number(cr.find(c=>c.jenis_biaya===kind)?.nominal??0);
  const contract={harga_jual:Number(s.harga_jual??0),jenis_pembayaran:s.jenis_pembayaran,id_bank:s.id_bank,tenor_bulan:terms?.tenor_bulan??null,pola_pelunasan:terms?.pola_pelunasan??null,biaya_penambahan_bangunan:costValue('PENAMBAHAN BANGUNAN'),biaya_kelebihan_tanah:costValue('KELEBIHAN TANAH'),biaya_hook:costValue('PEMILIHAN LOKASI HOOK'),biaya_notaris:costValue('NOTARIS'),biaya_akad:costValue('BIAYA AKAD'),biaya_lainnya:costValue('BIAYA LAINNYA')};
  return <main className="master-simple-page sales-detail-page kavio-detail-stack">
    {p.error&&<div className="kavio-alert error">{p.error}</div>}{p.success&&<div className="kavio-alert success">{p.success}</div>}
+   {financialError&&s.jenis_pembayaran!=='KPR'&&<div className="kavio-alert error">Status pelunasan belum dapat dibaca: {financialError.message}</div>}
    <section className="kavio-panel">
      <div className="kavio-panel-head">
        <div><h2 className="kavio-panel-title">DATA SALES — {s.id_kavling}</h2><div className="kavio-panel-note">Informasi konsumen, status penjualan, pembayaran, dan data akad.</div></div>
-       <div className="kavio-actions">{s.status_aktif&&s.status_sales!=='BATAL'&&s.status_sales!=='AKAD'&&<SalesAkadPanel id={s.id_sales} payment={s.jenis_pembayaran} notaries={nr.filter(n=>n.status_aktif)}/>}<KavioPaymentHistory idSales={s.id_sales}/><KavioActionGate action="SALES_WRITE">
+       <div className="kavio-actions">{canRecordAkad&&<SalesAkadPanel id={s.id_sales} payment={s.jenis_pembayaran} notaries={nr.filter(n=>n.status_aktif)}/>}<KavioPaymentHistory idSales={s.id_sales}/><KavioActionGate action="SALES_WRITE">
          <KavioModalAction formKey="sales-edit" buttonLabel="EDIT DATA SALES" title={`EDIT DATA SALES — ${s.id_kavling}`} note="Perbarui data transaksi dan lifecycle Sales lalu simpan." size="wide">
            <form id="sales-info-form" action={updateSalesInfo} className="kavio-form kavio-panel-body">
              <input type="hidden" name="id_sales" value={s.id_sales}/>

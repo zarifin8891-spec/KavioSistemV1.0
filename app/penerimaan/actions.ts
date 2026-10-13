@@ -35,6 +35,7 @@ export async function postSalesReceipt(form: FormData) {
 
   revalidatePath('/penerimaan');
   revalidatePath('/master/sales');
+  revalidatePath('/master/sales/detail');
   revalidatePath('/dashboard');
   const receipt=idReceipt?{id_penerimaan:data}:Array.isArray(data)?data[0]:data;
   if (receipt?.id_penerimaan) redirect(`/penerimaan/kuitansi?id=${encodeURIComponent(receipt.id_penerimaan)}`);
@@ -85,7 +86,8 @@ export async function voidSalesReceipt(form:FormData){
  await requireKavioAction('PAYMENT_RECEIPT_WRITE','/penerimaan?error=akses+ditolak');
  const {error}=await supabase.rpc('amend_sales_receipt_atomic',{p_id_penerimaan:text(form,'id_penerimaan'),p_alasan:text(form,'alasan'),p_pengganti:null});
  if(error)redirectKavioFormError('/penerimaan',error.message,{focus:'receipt_void',params:{tab:'piutang',hapus:text(form,'id_penerimaan')}});
- revalidatePath('/penerimaan');revalidatePath('/dashboard');revalidatePath('/master/sales');redirect('/penerimaan?tab=piutang&success=Penerimaan+dihapus.+Riwayat+kuitansi+ditandai+batal');
+ revalidatePath('/penerimaan');revalidatePath('/dashboard');revalidatePath('/master/sales');
+  revalidatePath('/master/sales/detail');redirect('/penerimaan?tab=piutang&success=Penerimaan+dihapus.+Riwayat+kuitansi+ditandai+batal');
 }
 
 export async function submitGuaranteeBatch(form:FormData){
@@ -100,6 +102,7 @@ export async function submitGuaranteeBatch(form:FormData){
  if(mode==='PENCAIRAN'&&(items.some(i=>!Number.isFinite(i.nominal)||Number(i.nominal)<=0)||!text(form,'id_bank_penerimaan')))fail('Nominal setiap item harus positif dan Kas/Bank tujuan wajib dipilih.');
  const {error}=await supabase.rpc('process_sales_guarantee_batch_atomic',{p_data:{mode,items,id_bank_kpr:text(form,'id_bank_kpr'),tanggal:text(form,'tanggal'),id_bank_penerimaan:text(form,'id_bank_penerimaan'),metode_penerimaan:text(form,'metode_penerimaan'),no_referensi:text(form,'no_referensi')||null,keterangan:text(form,'keterangan')||null}});
  if(error)fail(error.message);
- revalidatePath('/penerimaan');revalidatePath('/master/sales');revalidatePath('/dashboard');
+ revalidatePath('/penerimaan');revalidatePath('/master/sales');
+  revalidatePath('/master/sales/detail');revalidatePath('/dashboard');
  redirect(`/penerimaan?tab=jaminan&success=${encodeURIComponent(`${mode==='PENGAJUAN'?'Pengajuan':'Pencairan'} ${items.length} item dana jaminan tersimpan`)}`);
 }
