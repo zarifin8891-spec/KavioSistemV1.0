@@ -42,7 +42,7 @@ export default function SalesCreatePanel({
             <label className="kavio-field"><span>TANGGAL BOOKING</span><input name="tgl_booking" type="date" /></label>
             <label className="kavio-field"><span>KAVLING</span><select name="id_kavling" required value={selectedKavling} onChange={(event) => setSelectedKavling(event.target.value)}><option value="" disabled>PILIH KAVLING</option>{kavlings.map((row) => <option key={row.id_kavling} value={row.id_kavling}>{row.id_kavling} — {typeMap.get(row.id_tipe) ?? row.id_tipe} — {formatKavioMoney(row.harga_jual)}</option>)}</select></label>
             <label className="kavio-field"><span>NAMA KONSUMEN</span><input name="nama_konsumen" required placeholder="NAMA LENGKAP KONSUMEN" /></label>
-            <label className="kavio-field"><span>STATUS SALES</span><select name="status_sales" defaultValue="BOOKING" required><option value="BOOKING">BOOKING</option><option value="DP">UANG MUKA</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select></label>
+            <label className="kavio-field"><span>STATUS SALES</span><select name="status_sales" defaultValue="BOOKING" required><option value="BOOKING">BOOKING</option><option value="DP">UANG MUKA</option><option value="PROSES_KPR">PROSES KPR</option><option value="BATAL">BATAL</option></select></label>
 
             <label className="kavio-field sales-span-2"><span>ALAMAT KONSUMEN</span><input name="alamat_konsumen" placeholder="ALAMAT LENGKAP KONSUMEN" /></label>
             <label className="kavio-field"><span>HP KONSUMEN</span><input name="hp_konsumen" type="tel" inputMode="tel" placeholder="08XXXXXXXXXX" /></label>

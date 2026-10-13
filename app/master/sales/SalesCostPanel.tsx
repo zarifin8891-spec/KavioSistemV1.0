@@ -41,7 +41,7 @@ export default function SalesCostPanel({
   const totalHargaJual = base + includedPriceCosts;
   const totalTagihan = totalHargaJual + separateFees;
 
-  if(readOnly)return <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">BIAYA & TOTAL TAGIHAN</h2><p className="kavio-panel-note">Tambahan bangunan, tanah, dan hook masuk harga jual. Notaris, akad, dan biaya lainnya terpisah.</p></div></div><div className="kavio-panel-body"><KavioDetailGrid items={[
+  if(readOnly)return <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">BIAYA & TOTAL TAGIHAN</h2><p className="kavio-panel-note">Tambahan bangunan, tanah, dan hook masuk harga jual. Notaris, akad, dan biaya lainnya terpisah.</p></div></div><div className="kavio-panel-body"><KavioDetailGrid columns={9} items={[
    {label:'HARGA JUAL DASAR',value:formatKavioMoney(base),money:true},
    {label:'TAMBAHAN BANGUNAN',value:formatKavioMoney(values.biaya_penambahan_bangunan),money:true},
    {label:'KELEBIHAN TANAH',value:formatKavioMoney(values.biaya_kelebihan_tanah),money:true},

@@ -1,3 +1,4 @@
+import SalesAkadPanel from '../SalesAkadPanel';
 import KavioDetailGrid,{type KavioDetailItem} from '../../../components/KavioDetailGrid';
 import KavioPaymentHistory from '../../../components/KavioPaymentHistory';
 import KavioFormActions from '../../../components/KavioFormActions';
@@ -18,7 +19,7 @@ import KavioModalAction from '../../../components/KavioModalAction';
 
 type SearchParams = Promise<{id?:string;error?:string;success?:string}>;
 type Sale={id_sales:string;id_kavling:string;nama_konsumen:string;alamat_konsumen:string|null;hp_konsumen:string|null;status_sales:string;jenis_pembayaran:string;id_bank:string|null;id_notaris:string|null;harga_jual:number|string|null;tgl_booking:string|null;target_akad:string|null;tgl_akad:string|null;status_aktif:boolean};
-type Bank={id_bank:string;nama_bank:string}; type Notaris={id_notaris:string;nama_notaris:string}; type Kpr={id_progress:string;tahap:string;tanggal_update:string;keterangan:string|null}; type SalesCost={jenis_biaya:string;nominal:number|string};
+type Bank={id_bank:string;nama_bank:string}; type Notaris={id_notaris:string;nama_notaris:string;status_aktif:boolean}; type Kpr={id_progress:string;tahap:string;tanggal_update:string;keterangan:string|null}; type SalesCost={jenis_biaya:string;nominal:number|string};
 const STAGES=[['KELENGKAPAN_DATA','KELENGKAPAN DATA'],['SURVEY_BANK','SURVEY BANK'],['INTERVIEW','INTERVIEW'],['SP3K','SP3K']] as const;
 
 export default async function SalesDetailPage({searchParams}:{searchParams:SearchParams}){
@@ -27,7 +28,7 @@ export default async function SalesDetailPage({searchParams}:{searchParams:Searc
 const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data:costs,error:costError},{data:terms,error:termsError}] = await Promise.all([
    supabase.from('sales').select('id_sales,id_kavling,nama_konsumen,alamat_konsumen,hp_konsumen,status_sales,jenis_pembayaran,id_bank,id_notaris,harga_jual,tgl_booking,target_akad,tgl_akad,status_aktif').eq('id_sales',id).maybeSingle(),
    supabase.from('master_bank').select('id_bank,nama_bank').eq('status_aktif',true).eq('is_kpr',true).order('nama_bank'),
-   supabase.from('master_notaris').select('id_notaris,nama_notaris').eq('status_aktif',true).order('nama_notaris'),
+   supabase.from('master_notaris').select('id_notaris,nama_notaris,status_aktif').order('nama_notaris'),
    supabase.from('sales_kpr_progress').select('id_progress,tahap,tanggal_update,keterangan').eq('id_sales',id).order('tanggal_update'),
    supabase.from('sales_biaya_tambahan').select('jenis_biaya,nominal').eq('id_sales',id).eq('status_aktif',true).order('jenis_biaya'),
    supabase.from('sales_cash_installment_terms').select('tenor_bulan,pola_pelunasan').eq('id_sales',id).maybeSingle(),
@@ -43,20 +44,18 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
    <section className="kavio-panel">
      <div className="kavio-panel-head">
        <div><h2 className="kavio-panel-title">DATA SALES — {s.id_kavling}</h2><div className="kavio-panel-note">Informasi konsumen, status penjualan, pembayaran, dan data akad.</div></div>
-       <div className="kavio-actions"><KavioPaymentHistory idSales={s.id_sales}/><KavioActionGate action="SALES_WRITE">
+       <div className="kavio-actions">{s.status_aktif&&s.status_sales!=='BATAL'&&s.status_sales!=='AKAD'&&<SalesAkadPanel id={s.id_sales} payment={s.jenis_pembayaran} notaries={nr.filter(n=>n.status_aktif)}/>}<KavioPaymentHistory idSales={s.id_sales}/><KavioActionGate action="SALES_WRITE">
          <KavioModalAction formKey="sales-edit" buttonLabel="EDIT DATA SALES" title={`EDIT DATA SALES — ${s.id_kavling}`} note="Perbarui data transaksi dan lifecycle Sales lalu simpan." size="wide">
            <form id="sales-info-form" action={updateSalesInfo} className="kavio-form kavio-panel-body">
              <input type="hidden" name="id_sales" value={s.id_sales}/>
              <label className="kavio-field"><span>NAMA KONSUMEN</span><input name="nama_konsumen" defaultValue={s.nama_konsumen}/></label>
              <label className="kavio-field"><span>HP KONSUMEN</span><input name="hp_konsumen" type="tel" inputMode="tel" defaultValue={s.hp_konsumen??''}/></label>
              <label className="kavio-field sales-span-2"><span>ALAMAT KONSUMEN</span><input name="alamat_konsumen" defaultValue={s.alamat_konsumen??''}/></label>
-             <label className="kavio-field"><span>STATUS SALES</span><select name="status_sales" defaultValue={s.status_sales}><option value="BOOKING">BOOKING</option><option value="DP">UANG MUKA</option><option value="PROSES_KPR">PROSES KPR</option><option value="AKAD">AKAD</option><option value="BATAL">BATAL</option></select></label>
+             <label className="kavio-field"><span>STATUS SALES</span><select name="status_sales" defaultValue={s.status_sales}><option value="BOOKING">BOOKING</option><option value="DP">UANG MUKA</option><option value="PROSES_KPR">PROSES KPR</option>{s.status_sales==='AKAD'&&<option value="AKAD">AKAD</option>}<option value="BATAL">BATAL</option></select></label>
              <SalesPaymentFields key={[s.jenis_pembayaran,s.id_bank,terms?.tenor_bulan,terms?.pola_pelunasan].join(':')} locked payment={s.jenis_pembayaran} bank={s.id_bank} banks={br} tenor={terms?.tenor_bulan??6} pattern={terms?.pola_pelunasan??'CICILAN_FLEKSIBEL'} />
              <label className="kavio-field"><span>HARGA JUAL</span><input className="kavio-money" value={formatKavioMoney(s.harga_jual)} readOnly /></label>
              <label className="kavio-field"><span>TANGGAL BOOKING</span><input value={s.tgl_booking ? formatKavioDate(s.tgl_booking) : ''} readOnly /></label>
              <label className="kavio-field"><span>TARGET AKAD</span><input type="date" name="target_akad" defaultValue={s.target_akad??''}/></label>
-             <label className="kavio-field"><span>TANGGAL AKAD</span><input type="date" name="tgl_akad" defaultValue={s.tgl_akad??''}/></label>
-             <label className="kavio-field"><span>NOTARIS AKAD</span><select name="id_notaris" defaultValue={s.id_notaris??''}><option value="">PILIH NOTARIS</option>{nr.map(x=><option key={x.id_notaris} value={x.id_notaris}>{x.nama_notaris}</option>)}</select></label>
              <KavioFormActions><button type="submit" className="kavio-button">SIMPAN PERUBAHAN</button></KavioFormActions>
            </form>
          </KavioModalAction>
@@ -68,7 +67,6 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
        {label:'BANK KPR',value:br.find(x=>x.id_bank===s.id_bank)?.nama_bank??'—'},
        {label:'HARGA JUAL DASAR',value:formatKavioMoney(s.harga_jual),money:true},
        {label:'BOOKING',value:s.tgl_booking?formatKavioDate(s.tgl_booking):'—'},
-       {label:'TARGET AKAD',value:s.target_akad?formatKavioDate(s.target_akad):'—'},
        {label:'TANGGAL AKAD',value:s.tgl_akad?formatKavioDate(s.tgl_akad):'—'},
        {label:'NOTARIS',value:nr.find(x=>x.id_notaris===s.id_notaris)?.nama_notaris??'—'},
        ...(s.jenis_pembayaran==='CASH_BERTAHAP'?[{label:'TENOR',value:`${terms?.tenor_bulan??'—'} BULAN · ${terms?.pola_pelunasan?.replaceAll('_',' ')??'—'}`}]:[]),

@@ -35,10 +35,10 @@ export async function createSales(formData: FormData) {
   const statusSales = text(formData.get('status_sales')) || 'BOOKING';
   const jenisPembayaran = text(formData.get('jenis_pembayaran')) || 'KPR';
   const idBank = text(formData.get('id_bank')) || null;
-  const idNotaris = text(formData.get('id_notaris')) || null;
+  const idNotaris = null;
   const tglBooking = text(formData.get('tgl_booking')) || null;
   const targetAkad = text(formData.get('target_akad')) || null;
-  const tglAkad = text(formData.get('tgl_akad')) || null;
+  const tglAkad = null;
   const biayaPenambahanBangunan = Number(formData.get('biaya_penambahan_bangunan') ?? 0);
   const biayaNotaris = Number(formData.get('biaya_notaris') ?? 0);
   const biayaHook = Number(formData.get('biaya_hook') ?? 0);
@@ -92,8 +92,11 @@ export async function updateSalesInfo(formData: FormData) {
   const alamatKonsumen = text(formData.get('alamat_konsumen')) || null;
   const hpKonsumen = text(formData.get('hp_konsumen')) || null;
   const idBank = text(formData.get('id_bank')) || null;
-  const idNotaris = text(formData.get('id_notaris')) || null;
-  const tglAkad = text(formData.get('tgl_akad')) || null;
+  const {data:existing,error:existingError}=await supabase.from('sales').select('id_notaris,tgl_akad,status_sales').eq('id_sales',idSales).maybeSingle();
+  if(existingError||!existing)detailError(idSales,existingError?.message??'Sales tidak ditemukan.','sales-edit','nama_konsumen');
+  if(statusSales==='AKAD'&&existing.status_sales!=='AKAD')detailError(idSales,'Gunakan tombol Catat Akad untuk mengisi tanggal akad dan notaris.','sales-edit','status_sales');
+  const idNotaris=existing.id_notaris;
+  const tglAkad=existing.tgl_akad;
   const targetAkad = text(formData.get('target_akad')) || null;
 
   if (!idSales) pageError('ID SALES TIDAK VALID');
@@ -192,4 +195,14 @@ export async function deactivateSales(formData: FormData) {
   revalidatePath('/siteplan');
   revalidatePath('/dashboard');
   redirect('/master/sales?success=SALES%20BERHASIL%20DITUTUP');
+}
+
+export async function recordSalesAkad(form:FormData){
+ const id=text(form.get('id_sales')),focus='akad_date:'+id;
+ await requireKavioAction('SALES_WRITE','/master/sales?error=akses+ditolak');
+ const supabase=await createClient();
+ const {error}=await supabase.rpc('record_sales_akad_atomic',{p_id_sales:id,p_tanggal:text(form.get('tanggal')),p_id_notaris:text(form.get('id_notaris'))});
+ if(error)redirectKavioFormError('/master/sales/detail',error.message,{focus,params:{id}});
+ for(const path of ['/master/sales','/master/sales/detail','/master/kavling','/siteplan','/dashboard','/penerimaan','/laporan','/laporan/upah'])revalidatePath(path);
+ redirect('/master/sales/detail?id='+encodeURIComponent(id)+'&success='+encodeURIComponent('AKAD BERHASIL DICATAT'));
 }
