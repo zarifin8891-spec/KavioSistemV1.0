@@ -1,5 +1,6 @@
 "use server";
 
+import {SPK_KAVLING_START_STATUSES} from '../../lib/spk-eligibility';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
@@ -29,7 +30,7 @@ function fasumError(message: string, focus = 'nama_objek'): never {
   redirectKavioFormError('/master/spk', message, { form: 'spk-fasum-create', focus });
 }
 
-const SPK_READY_STATUSES = ['AVAILABLE', 'BOOKING'] as const;
+
 
 export async function createSpk(formData: FormData) {
   const supabase = await createClient();
@@ -80,7 +81,7 @@ export async function createSpk(formData: FormData) {
     createError(`Kavling tersebut sudah memiliki SPK dengan status ${existingSpk.status_spk}. Satu kavling hanya boleh memiliki satu SPK.`, 'id_kavling');
   }
   if (mandor.id_kantor !== idKantor) createError('Mandor harus berasal dari kantor pelaksana yang dipilih', 'id_mandor');
-  if (!(SPK_READY_STATUSES as readonly string[]).includes(kavling.status_kavling)) {
+  if (!(SPK_KAVLING_START_STATUSES as readonly string[]).includes(kavling.status_kavling)) {
     createError(`Kavling berstatus ${kavling.status_kavling} tidak dapat dibuatkan SPK baru`, 'id_kavling');
   }
 

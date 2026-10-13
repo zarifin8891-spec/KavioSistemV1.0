@@ -1,3 +1,4 @@
+import {SPK_KAVLING_START_STATUSES} from '../../lib/spk-eligibility';
 import Link from 'next/link';
 import KavioSplitKpi from '../../components/KavioSplitKpi';
 import { activateSpk, deactivateSpk } from './actions';
@@ -28,7 +29,7 @@ export default async function MasterSpkPage({ searchParams }: { searchParams: Se
   const offset = (currentPage - 1) * PAGE_SIZE;
 
 const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkRes, kpiRes] = await Promise.all([
-    supabase.from('master_kavling').select('id_kavling, blok, no_kavling, id_tipe, status_kavling').eq('status_aktif', true).in('status_kavling', ['AVAILABLE', 'BOOKING']).order('blok').order('no_kavling'),
+    supabase.from('master_kavling').select('id_kavling, blok, no_kavling, id_tipe, status_kavling').eq('status_aktif', true).in('status_kavling', SPK_KAVLING_START_STATUSES).order('blok').order('no_kavling'),
     supabase.from('master_tipe_rumah').select('id_tipe, nama_tipe').eq('status_aktif', true).order('nama_tipe'),
     supabase.from('master_kantor_pelaksana').select('id_kantor, nama_kantor_pelaksana').eq('status_aktif', true).order('nama_kantor_pelaksana'),
     supabase.from('master_mandor').select('id_mandor, nama_mandor, id_kantor').eq('status_aktif', true).order('nama_mandor'),
