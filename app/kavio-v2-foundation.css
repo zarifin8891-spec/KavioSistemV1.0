@@ -130,3 +130,15 @@
 @media(max-width:1100px){.kavio-detail-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
 @media(max-width:750px){.kavio-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:480px){.kavio-detail-grid{grid-template-columns:1fr;}.kavio-detail-item{grid-column:span 1;}}
+
+/* Global compact overview: one screen summary, scrolling transaction tables. */
+.kavio-overview-modal .kavio-detail-stack {gap:6px;}
+.kavio-overview-modal .kavio-detail-stack > .kavio-panel > .kavio-panel-head {position:static;padding:6px 12px;min-height:0;}
+.kavio-overview-modal .kavio-detail-stack > .kavio-panel > .kavio-panel-body {padding:6px 12px;gap:6px;}
+.kavio-overview-modal .kavio-detail-item {padding:2px 0;}
+.kavio-overview-modal .kavio-detail-grid {gap:5px 12px;}
+.kavio-overview-modal .kavio-table-wrap {max-height:clamp(100px,18vh,170px);overflow:auto;}
+.kavio-overview-modal svg[aria-label="Curva-S progress pembangunan"] {height:clamp(140px,23vh,220px);}
+.kavio-overview-modal .kavio-panel-note {margin:3px 0;font-size:11px;}
+.kavio-overview-modal .kavio-form-actions {margin:0;padding:6px 12px;}
+.kavio-overview-modal .kavio-panel-head .kavio-actions {position:static;background:transparent;padding:0;}

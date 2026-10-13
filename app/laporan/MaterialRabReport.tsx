@@ -1,4 +1,5 @@
 'use client';
+import {spkLabel} from '../lib/spk-label';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {createClient} from '../../lib/supabase/client';
@@ -10,7 +11,7 @@ import KavioTableControls from '../components/KavioTableControls';
 import KavioReportActions from '../components/KavioReportActions';
 import KavioTableTotals from '../components/KavioTableTotals';
 import {formatKavioMoney} from '../lib/number-format';
-export type RabSpk={id_spk:string;jenis_spk:string;id_kavling:string|null;nama_objek:string|null;status_spk:string};
+export type RabSpk={id_spk:string;no_spk?:string;jenis_spk:string;id_kavling:string|null;nama_objek:string|null;status_spk:string};
 type Row={status_spk:string;id_spk:string;id_material:string;jenis_spk:string;id_kavling:string|null;nama_objek:string|null;nama_material:string;satuan:string;jenis_item:string;revisi:number|null;volume_rab:number|null;jumlah_pakai:number;jumlah_hilang_rusak:number;stok_spk:number;nilai_rab:number|null;biaya_aktual:number;selisih_nilai:number|null;status_kontrol:string;perlu_perhatian:boolean};
 const qty=(n:number|null)=>n==null?'—':Number(n).toLocaleString('id-ID',{maximumFractionDigits:4});
 const label=(s:RabSpk)=>s.jenis_spk+' · '+(s.id_kavling??s.nama_objek??s.id_spk.slice(0,8));
@@ -28,7 +29,7 @@ export default function MaterialRabReport({spks,initialSpk='',fixed=false,revisi
  const output=shown.map(r=>[label(r),r.revisi,r.nama_material,r.satuan,r.volume_rab==null?null:Number(r.volume_rab),r.jenis_item==='BAHAN'?Number(r.jumlah_pakai):null,r.jenis_item==='BAHAN'?Number(r.jumlah_hilang_rusak):null,Number(r.stok_spk),r.nilai_rab==null?null:Number(r.nilai_rab),Number(r.biaya_aktual),r.selisih_nilai==null?null:Number(r.selisih_nilai),r.status_kontrol.replaceAll('_',' ')]);
  const meta=spk?label(spks.find(s=>s.id_spk===spk)??{id_spk:spk,jenis_spk:'SPK',id_kavling:null,nama_objek:null,status_spk:''}):'SEMUA SPK';
  return <section className="kavio-panel"><div className="kavio-panel-head"><div><h2 className="kavio-panel-title">RAB MATERIAL VS AKTUAL</h2><p className="kavio-panel-note">Posisi kumulatif saat ini · RAB revisi terbaru · {rows.filter(r=>r.perlu_perhatian).length} item perlu perhatian.</p></div></div>
- <KavioFilterBar>{!fixed&&<KavioFilterField label="SPK / OBJEK" kind="select"><select value={spk} onChange={e=>{setSpk(e.target.value);setPage(0);}}><option value="">SEMUA SPK</option>{spks.map(s=><option key={s.id_spk} value={s.id_spk}>{label(s)} · {s.status_spk}</option>)}</select></KavioFilterField>}<KavioFilterField label="KONTROL" kind="select"><select value={attention?'1':'0'} onChange={e=>{setAttention(e.target.value==='1');setPage(0);}}><option value="0">SEMUA MATERIAL</option><option value="1">PERLU PERHATIAN</option></select></KavioFilterField><KavioFilterActions align="end"><KavioReportActions title="RAB Material vs Aktual" meta={meta+' · Kumulatif saat ini'} headers={headers} rows={output} totals={totals} totalColumns={[8,9,10]} disabled={busy||!!error}/></KavioFilterActions></KavioFilterBar>
+ <KavioFilterBar>{!fixed&&<KavioFilterField label="SPK / OBJEK" kind="select"><select value={spk} onChange={e=>{setSpk(e.target.value);setPage(0);}}><option value="">SEMUA SPK</option>{spks.map(s=><option key={s.id_spk} value={s.id_spk}>{spkLabel(s)} · {s.status_spk}</option>)}</select></KavioFilterField>}<KavioFilterField label="KONTROL" kind="select"><select value={attention?'1':'0'} onChange={e=>{setAttention(e.target.value==='1');setPage(0);}}><option value="0">SEMUA MATERIAL</option><option value="1">PERLU PERHATIAN</option></select></KavioFilterField><KavioFilterActions align="end"><KavioReportActions title="RAB Material vs Aktual" meta={meta+' · Kumulatif saat ini'} headers={headers} rows={output} totals={totals} totalColumns={[8,9,10]} disabled={busy||!!error}/></KavioFilterActions></KavioFilterBar>
  {error&&<div className="kavio-alert error" role="alert">{error}</div>}
  {!busy&&!error&&missing.length>0&&<div className="kavio-alert warning">{missing.length} SPK belum memiliki RAB material. {!fixed&&<KavioActionGate action="SPK_WRITE">{missing.slice(0,3).map(s=><Link key={s.id_spk} href={'/master/spk/rab?id='+s.id_spk} className="kavio-button secondary">{label(s)}</Link>)}</KavioActionGate>}</div>}
  <KavioTableControls count={shown.length} page={page} onPage={setPage} busy={busy}>{null}</KavioTableControls>

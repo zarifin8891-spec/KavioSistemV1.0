@@ -1,4 +1,5 @@
 'use client';
+import {spkLabel} from '../lib/spk-label';
 import KavioTransactionHeader from '../components/KavioTransactionHeader';
 import {useEffect,useState} from 'react';
 import {useSearchParams} from 'next/navigation';
@@ -18,7 +19,7 @@ export default function MaterialActionPanel({materials,locations,spks,requestLin
  const [issueMode,setIssueMode]=useState('true');
  const [request,setRequest]=useState(''),[useSpk,setUseSpk]=useState(''),[reconcileSpk,setReconcileSpk]=useState(''),[action,setAction]=useState('KEMBALI_KE_GUDANG');
  const bahan=materials.filter(m=>m.jenis_item==='BAHAN');
- const labelSpk=(id:string)=>{const s=spks.find(s=>s.id_spk===id);return s?`${s.jenis_spk} · ${s.id_kavling??s.nama_objek}`:id;};
+ const labelSpk=(id:string)=>{const s=spks.find(s=>s.id_spk===id);return s?spkLabel(s):'SPK TIDAK TERSEDIA';};
  const spkField=(name='id_spk',controlled?:{value:string;change:(v:string)=>void})=><label className="kavio-field kavio-field-wide"><span>SPK / OBJEK</span><select name={name} required {...(controlled?{value:controlled.value,onChange:(e:React.ChangeEvent<HTMLSelectElement>)=>controlled.change(e.target.value)}:{defaultValue:''})}><option value="" disabled>PILIH SPK</option>{spks.map(s=><option key={s.id_spk} value={s.id_spk}>{labelSpk(s.id_spk)}</option>)}</select></label>;
  const warehouseField=(name='id_lokasi')=><label className="kavio-field"><span>GUDANG</span><select name={name} required defaultValue=""><option value="" disabled>PILIH GUDANG</option>{locations.map(l=><option key={l.id_lokasi} value={l.id_lokasi}>{l.kode_lokasi} · {l.nama_lokasi}</option>)}</select></label>;
  const note=<label className="kavio-field kavio-field-wide"><span>KETERANGAN</span><input name="keterangan"/></label>;

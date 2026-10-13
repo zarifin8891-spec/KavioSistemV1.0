@@ -6,7 +6,7 @@ import { createClient } from '../../../../lib/supabase/server';
 import { formatKavioDate } from '../../../lib/date-format';
 
 type Params = Promise<{ id: string }>; type SearchParams = Promise<{ from?: string | string[] }>; 
-type Spk = { id_spk: string; id_kavling: string | null; id_tipe: string | null; jenis_spk:'KAVLING'|'FASUM'; nama_objek:string|null; id_kantor: string; id_mandor: string; jenis_bobot: string; tgl_spk: string; tgl_target_selesai: string; status_spk: string; is_active: boolean };
+type Spk = { id_spk: string; no_spk:string; id_kavling: string | null; id_tipe: string | null; jenis_spk:'KAVLING'|'FASUM'; nama_objek:string|null; id_kantor: string; id_mandor: string; jenis_bobot: string; tgl_spk: string; tgl_target_selesai: string; status_spk: string; is_active: boolean };
 type Current = { id_kategori: string; progress_akumulasi: number | string; bobot_final: number | string; progress_berbobot: number | string; tanggal_update_terakhir: string | null };
 type Config = { id_kategori: string; bobot_final: number | string };
 type Category = { id_kategori: string; nama_kategori: string; urutan: number };
@@ -37,7 +37,7 @@ export default async function SpkDetailPage({ params, searchParams }: { params: 
     { data: configData },
     { data: decisionData },
   ] = await Promise.all([
-    supabase.from('spk').select('id_spk, id_kavling, id_tipe, jenis_spk, nama_objek, id_kantor, id_mandor, jenis_bobot, tgl_spk, tgl_target_selesai, status_spk, is_active').eq('id_spk', id).maybeSingle(),
+    supabase.from('spk').select('id_spk,no_spk, id_kavling, id_tipe, jenis_spk, nama_objek, id_kantor, id_mandor, jenis_bobot, tgl_spk, tgl_target_selesai, status_spk, is_active').eq('id_spk', id).maybeSingle(),
     supabase.from('v_spk_work_item_progress_current').select('id_kategori:id_item, progress_akumulasi, bobot_final, progress_berbobot, tanggal_update_terakhir').eq('id_spk', id).order('urutan'),
     supabase.from('spk_work_item').select('id_kategori:id_item, nama_kategori:nama_pekerjaan, urutan').eq('id_spk',id).order('urutan'),
     supabase.from('progress_update').select('id_progress, tanggal_update, id_kategori:id_item, progress_periode, keterangan').eq('id_spk', id).order('tanggal_update', { ascending: false }).order('created_at',{ascending:false}).limit(30),
@@ -98,7 +98,7 @@ export default async function SpkDetailPage({ params, searchParams }: { params: 
     <main className="spk-detail-page">
       <section className="spk-detail-content">
         <div className="spk-detail-identity">
-          <div><div className="spk-detail-eyebrow">SPK CONTROL SHEET</div><h2 className="spk-detail-kavling">{spk.jenis_spk==='FASUM'?`FASUM · ${spk.nama_objek ?? spk.id_spk}`:spk.id_kavling}</h2><p className="spk-detail-subtitle">SPK {spk.id_spk.slice(0, 8)}{spk.id_tipe ? ` · Tipe ${spk.id_tipe}` : ''}</p></div>
+          <div><div className="spk-detail-eyebrow">SPK CONTROL SHEET</div><h2 className="spk-detail-kavling">{spk.jenis_spk==='FASUM'?`FASUM · ${spk.nama_objek ?? spk.id_spk}`:spk.id_kavling}</h2><p className="spk-detail-subtitle">{spk.no_spk}{spk.id_tipe ? ` · Tipe ${spk.id_tipe}` : ''}</p></div>
           <div className="spk-detail-actions"><Link href={`/progress?spk=${spk.id_spk}`} className="kavio-command-button">Input Progress</Link><Link href={returnHref} className="kavio-command-button secondary">{returnLabel}</Link></div>
         </div>
         <section className="spk-detail-kpi-grid"><Metric label="Progress Akumulasi" value={`${actualPct.toFixed(1)}%`} /><Metric label="Progress Periode Terakhir" value={latestPeriodLabel(latestPeriod)} /><Metric label="Target Selesai" value={formatKavioDate(spk.tgl_target_selesai)} /><Metric label="Sisa Hari" value={daysRemaining < 0 ? `Lewat ${Math.abs(daysRemaining)} hari` : `${daysRemaining} hari`} danger={daysRemaining < 0} warning={daysRemaining >= 0 && daysRemaining <= 7} /></section>

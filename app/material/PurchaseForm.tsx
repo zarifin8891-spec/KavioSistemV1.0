@@ -1,4 +1,5 @@
 'use client';
+import {spkLabel} from '../lib/spk-label';
 import {useState} from 'react';
 import KavioMaterialLines from '../components/KavioMaterialLines';
 import KavioFormActions from '../components/KavioFormActions';
@@ -8,7 +9,7 @@ import {saveMaterialPurchase,amendMaterialPurchase} from './actions';
 export type MaterialOptions={id_material:string;nama_material:string;satuan:string;jenis_item:string}[];
 export type SupplierOptions={id_pemasok:string;nama_pemasok:string}[];
 export type LocationOptions={id_lokasi:string;kode_lokasi:string;nama_lokasi:string}[];
-export type SpkOptions={id_spk:string;jenis_spk:string;id_kavling:string|null;nama_objek:string|null}[];
+export type SpkOptions={id_spk:string;no_spk:string;jenis_spk:string;id_kavling:string|null;nama_objek:string|null}[];
 export type Purchase={id_transaksi:string;no_transaksi:string;tanggal:string;status:string;id_pemasok:string;nama_pemasok:string;no_nota:string;keterangan:string|null;tujuan:string;nama_tujuan:string;id_lokasi_tujuan:string|null;id_spk:string|null;total:number;items:{id_material:string;nama_material:string;satuan:string;jumlah:number;harga_satuan:number}[]};
 export type PurchaseOptions={materials:MaterialOptions;suppliers:SupplierOptions;locations:LocationOptions;spks:SpkOptions;today?:string};
 export function PurchaseForm({options,initial}:{options:PurchaseOptions;initial?:Purchase}) {
@@ -23,7 +24,7 @@ export function PurchaseForm({options,initial}:{options:PurchaseOptions;initial?
  <label className="kavio-field"><span>NO. NOTA</span><input name="no_nota" required defaultValue={initial?.no_nota}/></label>
  <label className="kavio-field"><span>PEMASOK</span><select name="id_pemasok" required defaultValue={initial?.id_pemasok??''}><option value="" disabled>PILIH PEMASOK</option>{options.suppliers.map(s=><option key={s.id_pemasok} value={s.id_pemasok}>{s.nama_pemasok}</option>)}</select></label>
  <label className="kavio-field"><span>MASUK KE</span><select name="tujuan" value={target} required onChange={e=>{setTarget(e.target.value);setTargetId('');}}><option value="GUDANG">GUDANG</option><option value="SPK">SPK</option></select></label>
- <label className="kavio-field"><span>{target==='GUDANG'?'GUDANG TUJUAN':'SPK TUJUAN'}</span><select name={target==='GUDANG'?'id_lokasi':'id_spk'} value={targetId} required onChange={e=>setTargetId(e.target.value)}><option value="" disabled>{target==='GUDANG'?'PILIH GUDANG':'PILIH SPK'}</option>{target==='GUDANG'?options.locations.map(l=><option key={l.id_lokasi} value={l.id_lokasi}>{l.nama_lokasi}</option>):options.spks.map(s=><option key={s.id_spk} value={s.id_spk}>{s.jenis_spk} · {s.id_kavling??s.nama_objek} · {s.id_spk}</option>)}</select></label>
+ <label className="kavio-field"><span>{target==='GUDANG'?'GUDANG TUJUAN':'SPK TUJUAN'}</span><select name={target==='GUDANG'?'id_lokasi':'id_spk'} value={targetId} required onChange={e=>setTargetId(e.target.value)}><option value="" disabled>{target==='GUDANG'?'PILIH GUDANG':'PILIH SPK'}</option>{target==='GUDANG'?options.locations.map(l=><option key={l.id_lokasi} value={l.id_lokasi}>{l.nama_lokasi}</option>):options.spks.map(s=><option key={s.id_spk} value={s.id_spk}>{spkLabel(s)}</option>)}</select></label>
  </div>
  <input type="hidden" name="destination" value={destination}/><input type="hidden" name={target==='GUDANG'?'id_spk':'id_lokasi'} value=""/>
  <KavioMaterialLines materials={options.materials} initial={initial?.items} withPrice totalLabel="TOTAL NOTA"/>

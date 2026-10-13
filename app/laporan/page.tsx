@@ -1,3 +1,4 @@
+import {spkLabel} from '../lib/spk-label';
 import KavioReportActions from '../components/KavioReportActions';
 import KavioTableTotals from '../components/KavioTableTotals';
 import {readAllReportRows} from '../lib/report-data';
@@ -78,17 +79,17 @@ export default async function LaporanPage({ searchParams }: { searchParams: Sear
     const results=await Promise.all([
       supabase.from('master_pemasok').select('id_pemasok,nama_pemasok').order('nama_pemasok'),
       supabase.from('material_location').select('id_lokasi,nama_lokasi').order('nama_lokasi'),
-      supabase.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek').order('created_at',{ascending:false}),
+      supabase.from('spk').select('id_spk,no_spk,jenis_spk,id_kavling,nama_objek').order('created_at',{ascending:false}),
     ]);
     const error=results.find(r=>r.error)?.error;
-    const locations=[...(results[1].data??[]).map(l=>({id:l.id_lokasi,name:`GUDANG · ${l.nama_lokasi}`})),...(results[2].data??[]).map(s=>({id:s.id_spk,name:`SPK ${s.jenis_spk} · ${s.id_kavling??s.nama_objek}`}))];
+    const locations=[...(results[1].data??[]).map(l=>({id:l.id_lokasi,name:`GUDANG · ${l.nama_lokasi}`})),...(results[2].data??[]).map(s=>({id:s.id_spk,name:spkLabel(s)}))];
     const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
     return <main className="laporan-page"><ReportSelector selected={selected}/>{error?<div className="kavio-alert error">{error.message}</div>:<MaterialReport suppliers={results[0].data??[]} locations={locations} today={today}/>}</main>;
   }
 
   if(selected==='rab') {
     const db=await createClient();
-    const spks=await readAllReportRows(db.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek,status_spk').order('created_at').order('id_spk'));
+    const spks=await readAllReportRows(db.from('spk').select('id_spk,no_spk,jenis_spk,id_kavling,nama_objek,status_spk').order('created_at').order('id_spk'));
     return <main className="laporan-page"><ReportSelector selected={selected}/><MaterialRabReport spks={spks}/></main>;
   }
 
@@ -112,6 +113,7 @@ const [
     { data: banks },
     { data: offices },
     { data: mandors },
+    { data: spkNumbers },
   ] = await Promise.all([
     readAllReportRows(supabase
       .from('sales')
@@ -137,6 +139,7 @@ const [
       .from('master_mandor')
       .select('id_mandor,nama_mandor,id_kantor')
       .order('nama_mandor'),
+    readAllReportRows(supabase.from('spk').select('id_spk,no_spk').order('id_spk')).then(data=>({data})),
   ]);
 
   const salesRows = (sales ?? []) as Array<{
@@ -198,7 +201,7 @@ const [
 
   const progressWithCode = progressRows.map((row, index) => ({
     ...row,
-    displayId: formatDocumentCode('SPK', row.tgl_spk, index + 1),
+    displayId: (spkNumbers??[]).find(s=>s.id_spk===row.id_spk)?.no_spk??'—',
   }));
 
   const filteredSales = salesWithCode.filter((row) =>
@@ -229,7 +232,7 @@ const [
 
   const decisionWithCode = decisionRows.map((row, index) => ({
     ...row,
-    displayId: formatDocumentCode('SPK', row.tgl_spk, index + 1),
+    displayId: (spkNumbers??[]).find(s=>s.id_spk===row.id_spk)?.no_spk??'—',
   }));
 
   const filteredDecision = decisionWithCode.filter((row) =>

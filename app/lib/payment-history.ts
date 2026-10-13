@@ -11,3 +11,6 @@ export function paymentHistoryRows(receipts:PaymentHistoryReceipt[],totalTagihan
  });
  return {rows,totalPelunasan:paid,totalKasBank:cash,saldo:statusSales==='BATAL'?0:totalTagihan-paid};
 }
+
+/** Consumer receivable history excludes collection of bank guarantee receivables. */
+export function consumerPaymentHistoryRows(receipts:PaymentHistoryReceipt[],totalTagihan:number,statusSales:string){return paymentHistoryRows(receipts.filter(r=>r.jenis_penerimaan!=='PENCAIRAN_DANA_JAMINAN'),totalTagihan,statusSales);}

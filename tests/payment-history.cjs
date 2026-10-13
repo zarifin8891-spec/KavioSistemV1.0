@@ -17,3 +17,7 @@ const empty=paymentHistoryRows([],100,'BOOKING');assert.equal(empty.saldo,100);a
 const lots=paymentHistoryRows(Array.from({length:1251},(_,i)=>r(String(i),'2026-10-01',1)),2000,'DP');assert.equal(lots.rows.length,1251);assert.equal(lots.saldo,749);
 assert.throws(()=>paymentHistoryRows([r('x','2026-10-01','NaN')],100,'DP'),/tidak valid/);
 console.log('PASS: Cash Bertahap balance, void/correction history, business-date ordering, KPR gross/net and guarantees, cancellation, empty and 1251 receipts');
+
+const consumer=context.exports.consumerPaymentHistoryRows([r('1','2026-10-01',40,'UANG_MUKA'),r('2','2026-10-02',50,'PENCAIRAN_KPR','AKTIF',60),r('3','2026-10-03',10,'PENCAIRAN_DANA_JAMINAN','AKTIF',0)],100,'AKAD');
+assert.equal(consumer.rows.length,2);assert.equal(consumer.totalKasBank,90);assert.equal(consumer.totalPelunasan,100);assert.equal(consumer.saldo,0);
+console.log('PASS: consumer history excludes guarantee draw without changing consumer settlement');

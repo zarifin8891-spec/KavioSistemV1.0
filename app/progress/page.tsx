@@ -1,3 +1,4 @@
+import {spkLabel} from '../lib/spk-label';
 import Link from 'next/link';
 import KavioDecisionPanel from '../components/KavioDecisionPanel';
 import { createClient } from '../../lib/supabase/server';
@@ -7,7 +8,7 @@ import { formatKavioDate } from '../lib/date-format';
 const HISTORY_PAGE_SIZE = 25;
 
 type SearchParams = Promise<{ spk?: string; error?: string; success?: string; hpage?: string; panel?: string; form?: string; focus?: string }>;
-type Spk = { id_spk: string; id_kavling: string | null; id_tipe: string | null; jenis_spk: 'KAVLING' | 'FASUM'; nama_objek: string | null; tgl_spk: string; tgl_target_selesai: string; status_spk: string; is_active: boolean; mode_progress:'KATEGORI'|'PERINCIAN' };
+type Spk = { id_spk: string; no_spk:string; id_kavling: string | null; id_tipe: string | null; jenis_spk: 'KAVLING' | 'FASUM'; nama_objek: string | null; tgl_spk: string; tgl_target_selesai: string; status_spk: string; is_active: boolean; mode_progress:'KATEGORI'|'PERINCIAN' };
 type WorkItem = { id_item: string; urutan: number; nama_pekerjaan: string; bobot_final: number | string };
 type Category = { id_kategori: string; nama_kategori: string; urutan: number };
 type Current = { id_item: string; urutan: number; nama_pekerjaan: string; progress_akumulasi: number | string; bobot_final: number | string; progress_berbobot: number | string; tanggal_update_terakhir: string | null };
@@ -19,7 +20,7 @@ export default async function ProgressPage({ searchParams }: { searchParams: Sea
   const params = await searchParams;
   const supabase = await createClient();
 const [{ data: spks, error: spkError }, { data: categories, error: categoryError }] = await Promise.all([
-    supabase.from('spk').select('id_spk,id_kavling,id_tipe,jenis_spk,nama_objek,tgl_spk,tgl_target_selesai,status_spk,is_active,mode_progress').eq('is_active', true).order('tgl_target_selesai'),
+    supabase.from('spk').select('id_spk,no_spk,id_kavling,id_tipe,jenis_spk,nama_objek,tgl_spk,tgl_target_selesai,status_spk,is_active,mode_progress').eq('is_active', true).order('tgl_target_selesai'),
     supabase.from('master_kategori_pekerjaan').select('id_kategori,nama_kategori,urutan').eq('status_aktif', true).order('urutan'),
   ]);
 
@@ -80,7 +81,7 @@ const [{ data: spks, error: spkError }, { data: categories, error: categoryError
 
       <section className="kavio-panel">
         <form method="get" className="kavio-form progress-selector-form">
-          <label className="kavio-field progress-selector-field"><span>SPK / OBJEK</span><select name="spk" defaultValue={selected?.id_spk ?? ''}><option value="">PILIH SPK</option>{spkRows.map((row) => <option key={row.id_spk} value={row.id_spk}>{row.jenis_spk === 'FASUM' ? `FASUM · ${row.nama_objek}` : `KAVLING · ${row.id_kavling}`} — TARGET {formatKavioDate(row.tgl_target_selesai)}</option>)}</select></label>
+          <label className="kavio-field progress-selector-field"><span>SPK / OBJEK</span><select name="spk" defaultValue={selected?.id_spk ?? ''}><option value="">PILIH SPK</option>{spkRows.map((row) => <option key={row.id_spk} value={row.id_spk}>{spkLabel(row)} — TARGET {formatKavioDate(row.tgl_target_selesai)}</option>)}</select></label>
           <button type="submit" className="kavio-button progress-selector-button">TAMPILKAN</button>
         </form>
       </section>

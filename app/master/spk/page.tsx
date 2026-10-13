@@ -19,7 +19,7 @@ type Kantor = { id_kantor: string; nama_kantor_pelaksana: string };
 type Mandor = { id_mandor: string; nama_mandor: string; id_kantor: string };
 type Kategori = { id_kategori: string; nama_kategori: string; urutan: number };
 type Template = { id_tipe: string; id_kategori: string; bobot_standar: number | string };
-type Spk = { id_spk: string; id_kavling: string | null; jenis_spk: 'KAVLING' | 'FASUM'; nama_objek: string | null; tgl_spk: string; id_tipe: string | null; jenis_bobot: string; id_kantor: string; id_mandor: string; status_spk: string; tgl_target_selesai: string; is_active: boolean; configured_at:string|null;mode_progress:string };
+type Spk = { id_spk: string; no_spk:string; id_kavling: string | null; jenis_spk: 'KAVLING' | 'FASUM'; nama_objek: string | null; tgl_spk: string; id_tipe: string | null; jenis_bobot: string; id_kantor: string; id_mandor: string; status_spk: string; tgl_target_selesai: string; is_active: boolean; configured_at:string|null;mode_progress:string };
 type SpkKpi = { jenis_spk: 'KAVLING' | 'FASUM'; total_spk:number|string; aktif:number|string; draft:number|string; selesai:number|string };
 
 export default async function MasterSpkPage({ searchParams }: { searchParams: SearchParams }) {
@@ -36,7 +36,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
     supabase.from('master_mandor').select('id_mandor, nama_mandor, id_kantor').eq('status_aktif', true).order('nama_mandor'),
     supabase.from('master_kategori_pekerjaan').select('id_kategori, nama_kategori, urutan').eq('status_aktif', true).order('urutan'),
     supabase.from('template_progress_tipe').select('id_tipe, id_kategori, bobot_standar').order('id_tipe').order('id_kategori'),
-    supabase.from('spk').select('id_spk, id_kavling, jenis_spk, nama_objek, tgl_spk, id_tipe, jenis_bobot, id_kantor, id_mandor, status_spk, tgl_target_selesai, is_active, configured_at, mode_progress', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + PAGE_SIZE - 1),
+    supabase.from('spk').select('id_spk,no_spk, id_kavling, jenis_spk, nama_objek, tgl_spk, id_tipe, jenis_bobot, id_kantor, id_mandor, status_spk, tgl_target_selesai, is_active, configured_at, mode_progress', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + PAGE_SIZE - 1),
     supabase.rpc('kavio_spk_kpi_by_kind'),
   ]);
 
@@ -101,7 +101,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
             <thead><tr><th>OBJEK SPK</th><th>TANGGAL</th><th>TIPE</th><th>PELAKSANA</th><th>MANDOR</th><th>BOBOT</th><th>TARGET</th><th>STATUS</th><th>AKSI</th></tr></thead>
             <tbody>
               {spkRows.map((row) => <tr key={row.id_spk}>
-                <td><Link href={`/master/spk/detail/${row.id_spk}`} prefetch={false} className="spk-kavling">{row.jenis_spk === 'FASUM' ? `FASUM · ${row.nama_objek}` : row.id_kavling}</Link></td>
+                <td><Link href={`/master/spk/detail/${row.id_spk}`} prefetch={false} className="spk-kavling">{row.jenis_spk === 'FASUM' ? `FASUM · ${row.nama_objek}` : row.id_kavling}</Link><small className="kavio-cell-subtext">{row.no_spk}</small></td>
                 <td>{formatKavioDate(row.tgl_spk)}</td>
                 <td>{row.id_tipe ? tipeMap.get(row.id_tipe) ?? row.id_tipe : '—'}</td>
                 <td>{kantorMap.get(row.id_kantor) ?? row.id_kantor}</td>
@@ -115,7 +115,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
                   <Link href={`/master/spk/rab?id=${row.id_spk}`} className="kavio-button secondary">RAB MATERIAL</Link>
                   <KavioActionGate action="SPK_WRITE">
                     {row.status_spk === 'DRAFT' && !row.is_active ? <form action={activateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="kavio-button" disabled={!row.configured_at} title={!row.configured_at?'Simpan konfigurasi sebelum aktivasi':undefined}>AKTIFKAN</button></form> : null}
-                    {row.is_active ? <KavioConfirmAction action={deactivateSpk} hidden={{ id_spk: row.id_spk }} focusId={'spk_finish:'+row.id_spk} blockingMessage={finishMessage(row)} label="SELESAIKAN" confirmMessage={'Konfirmasi: SPK ' + row.id_spk.slice(0, 8) + ' untuk objek ' + (row.jenis_spk === 'FASUM' ? row.nama_objek : row.id_kavling) + ' akan ditandai SELESAI. Pastikan progress aktual sudah 100%. Lanjutkan?'} /> : null}
+                    {row.is_active ? <KavioConfirmAction action={deactivateSpk} hidden={{ id_spk: row.id_spk }} focusId={'spk_finish:'+row.id_spk} blockingMessage={finishMessage(row)} label="SELESAIKAN" confirmMessage={'Konfirmasi: SPK ' + row.no_spk + ' untuk objek ' + (row.jenis_spk === 'FASUM' ? row.nama_objek : row.id_kavling) + ' akan ditandai SELESAI. Pastikan progress aktual sudah 100%. Lanjutkan?'} /> : null}
                   </KavioActionGate>
                 </div></td>
               </tr>)}

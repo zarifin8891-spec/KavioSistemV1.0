@@ -1,3 +1,4 @@
+import {spkLabel} from '../lib/spk-label';
 import {formatKavioDate} from '../lib/date-format';
 import Link from 'next/link';
 import MaterialLossHistory,{type MaterialLossProposal} from './MaterialLossHistory';
@@ -23,7 +24,7 @@ export default async function MaterialPage({searchParams}:{searchParams:Promise<
   allRows<SpkStock>(supabase.from('v_material_stock_spk').select('*').gt('jumlah',0).order('id_spk').order('id_material')),
   allRows<MaterialOptions[number]&{status_aktif:boolean}>(supabase.from('master_material').select('id_material,nama_material,satuan,jenis_item,status_aktif').neq('jenis_item','UPAH').order('id_material')),
   allRows<LocationOptions[number]>(supabase.from('material_location').select('id_lokasi,kode_lokasi,nama_lokasi').eq('status_aktif',true).eq('jenis_lokasi','GUDANG').order('id_lokasi')),
-  allRows<Spk>(supabase.from('spk').select('id_spk,jenis_spk,id_kavling,nama_objek,is_active,status_spk').order('id_spk')),
+  allRows<Spk>(supabase.from('spk').select('id_spk,no_spk,jenis_spk,id_kavling,nama_objek,is_active,status_spk').order('id_spk')),
   allRows<Request>(supabase.from('material_request').select('id_permintaan,no_permintaan,id_spk,status,tanggal').order('created_at',{ascending:false}).order('id_permintaan')),
   allRows<RequestItem>(supabase.from('material_request_item').select('id_permintaan,id_material,jumlah_diminta,jumlah_dipenuhi').order('id_item_permintaan')),
   allRows<Supplier>(supabase.from('master_pemasok').select('id_pemasok,nama_pemasok,status_aktif').order('id_pemasok')),
@@ -43,7 +44,7 @@ export default async function MaterialPage({searchParams}:{searchParams:Promise<
  const actionProps={materials:materials.filter(m=>m.status_aktif),suppliers:suppliers.filter(s=>s.status_aktif),locations,spks:activeSpks,requestLines,spkStocks:spkStock.map(s=>({...s,jumlah:Number(s.jumlah)}))};
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const historyOptions={materials,suppliers,locations,spks,today};
- const stockRows=[...warehouse.map(s=>({key:`g:${s.id_lokasi}:${s.id_material}`,kind:'GUDANG',holder:s.id_lokasi,location:s.nama_lokasi,material:s.nama_material,unit:s.satuan,qty:Number(s.jumlah),average:Number(s.harga_rata_rata),value:Number(s.nilai_persediaan)})),...spkStock.map(s=>({key:`s:${s.id_spk}:${s.id_material}`,kind:'SPK',holder:s.id_spk,location:s.jenis_spk==='KAVLING'?`Kavling ${s.id_kavling}`:s.nama_objek,material:s.nama_material,unit:s.satuan,qty:Number(s.jumlah),average:Number(s.harga_rata_rata),value:Number(s.nilai_stok)}))];
+ const stockRows=[...warehouse.map(s=>({key:`g:${s.id_lokasi}:${s.id_material}`,kind:'GUDANG',holder:s.id_lokasi,location:s.nama_lokasi,material:s.nama_material,unit:s.satuan,qty:Number(s.jumlah),average:Number(s.harga_rata_rata),value:Number(s.nilai_persediaan)})),...spkStock.map(s=>({key:`s:${s.id_spk}:${s.id_material}`,kind:'SPK',holder:s.id_spk,location:spkLabel(spks.find(r=>r.id_spk===s.id_spk)??s),material:s.nama_material,unit:s.satuan,qty:Number(s.jumlah),average:Number(s.harga_rata_rata),value:Number(s.nilai_stok)}))];
  return <main className="kavio-page-stack">{params.error&&<div className="kavio-alert error">{params.error}</div>}{params.success&&<div className="kavio-alert success">{params.success}</div>}
  {rabAttention.error&&<div className="kavio-alert error">Kontrol RAB tidak dapat dibaca: {rabAttention.error.message}</div>}
  {(rabAttention.count??0)>0&&<div className="kavio-alert warning">Kontrol RAB: {rabAttention.count} item material perlu perhatian. <Link href="/master/spk" className="kavio-button secondary">LIHAT RAB SPK</Link></div>}

@@ -19,7 +19,7 @@ async function loadLot(id:string){
  // Prefer the current contract, otherwise show the latest historical contract explicitly.
  const [salesResult,spkResult]=await Promise.all([
   db.from('sales').select('id_sales,nama_konsumen,alamat_konsumen,hp_konsumen,status_sales,jenis_pembayaran,harga_jual,tgl_booking,tgl_akad,id_bank,id_notaris,status_aktif').eq('id_kavling',id).order('status_aktif',{ascending:false}).order('created_at',{ascending:false}).order('id_sales').limit(1).maybeSingle(),
-  db.from('spk').select('id_spk,tgl_spk,tgl_target_selesai,status_spk,id_kantor,id_mandor,mode_progress,total_upah_borongan,configured_at').eq('id_kavling',id).order('created_at',{ascending:false}).order('id_spk').limit(1).maybeSingle(),
+  db.from('spk').select('id_spk,no_spk,tgl_spk,tgl_target_selesai,status_spk,id_kantor,id_mandor,mode_progress,total_upah_borongan,configured_at').eq('id_kavling',id).order('created_at',{ascending:false}).order('id_spk').limit(1).maybeSingle(),
  ]);
  if(salesResult.error||spkResult.error)throw new Error(salesResult.error?.message??spkResult.error?.message);
  const sale=salesResult.data,spk=spkResult.data;
@@ -40,7 +40,7 @@ async function loadLot(id:string){
 }
 type Data=Awaited<ReturnType<typeof loadLot>>;
 export default function SiteplanLotModal({kavling,open,onClose}:{kavling:Lot|null;open:boolean;onClose:()=>void}){
- return <KavioFormModal open={open&&!!kavling} onClose={onClose} size="wide" ariaLabel={`Detail kavling ${kavling?.id_kavling??''}`}>{open&&kavling&&<LotDetail key={kavling.id_kavling} lot={kavling}/>}</KavioFormModal>;
+ return <KavioFormModal open={open&&!!kavling} onClose={onClose} size="full" className="kavio-overview-modal" ariaLabel={`Detail kavling ${kavling?.id_kavling??''}`}>{open&&kavling&&<LotDetail key={kavling.id_kavling} lot={kavling}/>}</KavioFormModal>;
 }
 function LotDetail({lot}:{lot:Lot}){
  const [data,setData]=useState<Data|null>(null),[error,setError]=useState(''),[revision,setRevision]=useState(0);
@@ -54,17 +54,16 @@ function LotDetail({lot}:{lot:Lot}){
   ...(!sale&&data?[{label:'HARGA STANDAR',value:formatKavioMoney(lot.harga_standar),money:true},{label:'HARGA TANAH / m²',value:formatKavioMoney(lot.harga_tanah_meter),money:true},{label:'HARGA JUAL',value:formatKavioMoney(lot.harga_jual),money:true}]:[]),
  ]}/></Panel>
  {error?<div className="kavio-alert error" role="alert">{error}</div>:!data?<p role="status">MEMUAT SALES, SPK & PROGRESS…</p>:<>
- {sale?<><Panel title={`SALES · ${sale.status_sales}${sale.status_aktif?'':' · HISTORIS'}`}><KavioDetailGrid items={[
-  {label:'KONSUMEN',value:sale.nama_konsumen},{label:'HP',value:sale.hp_konsumen??'—'},{label:'PEMBAYARAN',value:sale.jenis_pembayaran.replaceAll('_',' ')},{label:'BANK KPR',value:data.bank},{label:'BOOKING',value:formatKavioDate(sale.tgl_booking)},{label:'HARGA JUAL DASAR',value:formatKavioMoney(sale.harga_jual),money:true},
-  {label:'TANGGAL AKAD',value:formatKavioDate(sale.tgl_akad)},{label:'NOTARIS',value:data.notary},{label:'ALAMAT',value:sale.alamat_konsumen??'—',span:2},
-  ...(sale.jenis_pembayaran==='CASH_BERTAHAP'?[{label:'TENOR / POLA PELUNASAN',value:`${data.terms?.tenor_bulan??'—'} BULAN · ${data.terms?.pola_pelunasan?.replaceAll('_',' ')??'—'}`,span:2}]:[]),
-  ...data.costs.map(c=>({label:c.jenis_biaya,value:formatKavioMoney(c.nominal),money:true})),
+ {sale?<><Panel title={`SALES · ${sale.status_sales}${sale.status_aktif?'':' · HISTORIS'}`}><KavioDetailGrid columns={9} items={[
+  {label:'KONSUMEN',value:sale.nama_konsumen},{label:'HP',value:sale.hp_konsumen??'—'},{label:'PEMBAYARAN',value:sale.jenis_pembayaran.replaceAll('_',' ')+(sale.jenis_pembayaran==='CASH_BERTAHAP'?` · ${data.terms?.tenor_bulan??'—'} BULAN · ${data.terms?.pola_pelunasan?.replaceAll('_',' ')??'—'}`:'')},{label:'BANK KPR',value:data.bank},{label:'BOOKING',value:formatKavioDate(sale.tgl_booking)},{label:'HARGA JUAL DASAR',value:formatKavioMoney(sale.harga_jual),money:true},
+  {label:'TANGGAL AKAD',value:formatKavioDate(sale.tgl_akad)},{label:'NOTARIS',value:data.notary},{label:'ALAMAT',value:sale.alamat_konsumen??'—'},
+  
  ]}/></Panel><PaymentHistory key={sale.id_sales} idSales={sale.id_sales} embedded/>
  {data.stages.length>0&&<Panel title="HISTORI PROSES KPR"><div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>TANGGAL</th><th>TAHAP</th><th>KETERANGAN</th></tr></thead><tbody>{data.stages.map(s=><tr key={s.id_progress}><td>{formatKavioDate(s.tanggal_update)}</td><td>{s.tahap.replaceAll('_',' ')}</td><td>{s.keterangan??'—'}</td></tr>)}</tbody></table></div></Panel>}</>:<Panel title="SALES"><p className="kavio-panel-note">Belum ada Sales untuk kavling ini.</p></Panel>}
  {spk?<><Panel title="SPK & PROGRESS"><KavioDetailGrid items={[
-  {label:'NO. SPK',value:spk.id_spk},{label:'STATUS SPK',value:spk.status_spk},{label:'TANGGAL SPK',value:formatKavioDate(spk.tgl_spk)},{label:'TARGET SELESAI',value:formatKavioDate(spk.tgl_target_selesai)},{label:'KANTOR PELAKSANA',value:data.office},{label:'MANDOR',value:data.mandor},
-  {label:'INPUT PROGRESS',value:spk.mode_progress?.replaceAll('_',' ')??'—'},{label:'KONFIGURASI',value:spk.configured_at?'SUDAH DIKONFIGURASI':'BELUM DIKONFIGURASI'},{label:'TOTAL UPAH BORONGAN',value:formatKavioMoney(spk.total_upah_borongan),money:true},{label:'PROGRESS TOTAL',value:pct(data.current.reduce((n,r)=>n+Number(r.progress_berbobot??0),0))},
- ]}/><div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>PEKERJAAN</th><th className="kavio-number">BOBOT</th><th className="kavio-number">PROGRESS</th><th className="kavio-number">KONTRIBUSI</th><th>UPDATE TERAKHIR</th></tr></thead><tbody>{data.current.map(r=><tr key={r.id_item}><td>{r.nama_pekerjaan}</td><td className="kavio-number">{pct(r.bobot_final)}</td><td className="kavio-number">{pct(r.progress_akumulasi)}</td><td className="kavio-number">{pct(r.progress_berbobot)}</td><td>{formatKavioDate(r.tanggal_update_terakhir)}</td></tr>)}{!data.current.length&&<tr><td colSpan={5} className="kavio-empty">Konfigurasi pekerjaan belum tersedia.</td></tr>}</tbody></table></div></Panel>
+  {label:'NO. SPK',value:spk.no_spk},{label:'STATUS SPK',value:spk.status_spk},{label:'TANGGAL SPK',value:formatKavioDate(spk.tgl_spk)},{label:'TARGET SELESAI',value:formatKavioDate(spk.tgl_target_selesai)},{label:'KANTOR PELAKSANA',value:data.office},{label:'MANDOR',value:data.mandor},
+  {label:'PROGRESS TOTAL',value:pct(data.current.reduce((n,r)=>n+Number(r.progress_berbobot??0),0))},
+ ]} columns={7}/></Panel>
  <Panel title="S-CURVE PEMBANGUNAN">{spk.tgl_spk&&spk.tgl_target_selesai?<><KavioSCurve points={buildCurvePoints(spk.tgl_spk,spk.tgl_target_selesai,data.curve,today)} today={today}/><p className="kavio-panel-note">Rencana: garis emas · Aktual berbobot: garis hijau · Garis vertikal: hari ini. Rencana mengikuti rentang tanggal SPK dan target selesai.</p></>:<p className="kavio-panel-note">Tanggal SPK dan target selesai diperlukan untuk menampilkan S-Curve.</p>}</Panel></>:<Panel title="SPK & PROGRESS"><p className="kavio-panel-note">Belum ada SPK untuk kavling ini.</p></Panel>}
  </>}
  <KavioFormActions>{error&&<button type="button" className="kavio-button secondary" onClick={()=>setRevision(n=>n+1)}>MUAT ULANG</button>}</KavioFormActions>
