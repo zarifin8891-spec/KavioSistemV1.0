@@ -124,7 +124,8 @@
 .kavio-detail-item {min-width:0;grid-column:span var(--kavio-detail-span,1);padding:4px 0;border-bottom:1px solid rgba(216,180,90,.12);}
 .kavio-detail-item > span {display:block;color:var(--kavio-muted);font-size:var(--kavio-font-form-label);line-height:1.2;text-transform:uppercase;}
 .kavio-detail-item > strong {display:block;margin-top:3px;color:var(--kavio-ivory);font-size:var(--kavio-font-input);font-weight:400;line-height:1.3;overflow-wrap:anywhere;}
-.kavio-detail-money > strong {text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+.kavio-detail-money > span {text-align:right;}
+.kavio-detail-money > strong {text-align:right;margin-top:2px;font-variant-numeric:tabular-nums;font-weight:600;}
 .kavio-detail-item small {display:block;margin-top:3px;color:var(--kavio-muted);font-size:12px;font-weight:400;line-height:1.3;}
 @media(max-width:1100px){.kavio-detail-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
 @media(max-width:750px){.kavio-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
