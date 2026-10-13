@@ -1,3 +1,4 @@
+import KavioPaymentHistory from '../../../components/KavioPaymentHistory';
 import KavioFormActions from '../../../components/KavioFormActions';
 import Link from 'next/link';
 import SalesPaymentFields from '../SalesPaymentFields';
@@ -41,7 +42,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
    <section className="kavio-panel">
      <div className="kavio-panel-head">
        <div><h2 className="kavio-panel-title">DATA SALES — {s.id_kavling}</h2><div className="kavio-panel-note">Informasi konsumen, status penjualan, pembayaran, dan data akad.</div></div>
-       <KavioActionGate action="SALES_WRITE">
+       <div className="kavio-actions"><KavioPaymentHistory idSales={s.id_sales}/><KavioActionGate action="SALES_WRITE">
          <KavioModalAction formKey="sales-edit" buttonLabel="EDIT DATA SALES" title={`EDIT DATA SALES — ${s.id_kavling}`} note="Perbarui data transaksi dan lifecycle Sales lalu simpan." size="wide">
            <form id="sales-info-form" action={updateSalesInfo} className="kavio-form kavio-panel-body">
              <input type="hidden" name="id_sales" value={s.id_sales}/>
@@ -58,7 +59,7 @@ const [{data:sale,error:saleError},{data:banks},{data:notaries},{data:kpr},{data
              <KavioFormActions><button type="submit" className="kavio-button">SIMPAN PERUBAHAN</button></KavioFormActions>
            </form>
          </KavioModalAction>
-       </KavioActionGate>
+       </KavioActionGate></div>
      </div>
      <div className="kavio-read-grid kavio-panel-body">
        <div><span>KONSUMEN</span><strong>{s.nama_konsumen}</strong></div>
