@@ -136,7 +136,7 @@
 .kavio-overview-modal .kavio-detail-stack > .kavio-panel > .kavio-panel-head {position:static;padding:6px 12px;min-height:0;}
 .kavio-overview-modal .kavio-detail-stack > .kavio-panel > .kavio-panel-body {padding:6px 12px;gap:6px;}
 .kavio-overview-modal .kavio-detail-item {padding:2px 0;}
-.kavio-overview-modal .kavio-detail-grid {gap:5px 12px;}
+.kavio-overview-modal .kavio-detail-grid {gap:5px 8px;}
 .kavio-overview-modal .kavio-table-wrap {max-height:clamp(100px,18vh,170px);overflow:auto;}
 .kavio-overview-modal svg[aria-label="Curva-S progress pembangunan"] {height:clamp(140px,23vh,220px);}
 .kavio-overview-modal .kavio-panel-note {margin:3px 0;font-size:11px;}
@@ -147,3 +147,10 @@
 .kavio-panel-grid-two {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start;}
 .kavio-panel-grid-two > .kavio-panel {min-width:0;margin:0;}
 @media(max-width:800px){.kavio-panel-grid-two{grid-template-columns:1fr;}}
+
+/* Global summary beside chart, with compact overview spacing. */
+.kavio-panel-grid-summary-chart {grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:8px;align-items:stretch;}
+.kavio-overview-modal .kavio-panel-grid-two .kavio-panel-head {position:static;padding:6px 12px;}
+.kavio-overview-modal .kavio-panel-grid-two .kavio-panel-body {padding:8px 12px;}
+.kavio-panel-grid-summary-chart .kavio-detail-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+@media(max-width:900px){.kavio-panel-grid-summary-chart{grid-template-columns:1fr;}}

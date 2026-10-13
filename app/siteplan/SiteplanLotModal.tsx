@@ -40,7 +40,7 @@ async function loadLot(id:string){
 }
 type Data=Awaited<ReturnType<typeof loadLot>>;
 export default function SiteplanLotModal({kavling,open,onClose}:{kavling:Lot|null;open:boolean;onClose:()=>void}){
- return <KavioFormModal open={open&&!!kavling} onClose={onClose} size="full" className="kavio-overview-modal" ariaLabel={`Detail kavling ${kavling?.id_kavling??''}`}>{open&&kavling&&<LotDetail key={kavling.id_kavling} lot={kavling}/>}</KavioFormModal>;
+ return <KavioFormModal open={open&&!!kavling} onClose={onClose} size="wide" className="kavio-overview-modal" ariaLabel={`Detail kavling ${kavling?.id_kavling??''}`}>{open&&kavling&&<LotDetail key={kavling.id_kavling} lot={kavling}/>}</KavioFormModal>;
 }
 function LotDetail({lot}:{lot:Lot}){
  const [data,setData]=useState<Data|null>(null),[error,setError]=useState(''),[revision,setRevision]=useState(0);
@@ -60,11 +60,11 @@ function LotDetail({lot}:{lot:Lot}){
   
  ]}/></Panel><PaymentHistory key={sale.id_sales} idSales={sale.id_sales} embedded/>
  {data.stages.length>0&&<Panel title="HISTORI PROSES KPR"><div className="kavio-table-wrap"><table className="kavio-table"><thead><tr><th>TANGGAL</th><th>TAHAP</th><th>KETERANGAN</th></tr></thead><tbody>{data.stages.map(s=><tr key={s.id_progress}><td>{formatKavioDate(s.tanggal_update)}</td><td>{s.tahap.replaceAll('_',' ')}</td><td>{s.keterangan??'—'}</td></tr>)}</tbody></table></div></Panel>}</>:<Panel title="SALES"><p className="kavio-panel-note">Belum ada Sales untuk kavling ini.</p></Panel>}
- {spk?<><Panel title="SPK & PROGRESS"><KavioDetailGrid items={[
+ {spk?<div className="kavio-panel-grid-two kavio-panel-grid-summary-chart"><Panel title="SPK & PROGRESS"><KavioDetailGrid items={[
   {label:'NO. SPK',value:spk.no_spk},{label:'STATUS SPK',value:spk.status_spk},{label:'TANGGAL SPK',value:formatKavioDate(spk.tgl_spk)},{label:'TARGET SELESAI',value:formatKavioDate(spk.tgl_target_selesai)},{label:'KANTOR PELAKSANA',value:data.office},{label:'MANDOR',value:data.mandor},
   {label:'PROGRESS TOTAL',value:pct(data.current.reduce((n,r)=>n+Number(r.progress_berbobot??0),0))},
- ]} columns={7}/></Panel>
- <Panel title="S-CURVE PEMBANGUNAN">{spk.tgl_spk&&spk.tgl_target_selesai?<><KavioSCurve compact points={buildCurvePoints(spk.tgl_spk,spk.tgl_target_selesai,data.curve,today)} today={today}/><p className="kavio-panel-note">Rencana: garis emas · Aktual berbobot: garis hijau · Garis vertikal: hari ini. Rencana mengikuti rentang tanggal SPK dan target selesai.</p></>:<p className="kavio-panel-note">Tanggal SPK dan target selesai diperlukan untuk menampilkan S-Curve.</p>}</Panel></>:<Panel title="SPK & PROGRESS"><p className="kavio-panel-note">Belum ada SPK untuk kavling ini.</p></Panel>}
+ ]} columns={2}/></Panel>
+ <Panel title="S-CURVE PEMBANGUNAN">{spk.tgl_spk&&spk.tgl_target_selesai?<><KavioSCurve compact points={buildCurvePoints(spk.tgl_spk,spk.tgl_target_selesai,data.curve,today)} today={today}/><p className="kavio-panel-note">Rencana: garis emas · Aktual berbobot: garis hijau · Garis vertikal: hari ini. Rencana mengikuti rentang tanggal SPK dan target selesai.</p></>:<p className="kavio-panel-note">Tanggal SPK dan target selesai diperlukan untuk menampilkan S-Curve.</p>}</Panel></div>:<Panel title="SPK & PROGRESS"><p className="kavio-panel-note">Belum ada SPK untuk kavling ini.</p></Panel>}
  </>}
  <KavioFormActions>{error&&<button type="button" className="kavio-button secondary" onClick={()=>setRevision(n=>n+1)}>MUAT ULANG</button>}</KavioFormActions>
  </div>;
