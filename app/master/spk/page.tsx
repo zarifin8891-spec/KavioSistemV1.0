@@ -1,4 +1,5 @@
 import {SPK_KAVLING_START_STATUSES} from '../../lib/spk-eligibility';
+import {readAllQueryResult} from '../../lib/report-data';
 import Link from 'next/link';
 import KavioSplitKpi from '../../components/KavioSplitKpi';
 import { activateSpk, deactivateSpk } from './actions';
@@ -18,7 +19,7 @@ type Kantor = { id_kantor: string; nama_kantor_pelaksana: string };
 type Mandor = { id_mandor: string; nama_mandor: string; id_kantor: string };
 type Kategori = { id_kategori: string; nama_kategori: string; urutan: number };
 type Template = { id_tipe: string; id_kategori: string; bobot_standar: number | string };
-type Spk = { id_spk: string; id_kavling: string | null; jenis_spk: 'KAVLING' | 'FASUM'; nama_objek: string | null; tgl_spk: string; id_tipe: string | null; jenis_bobot: string; id_kantor: string; id_mandor: string; status_spk: string; tgl_target_selesai: string; is_active: boolean; configured_at:string|null };
+type Spk = { id_spk: string; id_kavling: string | null; jenis_spk: 'KAVLING' | 'FASUM'; nama_objek: string | null; tgl_spk: string; id_tipe: string | null; jenis_bobot: string; id_kantor: string; id_mandor: string; status_spk: string; tgl_target_selesai: string; is_active: boolean; configured_at:string|null;mode_progress:string };
 type SpkKpi = { jenis_spk: 'KAVLING' | 'FASUM'; total_spk:number|string; aktif:number|string; draft:number|string; selesai:number|string };
 
 export default async function MasterSpkPage({ searchParams }: { searchParams: SearchParams }) {
@@ -35,7 +36,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
     supabase.from('master_mandor').select('id_mandor, nama_mandor, id_kantor').eq('status_aktif', true).order('nama_mandor'),
     supabase.from('master_kategori_pekerjaan').select('id_kategori, nama_kategori, urutan').eq('status_aktif', true).order('urutan'),
     supabase.from('template_progress_tipe').select('id_tipe, id_kategori, bobot_standar').order('id_tipe').order('id_kategori'),
-    supabase.from('spk').select('id_spk, id_kavling, jenis_spk, nama_objek, tgl_spk, id_tipe, jenis_bobot, id_kantor, id_mandor, status_spk, tgl_target_selesai, is_active, configured_at', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + PAGE_SIZE - 1),
+    supabase.from('spk').select('id_spk, id_kavling, jenis_spk, nama_objek, tgl_spk, id_tipe, jenis_bobot, id_kantor, id_mandor, status_spk, tgl_target_selesai, is_active, configured_at, mode_progress', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + PAGE_SIZE - 1),
     supabase.rpc('kavio_spk_kpi_by_kind'),
   ]);
 
@@ -46,6 +47,19 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
   const kategoriRows = (kategoriRes.data ?? []) as Kategori[];
   const templateRows = (templateRes.data ?? []) as Template[];
   const spkRows = (spkRes.data ?? []) as Spk[];
+  const activeIds=spkRows.filter(r=>r.is_active).map(r=>r.id_spk);
+  const [itemProgress,detailProgress]=activeIds.length?await Promise.all([
+    readAllQueryResult(supabase.from('v_spk_work_item_progress_current').select('id_spk,id_item,bobot_final,progress_akumulasi,progress_berbobot').in('id_spk',activeIds).order('id_spk').order('id_item')),
+    readAllQueryResult(supabase.from('v_spk_work_detail_progress_current').select('id_spk,id_detail,progress_akumulasi').in('id_spk',activeIds).order('id_spk').order('id_detail')),
+  ]):[{data:[],error:null},{data:[],error:null}];
+  const completionError=itemProgress.error?.message??detailProgress.error?.message;
+  const finishMessage=(row:Spk)=>{
+    if(completionError)return 'Progress belum dapat diperiksa. Muat ulang halaman.';
+    const items=(itemProgress.data??[]).filter(r=>r.id_spk===row.id_spk),details=(detailProgress.data??[]).filter(r=>r.id_spk===row.id_spk);
+    const total=items.reduce((n,r)=>n+Number(r.progress_berbobot),0);
+    const complete=items.length>0&&Math.round(total*10000)/100>=100&&(row.mode_progress==='PERINCIAN'?details.length>0&&details.every(r=>Number(r.progress_akumulasi)>=1):items.every(r=>Number(r.bobot_final)<=0||Number(r.progress_akumulasi)>=1));
+    return complete?undefined:'Progress belum 100%';
+  };
   const kpiRows = (kpiRes.data ?? []) as SpkKpi[];
   const kpi = { total_spk:0, aktif:0, draft:0, selesai:0 };
   for (const row of kpiRows) for (const key of Object.keys(kpi) as (keyof typeof kpi)[]) kpi[key] += Number(row[key]);
@@ -101,7 +115,7 @@ const [kavlingRes, tipeRes, kantorRes, mandorRes, kategoriRes, templateRes, spkR
                   <Link href={`/master/spk/rab?id=${row.id_spk}`} className="kavio-button secondary">RAB MATERIAL</Link>
                   <KavioActionGate action="SPK_WRITE">
                     {row.status_spk === 'DRAFT' && !row.is_active ? <form action={activateSpk}><input type="hidden" name="id_spk" value={row.id_spk} /><button type="submit" className="kavio-button" disabled={!row.configured_at} title={!row.configured_at?'Simpan konfigurasi sebelum aktivasi':undefined}>AKTIFKAN</button></form> : null}
-                    {row.is_active ? <KavioConfirmAction action={deactivateSpk} hidden={{ id_spk: row.id_spk }} label="SELESAIKAN" confirmMessage={'Konfirmasi: SPK ' + row.id_spk.slice(0, 8) + ' untuk objek ' + (row.jenis_spk === 'FASUM' ? row.nama_objek : row.id_kavling) + ' akan ditandai SELESAI. Pastikan progress aktual sudah 100%. Lanjutkan?'} /> : null}
+                    {row.is_active ? <KavioConfirmAction action={deactivateSpk} hidden={{ id_spk: row.id_spk }} focusId={'spk_finish:'+row.id_spk} blockingMessage={finishMessage(row)} label="SELESAIKAN" confirmMessage={'Konfirmasi: SPK ' + row.id_spk.slice(0, 8) + ' untuk objek ' + (row.jenis_spk === 'FASUM' ? row.nama_objek : row.id_kavling) + ' akan ditandai SELESAI. Pastikan progress aktual sudah 100%. Lanjutkan?'} /> : null}
                   </KavioActionGate>
                 </div></td>
               </tr>)}

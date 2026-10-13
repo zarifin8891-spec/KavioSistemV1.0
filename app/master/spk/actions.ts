@@ -222,7 +222,7 @@ export async function deactivateSpk(formData: FormData) {
   if (!idSpk) pageError('ID SPK tidak valid');
 
   const { data: nextStatus, error } = await supabase.rpc('deactivate_spk_atomic', { p_id_spk: idSpk });
-  if (error) pageError(error.message);
+  if(error)redirectKavioFormError('/master/spk',error.message,{focus:'spk_finish:'+idSpk});
 
   const finalStatus = String(nextStatus ?? 'READY_STOCK');
   revalidatePath('/master/spk');

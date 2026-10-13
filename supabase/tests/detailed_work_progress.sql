@@ -51,7 +51,7 @@ begin
  select id_item into rp from public.spk_work_item where id_spk=rid;
  perform public.configure_spk_work_atomic(rid,'PERINCIAN',15569000,jsonb_build_array(jsonb_build_object('id_kategori',rp,'bobot',.999964)),jsonb_build_array(jsonb_build_object('group_id',rp,'urutan',1,'nama_pekerjaan','Persiapan','volume',10,'satuan','m2','bobot',.333333,'retensi',.05,'id_mandor',m1),jsonb_build_object('group_id',rp,'urutan',2,'nama_pekerjaan','Pengecatan','volume',10,'satuan','m2','bobot',.666631,'retensi',0,'id_mandor',m2)));
  perform public.activate_spk_atomic(rid);
- perform pg_temp.expect_detail_error(format('select public.deactivate_spk_atomic(%L)',rid),'BELUM DAPAT DISELESAIKAN');
+ perform pg_temp.expect_detail_error(format('select public.deactivate_spk_atomic(%L)',rid),'Progress belum 100%');
  select jsonb_agg(jsonb_build_object('id_item',id_detail,'progress_percent',100)) into input from public.spk_work_detail where id_item=rp;
  perform public.insert_work_detail_progress_batch_atomic(rid,current_date,input);
  if exists(select 1 from public.v_spk_work_detail_progress_current where id_spk=rid and upah_bruto<>upah_item) then raise exception 'FAILED rounded item wage at completion'; end if;
